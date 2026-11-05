@@ -1,6 +1,6 @@
 export { seatService, useSeatVersion } from './services/seatService'
 export { ticketService, useTicketClaims } from './services/ticketService'
-export { gownService, useGownRecord } from './services/gownService'
+export { gownService, useGownRecord, BISHT_SIZES, ABAYA_SIZES } from './services/gownService'
 export { honorService } from './services/honorService'
 export { adminService, useExceptions } from './services/adminService'
 export { PERSONAS } from './fixtures/graduates'

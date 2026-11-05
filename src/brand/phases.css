@@ -4,3 +4,6 @@
 .phase-banner { animation: banner-in 260ms var(--ease-out-strong); }
 @keyframes banner-in { from { opacity: 0; transform: translateY(-100%); } to { opacity: 1; transform: translateY(0); } }
 [data-day-ascent][data-slot='ceremony'] .marker-pulse { animation: none; }
+
+.award-fallback-rise { animation: award-rise 2.2s var(--ease-out-strong) both; }
+@keyframes award-rise { from { opacity: 0; transform: translateY(48px) scale(0.96); } to { opacity: 1; transform: translateY(0) scale(1); } }

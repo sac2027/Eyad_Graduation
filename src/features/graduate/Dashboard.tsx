@@ -75,7 +75,7 @@ export function Dashboard() {
                 ) : task.to ? (
                   <ButtonLink to={task.to} variant="secondary">{task.cta}</ButtonLink>
                 ) : task.id === 'candidacy' ? (
-                  <Button onClick={() => confirm(persona.id)} disabled={status === 'upcoming'}>{task.cta}</Button>
+                  <Button onClick={() => confirm(persona.id)} disabled={status === 'upcoming' || status === 'closed'}>{task.cta}</Button>
                 ) : null}
               </div>
             </li>

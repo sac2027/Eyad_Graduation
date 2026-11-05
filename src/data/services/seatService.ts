@@ -1,7 +1,7 @@
 import { createStore, type StoreApi } from 'zustand/vanilla'
 import { useStore } from 'zustand'
 import { err, ok, type Result } from '@/domain/types'
-import type { Seat, SectionDef, SectionSummary } from '@/domain/seats'
+import { isHoldActive, type Seat, type SectionDef, type SectionSummary } from '@/domain/seats'
 import { SECTION_DEFS } from '../fixtures/seats'
 
 export const HOLD_TTL_MS = 10 * 60_000
@@ -26,6 +26,12 @@ export function createSeatService(defs: SectionDef[] = SECTION_DEFS, rivalSeed =
   const needsEasyAccess = new Set<string>()
   const rand = mulberry32(rivalSeed)
 
+  function build() {
+  seats.clear()
+  bySection.clear()
+  held.clear()
+  byUser.clear()
+  needsEasyAccess.clear()
   for (const d of defs) {
     const ids: string[] = []
     for (let r = 1; r <= d.rows; r++) {
@@ -37,6 +43,8 @@ export function createSeatService(defs: SectionDef[] = SECTION_DEFS, rivalSeed =
     }
     bySection.set(d.id, ids)
   }
+  }
+  build()
 
   const store: StoreApi<{ version: number }> = createStore(() => ({ version: 0 }))
   const bump = () => store.setState((s) => ({ version: s.version + 1 }))
@@ -50,14 +58,14 @@ export function createSeatService(defs: SectionDef[] = SECTION_DEFS, rivalSeed =
   const free = (s: Seat) => {
     held.delete(s.id)
     byUser.get(s.heldBy ?? '')?.delete(s.id)
-    put({ ...s, status: 'available', heldBy: undefined, heldUntil: undefined })
+    put({ ...s, status: 'available', heldBy: undefined, heldAt: undefined, heldUntil: undefined })
   }
 
   function expireHolds(now: number) {
     let changed = false
     for (const id of [...held]) {
       const s = seats.get(id)!
-      if (s.heldUntil !== undefined && s.heldUntil <= now) {
+      if (!isHoldActive(s, now)) {
         free(s)
         changed = true
       }
@@ -69,7 +77,7 @@ export function createSeatService(defs: SectionDef[] = SECTION_DEFS, rivalSeed =
     let n = 0
     for (const id of byUser.get(userId) ?? []) {
       const s = seats.get(id)!
-      if (s.status === 'confirmed' || (s.status === 'held' && (s.heldUntil ?? 0) > now)) n++
+      if (s.status === 'confirmed' || isHoldActive(s, now)) n++
     }
     return n
   }
@@ -83,6 +91,16 @@ export function createSeatService(defs: SectionDef[] = SECTION_DEFS, rivalSeed =
       bump()
     },
     getSeat: (id: string): Seat | undefined => seats.get(id),
+    /** Demo only: back to a fresh stadium. */
+    reset() {
+      build()
+      bump()
+    },
+    countConfirmed(): number {
+      let n = 0
+      for (const x of seats.values()) if (x.status === 'confirmed') n++
+      return n
+    },
     totalSeats: () => seats.size,
     listSections(): SectionSummary[] {
       return defs.map((d) => {
@@ -103,7 +121,7 @@ export function createSeatService(defs: SectionDef[] = SECTION_DEFS, rivalSeed =
       if (!seat) return err('not-found')
       if (seat.zone === 'vip' || seat.zone === 'ops') return err('blocked')
       if (seat.zone === 'easy-access' && !needsEasyAccess.has(userId)) return err('blocked')
-      if (seat.status === 'held' && (seat.heldUntil ?? 0) <= now) {
+      if (seat.status === 'held' && !isHoldActive(seat, now)) {
         free(seat)
       }
       const cur = seats.get(seatId)!
@@ -113,7 +131,7 @@ export function createSeatService(defs: SectionDef[] = SECTION_DEFS, rivalSeed =
         return err('taken')
       }
       if (activeCount(userId, now) >= MAX_SEATS_PER_USER) return err('limit')
-      const next: Seat = { ...cur, status: 'held', heldBy: userId, heldUntil: now + HOLD_TTL_MS }
+      const next: Seat = { ...cur, status: 'held', heldBy: userId, heldAt: now, heldUntil: now + HOLD_TTL_MS }
       put(next)
       held.add(seatId)
       userSet(userId).add(seatId)
@@ -130,7 +148,7 @@ export function createSeatService(defs: SectionDef[] = SECTION_DEFS, rivalSeed =
     confirm(userId: string, now: number): Result<Seat[], 'no-hold' | 'expired'> {
       const mine = [...(byUser.get(userId) ?? [])].map((id) => seats.get(id)!).filter((s) => s.status === 'held')
       if (mine.length === 0) return err('no-hold')
-      const expired = mine.filter((s) => (s.heldUntil ?? 0) <= now)
+      const expired = mine.filter((s) => !isHoldActive(s, now))
       if (expired.length > 0) {
         for (const s of expired) free(s)
         bump()
@@ -139,7 +157,7 @@ export function createSeatService(defs: SectionDef[] = SECTION_DEFS, rivalSeed =
       const out: Seat[] = []
       for (const s of mine) {
         held.delete(s.id)
-        const next: Seat = { ...s, status: 'confirmed', confirmedBy: userId, heldBy: undefined, heldUntil: undefined }
+        const next: Seat = { ...s, status: 'confirmed', confirmedBy: userId, heldBy: undefined, heldAt: undefined, heldUntil: undefined }
         put(next)
         out.push(next)
       }

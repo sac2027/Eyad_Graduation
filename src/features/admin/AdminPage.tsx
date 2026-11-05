@@ -43,7 +43,7 @@ export function AdminPage() {
   }
 
   const cap = computeCapacity({ totalSeats: TOTAL_SEATS, graduates: GRADUATES, reserved: RESERVED })
-  const confirmed = seatService.listSections().reduce((n, s) => n + (s.total - s.available), 0)
+  const confirmed = seatService.countConfirmed()
   const fmt = (n: number) => formatNumber(n, locale)
 
   const submit = () => {

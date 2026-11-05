@@ -3,6 +3,7 @@ import { MatrixLoop } from '@/brand/matrix/MatrixLoop'
 import { honorTier } from '@/domain/honorTier'
 import { useGownRecord } from '@/data'
 import { useLocale, useT, formatDate } from '@/i18n'
+import { daysSinceLabel } from '@/i18n/plurals'
 import { useSession } from '@/session/sessionStore'
 import { SCHEDULE } from '@/time/schedule'
 import { ButtonLink } from '@/ui/Button'
@@ -47,7 +48,7 @@ export function Afterglow() {
                   {isGrad ? t('afterglow.title', { name: persona.name[locale] }) : t('afterglow.guest')}
                 </h2>
                 <p className="mt-2 text-lg">{t('afterglow.note')}</p>
-                <p className="mt-1 text-sm opacity-90" data-days-since={n}>{t('count.since', { n })}</p>
+                <p className="mt-1 text-sm opacity-90" data-days-since={n}>{daysSinceLabel(locale, n)}</p>
               </div>
             </div>
             <ul className="mt-8 grid gap-3 sm:grid-cols-2">

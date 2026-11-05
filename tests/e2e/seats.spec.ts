@@ -22,15 +22,15 @@ test('a hold counts down on simulated time and releases when time passes it', as
   await expect(page.locator('[data-seat="G01-1-5"]')).toHaveAttribute('data-state', 'available')
 })
 
-test('scrubbing back before the hold keeps it and never duplicates it', async ({ page }) => {
+test('scrubbing back before the hold releases it and never duplicates it', async ({ page }) => {
   await page.goto(BASE)
   await openSection(page)
   await page.locator('[data-seat="G01-1-6"]').click()
   await page.getByRole('button', { name: 'Hold this seat for 10 minutes' }).click()
   await page.getByRole('button', { name: 'Demo', exact: true }).click()
   await page.getByLabel('Jump to date and time').fill('2027-03-20T09:00')
-  await expect(page.locator('[data-hold-bar]')).toBeVisible()
-  await expect(page.locator('[data-seat][data-state="mine"]')).toHaveCount(1)
+  await expect(page.locator('[data-hold-bar]')).toHaveCount(0)
+  await expect(page.locator('[data-seat][data-state="mine"]')).toHaveCount(0)
 })
 
 test('a rival taking the seat you selected shows the conflict and a suggestion', async ({ page }) => {

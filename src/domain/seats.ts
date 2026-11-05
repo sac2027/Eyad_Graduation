@@ -9,6 +9,7 @@ export interface Seat {
   zone: SeatZone
   status: SeatStatus
   heldBy?: string
+  heldAt?: number
   heldUntil?: number
   confirmedBy?: string
 }
@@ -25,4 +26,12 @@ export interface SectionDef {
   zone: SeatZone
   rows: number
   perRow: number
+}
+
+/**
+ * A hold is active only between when it was made and when it runs out. Time can be scrubbed backwards in the demo,
+ * so a hold made "later" than the current simulated time is not active either.
+ */
+export function isHoldActive(seat: Seat, now: number): boolean {
+  return seat.status === 'held' && (seat.heldAt ?? -Infinity) <= now && (seat.heldUntil ?? 0) > now
 }

@@ -16,7 +16,11 @@ function initialId(): string {
 
 export const useSessionStore = create<{ personaId: string; setPersona(id: string): void }>((set) => ({
   personaId: initialId(),
-  setPersona: (personaId) => set({ personaId }),
+  setPersona(personaId) {
+    // A GPA override belongs to the persona it was set for.
+    if (personaId !== useSessionStore.getState().personaId) useDemoFlags.getState().setGpaOverride(null)
+    set({ personaId })
+  },
 }))
 
 const WORST_CASE_NAME = {

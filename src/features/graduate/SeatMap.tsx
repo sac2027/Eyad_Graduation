@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import clsx from 'clsx'
-import type { Seat, SectionSummary } from '@/domain/seats'
+import { isHoldActive, type Seat, type SectionSummary } from '@/domain/seats'
 import { seatService, useSeatVersion } from '@/data'
 import { useLocale, useT } from '@/i18n'
 import { seatsLabel } from '@/i18n/plurals'
@@ -62,7 +62,7 @@ function Overview({ sections, selected, onPick, canEasy }: { sections: SectionSu
 
 function seatState(seat: Seat, userId: string, now: number): 'available' | 'mine' | 'held' | 'confirmed' | 'blocked' {
   if (seat.status === 'confirmed') return seat.confirmedBy === userId ? 'mine' : 'confirmed'
-  if (seat.status === 'held' && (seat.heldUntil ?? 0) > now) return seat.heldBy === userId ? 'mine' : 'held'
+  if (isHoldActive(seat, now)) return seat.heldBy === userId ? 'mine' : 'held'
   return seat.status === 'blocked' ? 'blocked' : 'available'
 }
 
@@ -102,6 +102,8 @@ export function SeatMap({ userId, allowance, canEasy, onConfirmed }: SeatMapProp
   const held = mine.filter((s) => s.status === 'held')
   const seats = section ? seatService.listSeats(section) : []
   const rows = [...new Set(seats.map((s) => s.row))]
+  // Roving tabindex: one tab stop for the grid, on the picked seat or the first free one.
+  const tabStop = (picked && seats.some((s) => s.id === picked) ? picked : seats.find((s) => seatState(s, userId, now) === 'available')?.id) ?? seats[0]?.id
   const pickedSeat = picked ? seatService.getSeat(picked) : undefined
   const label = (s: Seat) => t('seat.label', { section: s.section, row: s.row, number: s.number })
   const soonest = held.length ? Math.min(...held.map((s) => s.heldUntil ?? 0)) : null
@@ -162,7 +164,7 @@ export function SeatMap({ userId, allowance, canEasy, onConfirmed }: SeatMapProp
             {rows.map((r) => (
               <div key={r} className="mb-1 flex items-center gap-1">
                 <span aria-hidden className="w-5 text-xs">{r}</span>
-                {seats.filter((s) => s.row === r).map((s, i) => {
+                {seats.filter((s) => s.row === r).map((s) => {
                   const st = seatState(s, userId, now)
                   const disabled = st === 'held' || st === 'confirmed' || st === 'blocked'
                   return (
@@ -173,11 +175,11 @@ export function SeatMap({ userId, allowance, canEasy, onConfirmed }: SeatMapProp
                       data-state={st}
                       data-row={s.row}
                       data-num={s.number}
-                      tabIndex={i === 0 && r === rows[0] ? 0 : -1}
-                      disabled={disabled}
+                      tabIndex={s.id === tabStop ? 0 : -1}
+                      aria-disabled={disabled || undefined}
                       aria-label={`${label(s)}, ${t(`seat.state.${st === 'mine' ? 'mine' : st}`)}`}
                       aria-pressed={picked === s.id}
-                      onClick={() => { setPicked(s.id); setConflict(null) }}
+                      onClick={() => { if (disabled) return; setPicked(s.id); setConflict(null) }}
                       className={clsx('size-6 shrink-0 rounded-sm text-[9px] font-bold transition-transform duration-150 active:scale-95', SEAT_STYLE[st], picked === s.id && 'ring-2 ring-turquoise ring-offset-1')}
                     >
                       {s.number}

@@ -58,10 +58,11 @@ export function createGownService(opts: { schedule?: Schedule; slotCapacity?: nu
       set(userId, rec)
       return ok(rec)
     },
-    bookPickup(userId: string, slotId: string, now: number): Result<GownRecord, 'closed' | 'full' | 'out-of-order' | 'no-slot'> {
+    bookPickup(userId: string, slotId: string, now: number): Result<GownRecord, 'closed' | 'full' | 'out-of-order' | 'no-slot' | 'past'> {
       if (now < s.pickupOpens - 14 * DAY || now > s.pickupCloses) return err('closed')
       const slot = slots.find((x) => x.id === slotId)
       if (!slot) return err('no-slot')
+      if (slot.start <= now) return err('past')
       const cur = get(userId)
       if (cur.status !== 'requested') return err('out-of-order')
       if (this.slotLoad(slotId) >= slot.capacity) return err('full')
@@ -69,6 +70,10 @@ export function createGownService(opts: { schedule?: Schedule; slotCapacity?: nu
       const rec: GownRecord = { ...cur, status: 'slot-booked', slotId }
       set(userId, rec)
       return ok(rec)
+    },
+    /** Demo only: clear every record. */
+    reset() {
+      store.setState({ records: {}, booked: {} })
     },
     markPickedUp(userId: string): Result<GownRecord, 'out-of-order'> {
       const cur = get(userId)

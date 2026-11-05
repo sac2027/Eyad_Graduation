@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { placesLeft, seatsLabel } from '@/i18n/plurals'
+import { daysSinceLabel, placesLeft, seatsLabel } from '@/i18n/plurals'
 
 describe('seatsLabel', () => {
   it.each([
@@ -39,5 +39,19 @@ describe('placesLeft', () => {
   it('covers English', () => {
     expect(placesLeft('en', 1)).toBe('one place left')
     expect(placesLeft('en', 7)).toBe('7 places left')
+  })
+})
+
+describe('daysSinceLabel', () => {
+  it('covers the Arabic forms', () => {
+    expect(daysSinceLabel('ar', 1)).toBe('مرّ يوم واحد على الحفل')
+    expect(daysSinceLabel('ar', 2)).toBe('مرّ يومان على الحفل')
+    expect(daysSinceLabel('ar', 5)).toContain('أيام')
+    expect(daysSinceLabel('ar', 12)).toContain('يومًا')
+    expect(daysSinceLabel('ar', 100)).toContain('يوم')
+  })
+  it('covers English', () => {
+    expect(daysSinceLabel('en', 1)).toBe('1 day since the ceremony')
+    expect(daysSinceLabel('en', 3)).toBe('3 days since the ceremony')
   })
 })

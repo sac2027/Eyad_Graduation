@@ -12,8 +12,13 @@ export function createAdminService() {
   const store = createStore<{ exceptions: Exception[] }>(() => ({
     exceptions: [{ id: '202000123', name: 'Mock: international student leaving before the ceremony', reason: 'Attends the ceremony, not a candidate' }],
   }))
+  const initial = store.getState().exceptions
   return {
     store,
+    /** Demo only: back to the starting list. */
+    reset() {
+      store.setState({ exceptions: initial })
+    },
     list: () => store.getState().exceptions,
     addException(e: Exception): Result<Exception, 'invalid' | 'duplicate'> {
       const id = e.id.trim()

@@ -1,9 +1,17 @@
 import { useEffect, useState } from 'react'
 import { create } from 'zustand'
 
+function initialOverride(): boolean | null {
+  try {
+    return new URLSearchParams(window.location.search).get('reduced') === '1' ? true : null
+  } catch {
+    return null
+  }
+}
+
 /** Demo-console override: null follows the system setting. */
 export const useMotionOverride = create<{ reduced: boolean | null; setReduced(v: boolean | null): void }>((set) => ({
-  reduced: null,
+  reduced: initialOverride(),
   setReduced: (reduced) => set({ reduced }),
 }))
 

@@ -45,11 +45,12 @@ export function Tickets() {
   }
 
   const w = SCHEDULE.stages.tickets
-  const bookingOpen = now >= w.opens && now <= w.closes!
   const ent = ticketService.getEntitlement(persona.id)
   void claims
   const remaining = ticketService.remaining(now)
   const claimsOpen = ticketService.claimsOpen(now)
+  // Free booking runs to the deadline, then reopens once unclaimed seats are released.
+  const bookingOpen = claimsOpen
   const allowance = 1 + (ent.second === 'claimed' ? 1 : 0)
   const confirmed = seatService.listUserSeats(persona.id).filter((s) => s.status === 'confirmed')
   const canEasy = seatService.needsEasyAccess(persona.id)
@@ -92,7 +93,8 @@ export function Tickets() {
                   disabled={!claimsOpen}
                   onClick={() => {
                     const r = ticketService.claimSecond(persona.id, now)
-                    if (!r.ok) toast.error(t('attire.error.closed'))
+                    if (!r.ok) toast.error(r.error === 'already-claimed' ? t('tickets.error.already') : t('tickets.error.closed'))
+                    else toast.success(r.value === 'claimed' ? t('tickets.claimed') : t('tickets.waitlist', { date: formatDate(SCHEDULE.seatsReleased, locale) }))
                   }}
                 >
                   {t('tickets.claim')}

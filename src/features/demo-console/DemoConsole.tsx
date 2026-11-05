@@ -11,6 +11,8 @@ import { useMotionOverride } from '@/ui/motionPrefs'
 import { Button } from '@/ui/Button'
 import { Chip } from '@/ui/Chip'
 import { useDemoFlags } from './flags'
+import { toast } from '@/ui/toast'
+import { resetDemoData } from './resetData'
 import { Scrubber } from './Scrubber'
 import { useUrlSync } from './urlSync'
 
@@ -47,7 +49,7 @@ export function DemoConsole() {
         >
           <header className="mb-3 flex items-center justify-between">
             <h2 className="font-display text-base font-bold text-turquoise">Demo console</h2>
-            <span className="text-xs text-gray">mock data</span>
+            <span className="text-xs text-ink">mock data</span>
           </header>
 
           <Row label="Simulated time (Riyadh)">
@@ -128,6 +130,10 @@ export function DemoConsole() {
               <Chip selected={flags.worstCase} onToggle={flags.setWorstCase}>Worst-case data</Chip>
               <Chip selected={flags.dateStatus === 'tbc'} onToggle={(v) => flags.setDateStatus(v ? 'tbc' : 'confirmed')}>Date TBC</Chip>
             </div>
+          </Row>
+
+          <Row label="Data">
+            <Button variant="ghost" onClick={() => { resetDemoData(); toast.success('Demo data reset') }}>Reset demo data</Button>
           </Row>
         </section>
       )}

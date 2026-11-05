@@ -39,4 +39,17 @@ describe('gownService', () => {
     expect(g.bookPickup('a', id, at('2027-03-28T08:00:00')).ok).toBe(true)
     expect(g.bookPickup('b', id, at('2027-03-28T08:00:00'))).toEqual({ ok: false, error: 'full' })
   })
+  it('refuses a pickup slot that has already started', () => {
+    const g = createGownService()
+    g.requestSize('u', '56', 'm', open)
+    const slot = g.slots[3]
+    expect(g.bookPickup('u', slot.id, slot.start)).toEqual({ ok: false, error: 'past' })
+    expect(g.bookPickup('u', slot.id, slot.start - 1).ok).toBe(true)
+  })
+  it('reset clears every record', () => {
+    const g = createGownService()
+    g.requestSize('u', '56', 'm', open)
+    g.reset()
+    expect(g.get('u').status).toBe('none')
+  })
 })

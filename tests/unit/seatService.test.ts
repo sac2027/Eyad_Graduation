@@ -45,11 +45,17 @@ describe('seatService', () => {
     s.hold('G01-1-1', 'a', T)
     s.expireHolds(T + HOLD_TTL_MS - 1)
     expect(s.getSeat('G01-1-1')?.status).toBe('held')
-    s.expireHolds(T - 60 * 60_000) // scrubbing backwards never deletes or duplicates holds
-    expect(s.getSeat('G01-1-1')?.status).toBe('held')
     s.expireHolds(T + HOLD_TTL_MS + 1)
     expect(s.getSeat('G01-1-1')?.status).toBe('available')
     expect(s.listUserSeats('a')).toHaveLength(0)
+  })
+  it('releases a hold that would not exist yet when time is scrubbed back before it', () => {
+    const s = createSeatService()
+    s.hold('G01-1-1', 'a', T)
+    s.expireHolds(T - 60 * 60_000)
+    expect(s.getSeat('G01-1-1')?.status).toBe('available')
+    expect(s.listUserSeats('a')).toHaveLength(0)
+    expect(s.hold('G01-1-1', 'b', T - 60 * 60_000).ok).toBe(true)
   })
   it('does not resurrect an expired hold when time goes back', () => {
     const s = createSeatService()

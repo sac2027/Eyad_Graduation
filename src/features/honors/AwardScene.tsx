@@ -67,27 +67,49 @@ function Scene({ tier, name, locale, trim, instant, skipToken, replayToken, onBe
   const windowShape = useMemo(() => buildWindowShape(), [])
   const places = useMemo(() => windowPlacements(), [])
 
+  // The plaque is swapped in place when the name or language changes; the opening sequence is not replayed.
+  const texRef = useRef<THREE.CanvasTexture | null>(null)
+  const skipRequested = useRef(false)
   useEffect(() => {
     let alive = true
-    let t: THREE.CanvasTexture | null = null
     void createNamePlaqueTexture(name, locale).then((x) => {
       if (!alive) return x.dispose()
-      t = x
+      const old = texRef.current
+      texRef.current = x
       setTex(x)
+      invalidate()
+      old?.dispose()
     })
     return () => {
       alive = false
-      t?.dispose()
     }
-  }, [name, locale])
+  }, [name, locale, invalidate])
+  useEffect(
+    () => () => {
+      texRef.current?.dispose()
+      texRef.current = null
+    },
+    [],
+  )
+
+  const finish = () => {
+    tl.current?.progress(1, true)
+    Object.assign(P.current, DONE)
+    onBeat('message')
+    onBeat('cta')
+    onBeat('end')
+    startIdle()
+    invalidate()
+  }
 
   const startIdle = () => {
     if (instant || idleTween.current) return
     idleTween.current = gsap.to(idle.current, { v: Math.PI * 2, duration: 28, ease: 'none', repeat: -1, onUpdate: () => !document.hidden && invalidate() })
   }
 
+  const ready = tex !== null
   useEffect(() => {
-    if (!tex) return
+    if (!ready) return
     idleTween.current?.kill()
     idleTween.current = null
     tl.current?.kill()
@@ -114,21 +136,24 @@ function Scene({ tier, name, locale, trim, instant, skipToken, replayToken, onBe
       .call(() => onBeat('cta'), [], 11.4)
       .to({}, { duration: 0.4 }, 12.6)
     tl.current = t
+    // A Skip pressed while the plaque was still being drawn applies as soon as the sequence exists.
+    if (skipRequested.current) {
+      skipRequested.current = false
+      finish()
+    }
     return () => {
       t.kill()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tex, instant, replayToken])
+  }, [ready, instant, replayToken])
 
   useEffect(() => {
-    if (skipToken === 0 || !tl.current) return
-    tl.current.progress(1, true)
-    Object.assign(P.current, DONE)
-    onBeat('message')
-    onBeat('cta')
-    onBeat('end')
-    startIdle()
-    invalidate()
+    if (skipToken === 0) return
+    if (!tl.current) {
+      skipRequested.current = true
+      return
+    }
+    finish()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [skipToken])
 
@@ -237,12 +262,14 @@ function StudioEnvironment() {
   useEffect(() => {
     const { gl, scene, invalidate } = store.getState()
     const pmrem = new THREE.PMREMGenerator(gl)
-    const env = pmrem.fromScene(new RoomEnvironment(), 0.04).texture
+    const room = new RoomEnvironment()
+    const env = pmrem.fromScene(room, 0.04).texture
     scene.environment = env
     scene.environmentIntensity = 1.1
     invalidate()
     return () => {
       scene.environment = null
+      room.dispose()
       env.dispose()
       pmrem.dispose()
     }

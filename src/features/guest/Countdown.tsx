@@ -1,5 +1,6 @@
 import NumberFlow from '@number-flow/react'
 import { useT, useLocale } from '@/i18n'
+import { daysSinceLabel } from '@/i18n/plurals'
 import { useNow } from '@/time/clockStore'
 import { getPhase } from '@/time/phaseEngine'
 import { SCHEDULE } from '@/time/schedule'
@@ -22,7 +23,7 @@ export function Countdown() {
   if (dateStatus === 'tbc') return <p className="text-xl font-semibold">{t('count.tbc')}</p>
   if (phase === 'afterglow') {
     const n = daysSinceCeremony(now)
-    return <p className="text-xl font-semibold">{t('count.since', { n })}</p>
+    return <p className="text-xl font-semibold">{daysSinceLabel(locale, n)}</p>
   }
   if (now >= target) return <p className="text-xl font-semibold">{t('count.live')}</p>
 

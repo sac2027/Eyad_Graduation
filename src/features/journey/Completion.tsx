@@ -22,20 +22,23 @@ export function Completion({ onDone }: { onDone: () => void }) {
   const t = useT()
   const { persona } = useSession()
   const root = useRef<HTMLDivElement>(null)
+  // The parent re-renders every clock tick; the timeline must not restart each time.
+  const doneRef = useRef(onDone)
+  doneRef.current = onDone
   const spans = useMemo(() => octagonSpans(500, 235, 170, BARS), [])
 
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onDone()
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && doneRef.current()
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [onDone])
+  }, [])
 
   useLayoutEffect(() => {
     const el = root.current
     if (!el) return
     const ctx = gsap.context(() => {
       const r = rng(57)
-      const tl = gsap.timeline({ onComplete: onDone })
+      const tl = gsap.timeline({ onComplete: () => doneRef.current() })
       tl.fromTo(el, { opacity: 0 }, { opacity: 1, duration: 0.4, ease: 'power2.out' })
       tl.fromTo('[data-c-walker]', { x: 0 }, { x: 250, duration: 1.4, ease: 'power2.inOut' }, 0.5)
       tl.to('[data-c-folder]', { y: -34, scale: 1.15, transformOrigin: '50% 100%', duration: 0.6, ease: 'back.out(1.6)' }, 1.9)
@@ -53,7 +56,7 @@ export function Completion({ onDone }: { onDone: () => void }) {
       tl.to(el, { opacity: 0, duration: 0.5, ease: 'power2.in' }, 5.8)
     }, el)
     return () => ctx.revert()
-  }, [onDone, spans])
+  }, [spans])
 
   return (
     <div ref={root} data-completion role="dialog" aria-label={t('completion.title')} className="fixed inset-0 z-[70] overflow-hidden bg-turquoise text-beige">

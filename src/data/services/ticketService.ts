@@ -35,6 +35,10 @@ export function createTicketService(opts: { poolSize?: number; schedule?: Schedu
       if (now <= ticketsWin.due!) return true
       return now >= s.seatsReleased && now <= ticketsWin.closes!
     },
+    /** Demo only: clear every claim. */
+    reset() {
+      store.setState({ claims: {} })
+    },
     claimSecond(userId: string, now: number): Result<'claimed' | 'waitlist', 'already-claimed' | 'closed'> {
       const cur = store.getState().claims[userId]
       if (cur === 'claimed') return err('already-claimed')

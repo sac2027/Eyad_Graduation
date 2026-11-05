@@ -14,3 +14,18 @@ export function placesLeft(locale: Locale, n: number): string {
     ? plural('ar', n, { zero: 'ممتلئ', one: 'مكان واحد متبقٍ', two: 'مكانان متبقيان', few: `${f} أماكن متبقية`, many: `${f} مكانًا متبقيًا`, other: `${f} مكان متبقٍ` })
     : plural('en', n, { zero: 'full', one: 'one place left', other: `${f} places left` })
 }
+
+/** "Tonight was the ceremony" style count of days since the ceremony, with correct Arabic/English number forms. */
+export function daysSinceLabel(locale: Locale, n: number): string {
+  const f = formatNumber(n, locale)
+  return locale === 'ar'
+    ? plural('ar', n, {
+        zero: 'الحفل اليوم',
+        one: 'مرّ يوم واحد على الحفل',
+        two: 'مرّ يومان على الحفل',
+        few: `مرّت ${f} أيام على الحفل`,
+        many: `مرّ ${f} يومًا على الحفل`,
+        other: `مرّ ${f} يوم على الحفل`,
+      })
+    : plural('en', n, { zero: 'The ceremony was today', one: '1 day since the ceremony', other: `${f} days since the ceremony` })
+}

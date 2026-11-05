@@ -16,6 +16,12 @@ import { toast } from '@/ui/toast'
 const FLOW = ['none', 'requested', 'slot-booked', 'picked-up', 'returned'] as const
 
 export function Attire() {
+  const { persona } = useSession()
+  // Local form state belongs to one persona; switching persona starts afresh.
+  return <AttireInner key={persona.id} />
+}
+
+function AttireInner() {
   const t = useT()
   const locale = useLocale((s) => s.locale)
   const now = useNow(1000)
@@ -51,7 +57,7 @@ export function Attire() {
         toast.success(t('attire.saved'))
       } else {
         setSaving(undefined)
-        toast.error(t('attire.error.closed'))
+        toast.error(r.error === 'invalid-size' ? t('attire.error.invalid') : r.error === 'out-of-order' ? t('attire.error.order') : t('attire.error.closed'))
       }
       setTimeout(() => setSaving(undefined), 1200)
     }, 350)
@@ -59,7 +65,11 @@ export function Attire() {
   const book = () => {
     if (!slotId) return
     const r = gownService.bookPickup(persona.id, slotId, now)
-    if (!r.ok) toast.error(r.error === 'full' ? t('attire.error.full') : t('attire.error.closed'))
+    if (!r.ok) {
+      toast.error(
+        r.error === 'full' ? t('attire.error.full') : r.error === 'past' ? t('attire.error.past') : r.error === 'out-of-order' ? t('attire.error.order') : t('attire.error.closed'),
+      )
+    }
     else toast.success(t('attire.booked'))
   }
   const slot = gownService.slots.find((s) => s.id === rec.slotId)
@@ -104,11 +114,12 @@ export function Attire() {
               <div className="grid gap-2 sm:grid-cols-2">
                 {gownService.slots.map((s) => {
                   const left = s.capacity - gownService.slotLoad(s.id)
+                  const past = s.start <= now
                   return (
-                    <Chip key={s.id} selected={slotId === s.id} onToggle={() => left > 0 && setSlotId(s.id)} disabled={left <= 0} data-slot={s.id} className="justify-between">
+                    <Chip key={s.id} selected={slotId === s.id} onToggle={() => left > 0 && !past && setSlotId(s.id)} disabled={left <= 0 || past} data-slot={s.id} className="justify-between">
                       <span dir="ltr">{formatDate(s.start, locale, { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', hour12: false })}</span>
                       <span className="ms-2 text-xs">
-                        {left > 0 ? placesLeft(locale, left) : t('attire.full')}
+                        {past ? t('attire.past') : left > 0 ? placesLeft(locale, left) : t('attire.full')}
                       </span>
                     </Chip>
                   )

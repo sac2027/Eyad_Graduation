@@ -14,13 +14,31 @@ interface MatrixLoopProps extends Omit<MatrixFieldProps, 'animate'> {
 export function MatrixLoop({ id, intensity, ...fallback }: MatrixLoopProps) {
   const def = MATRIX_LOOPS.find((l) => l.id === id)
   const [failed, setFailed] = useState(false)
+  const [visible, setVisible] = useState(true)
   const reduced = useReducedMotion()
   const lowEnd = useDemoFlags((s) => s.lowEnd)
   const ref = useRef<HTMLVideoElement>(null)
+  const shouldPlay = !reduced && !lowEnd && visible
 
   useEffect(() => {
     if (ref.current && intensity !== undefined) ref.current.playbackRate = 0.6 + Math.min(1, Math.max(0, intensity)) * 1.4
   }, [intensity])
+
+  // The toggles and the system setting can change after the video has started, so drive play and pause directly.
+  useEffect(() => {
+    const v = ref.current
+    if (!v) return
+    if (shouldPlay) void Promise.resolve(v.play?.()).catch(() => {})
+    else v.pause?.()
+  }, [shouldPlay, failed])
+
+  useEffect(() => {
+    const v = ref.current
+    if (!v || typeof IntersectionObserver === 'undefined') return
+    const io = new IntersectionObserver(([e]) => setVisible(e.isIntersecting))
+    io.observe(v)
+    return () => io.disconnect()
+  }, [failed])
 
   if (!def || failed) {
     const i = intensity ?? 0.5
@@ -36,7 +54,7 @@ export function MatrixLoop({ id, intensity, ...fallback }: MatrixLoopProps) {
       muted
       loop
       playsInline
-      autoPlay={!reduced && !lowEnd}
+      autoPlay={shouldPlay}
       onError={() => setFailed(true)}
     />
   )

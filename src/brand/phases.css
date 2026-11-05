@@ -7,3 +7,12 @@
 
 .award-fallback-rise { animation: award-rise 2.2s var(--ease-out-strong) both; }
 @keyframes award-rise { from { opacity: 0; transform: translateY(48px) scale(0.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+/* The logo follows the header: colour version on light, white version on turquoise. */
+.logo-on-dark { display: none; }
+[data-phase='ceremony-day'] .logo-on-light,
+[data-phase='afterglow'] .logo-on-light,
+[data-phase='honors-day'] .logo-on-light { display: none; }
+[data-phase='ceremony-day'] .logo-on-dark,
+[data-phase='afterglow'] .logo-on-dark,
+[data-phase='honors-day'] .logo-on-dark { display: inline-block; }

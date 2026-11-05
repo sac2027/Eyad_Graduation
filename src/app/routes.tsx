@@ -5,6 +5,7 @@ import { DemoConsole } from '@/features/demo-console/DemoConsole'
 import { GuestHome } from '@/features/guest/GuestHome'
 import { useLocale, useT } from '@/i18n'
 import { useSession } from '@/session/sessionStore'
+import { Logo } from '@/brand/logo/Logo'
 import { Button } from '@/ui/Button'
 import { RootPhase } from './RootPhase'
 import { PhaseBanner } from './PhaseBanner'
@@ -30,8 +31,8 @@ function Layout() {
         {t('nav.skip')}
       </a>
       <header className="flex flex-wrap items-center justify-between gap-x-2 bg-[var(--header-bg)] px-4 py-1 text-[var(--header-fg)]">
-        <Link to="/" className="font-display text-2xl font-black text-[var(--header-fg)]" aria-label="KFUPM">
-          KFUPM
+        <Link to="/" className="inline-flex min-h-11 items-center" aria-label="KFUPM">
+          <Logo height={26} />
         </Link>
         <nav aria-label="Main" className="order-3 flex w-full flex-wrap items-center sm:order-none sm:w-auto">
           <NavLink to="/" end className={link}>{t('nav.home')}</NavLink>

@@ -44,7 +44,7 @@ Design: `docs/phase2/architecture.md`. Plan: `docs/superpowers/plans/2026-11-05-
 - Colours, fonts and the Matrix follow the KFUPM Brand Guidelines v1.2 (June 2026).
 - **KFUPM Display is exclusive.** Its files live in `public/fonts/kfupm/` and are git-ignored. Without them the app falls back to IBM Plex Sans Arabic. Keep the demo private until the university clears the font.
 - The Matrix loops in `public/matrix/` were exported from the FAST Matrix Generator, recoloured to the exact brand values and encoded to 1080px VP9. Only approved colour pairings are used (`src/brand/matrix/pairs.ts`).
-- The logo is a text placeholder. Replace it with the official SVG.
+- The header uses the official KFUPM Student Affairs logo (colour and white versions, unmodified, in `src/brand/logo/`). A ceremony-specific logo may replace it later. KFUPM Display use is cleared by the client.
 
 ## Not real yet
 

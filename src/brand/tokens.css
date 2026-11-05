@@ -1,6 +1,7 @@
 @import 'tailwindcss';
 @import './fonts.css';
 @import '../ui/ui.css';
+@import './phases.css';
 
 @theme {
   --color-turquoise: #115f66;

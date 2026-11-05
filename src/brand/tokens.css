@@ -1,0 +1,39 @@
+@import 'tailwindcss';
+@import './fonts.css';
+
+@theme {
+  --color-turquoise: #115f66;
+  --color-green: #009767;
+  --color-beige: #ece0c7;
+  --color-sand: #aa8c6d;
+  --color-yellow: #f0ba4f;
+  --color-blue: #71b8d4;
+  --color-gray: #adacad;
+  --color-success: #2aa880;
+  --color-error: #de5e5e;
+  --color-warning: #f2c56c;
+  --color-info: #89c4db;
+  --color-ink: #0b2f33;
+  --font-display: 'KFUPM Display', 'IBM Plex Sans Arabic', system-ui, sans-serif;
+  --font-body: 'IBM Plex Sans Arabic', system-ui, sans-serif;
+  --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out-strong: cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+:root {
+  --ground: var(--color-beige);
+  --surface: #ffffff;
+  --text: var(--color-ink);
+  --accent: var(--color-green);
+  --accent-2: var(--color-yellow);
+  --hero-ground: var(--color-turquoise);
+  --hero-text: var(--color-beige);
+}
+
+html { background: var(--ground); color: var(--text); font-family: var(--font-body); }
+body { margin: 0; min-height: 100dvh; }
+h1, h2, h3 { font-family: var(--font-display); }
+:focus-visible { outline: 3px solid var(--color-blue); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+}

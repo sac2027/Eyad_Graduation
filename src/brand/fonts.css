@@ -1,0 +1,9 @@
+/* IBM Plex Sans Arabic: open licence, committed. KFUPM Display: exclusive, git-ignored (public/fonts/kfupm). */
+@font-face { font-family: 'IBM Plex Sans Arabic'; font-weight: 300; font-display: swap; src: url('/fonts/ibm/IBMPlexSansArabic-Light.ttf') format('truetype'); }
+@font-face { font-family: 'IBM Plex Sans Arabic'; font-weight: 400; font-display: swap; src: url('/fonts/ibm/IBMPlexSansArabic-Regular.ttf') format('truetype'); }
+@font-face { font-family: 'IBM Plex Sans Arabic'; font-weight: 500; font-display: swap; src: url('/fonts/ibm/IBMPlexSansArabic-Medium.ttf') format('truetype'); }
+@font-face { font-family: 'IBM Plex Sans Arabic'; font-weight: 600; font-display: swap; src: url('/fonts/ibm/IBMPlexSansArabic-SemiBold.ttf') format('truetype'); }
+@font-face { font-family: 'IBM Plex Sans Arabic'; font-weight: 700; font-display: swap; src: url('/fonts/ibm/IBMPlexSansArabic-Bold.ttf') format('truetype'); }
+@font-face { font-family: 'KFUPM Display'; font-weight: 400; font-display: swap; src: url('/fonts/kfupm/KFUPM-Regular.ttf') format('truetype'); }
+@font-face { font-family: 'KFUPM Display'; font-weight: 700; font-display: swap; src: url('/fonts/kfupm/KFUPM-Bold.ttf') format('truetype'); }
+@font-face { font-family: 'KFUPM Display'; font-weight: 900; font-display: swap; src: url('/fonts/kfupm/KFUPM-Black.ttf') format('truetype'); }

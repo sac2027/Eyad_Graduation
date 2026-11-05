@@ -18,7 +18,7 @@ export function MatrixLoop({ id, ...fallback }: MatrixLoopProps) {
   return (
     <video
       aria-hidden
-      className={fallback.className}
+      className={`${fallback.className ?? ''} object-cover`}
       src={def.src}
       muted
       loop

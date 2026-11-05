@@ -8,6 +8,7 @@ import { SCHEDULE } from '@/time/schedule'
 import { Button, ButtonLink } from '@/ui/Button'
 import { Countdown } from './Countdown'
 import { JourneySection } from '@/features/journey/JourneySection'
+import { MatrixLoop } from '@/brand/matrix/MatrixLoop'
 
 export function GuestHome() {
   const t = useT()
@@ -28,8 +29,9 @@ export function GuestHome() {
 
   return (
     <main>
-      <section aria-labelledby="hero-title" className="bg-turquoise text-beige" data-hero>
-        <div className="mx-auto grid min-h-[calc(100dvh-4.5rem)] max-w-5xl content-center gap-8 px-4 py-10">
+      <section aria-labelledby="hero-title" className="relative overflow-hidden bg-turquoise text-beige" data-hero>
+        <MatrixLoop id="hero" background="turquoise" stripes="green" seed={57} density={0.6} frequency={0.05} className="absolute end-0 top-0 h-28 w-full md:h-full md:w-[46%]" />
+        <div className="relative mx-auto grid min-h-[calc(100dvh-4.5rem)] max-w-5xl content-center gap-8 px-4 pb-10 pt-32 md:pt-10">
           <div>
             <h1 id="hero-title" className="text-balance text-[clamp(2.5rem,9vw,5.5rem)] font-black leading-[1.05]">
               {t(`hero.${phase}`)}

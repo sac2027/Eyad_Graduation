@@ -27,20 +27,20 @@ function Layout() {
       <a href="#practical" className="absolute -translate-y-20 focus:translate-y-0 bg-yellow px-4 py-2 font-semibold text-turquoise">
         {t('nav.skip')}
       </a>
-      <header className="flex flex-wrap items-center justify-between gap-2 bg-beige px-4 py-2">
+      <header className="flex flex-wrap items-center justify-between gap-x-2 bg-beige px-4 py-1">
         <Link to="/" className="font-display text-2xl font-black text-turquoise" aria-label="KFUPM">
           KFUPM
         </Link>
-        <nav aria-label="Main" className="flex flex-wrap items-center">
+        <nav aria-label="Main" className="order-3 flex w-full flex-wrap items-center sm:order-none sm:w-auto">
           <NavLink to="/" end className={link}>{t('nav.home')}</NavLink>
           <NavLink to="/guide" className={link}>{t('nav.guide')}</NavLink>
           {persona.role === 'graduate' && <NavLink to="/me" className={link}>{t('nav.me')}</NavLink>}
           <NavLink to="/honors" className={link}>{t('nav.honors')}</NavLink>
           {persona.role === 'admin' && <NavLink to="/admin" className={link}>{t('nav.admin')}</NavLink>}
-          <Button variant="ghost" size="md" onClick={() => setLocale(locale === 'ar' ? 'en' : 'ar')} className="ms-2" lang={locale === 'ar' ? 'en' : 'ar'}>
-            {t('nav.language')}
-          </Button>
         </nav>
+        <Button variant="ghost" size="md" onClick={() => setLocale(locale === 'ar' ? 'en' : 'ar')} className="order-2 sm:order-none" lang={locale === 'ar' ? 'en' : 'ar'}>
+          {t('nav.language')}
+        </Button>
       </header>
       <Outlet />
       <DemoConsole />

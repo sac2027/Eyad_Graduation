@@ -135,7 +135,7 @@ export function DemoConsole() {
         type="button"
         aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
-        className="min-h-11 rounded-full bg-turquoise px-4 font-semibold text-beige shadow-lg"
+        className="min-h-11 rounded-full bg-white px-4 font-semibold text-turquoise shadow-lg outline outline-2 outline-turquoise"
       >
         {open ? 'Hide demo' : 'Demo'}
       </button>

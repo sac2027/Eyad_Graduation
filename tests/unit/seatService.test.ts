@@ -83,3 +83,29 @@ describe('seatService', () => {
     expect(s.getSeat('G01-1-1')?.heldBy).toBe('a')
   })
 })
+
+describe('seatService: rival and suggestions', () => {
+  it('a targeted rival takes only a free general seat', () => {
+    const s = createSeatService()
+    expect(s.rivalTake('G01-1-1')).toBe(true)
+    expect(s.rivalTake('G01-1-1')).toBe(false)
+    expect(s.rivalTake('V1-1-1')).toBe(false)
+    s.hold('G01-1-2', 'a', T)
+    expect(s.rivalTake('G01-1-2')).toBe(false)
+    expect(s.hold('G01-1-1', 'a', T)).toEqual({ ok: false, error: 'taken' })
+  })
+  it('suggests the nearest free seat the user may hold', () => {
+    const s = createSeatService()
+    s.rivalTake('G01-2-10')
+    const g = s.suggest('G01-2-10', 'a')!
+    expect(g.section).toBe('G01')
+    expect(g.status).toBe('available')
+    expect(Math.abs(g.number - 10) + Math.abs(g.row - 2) * 3).toBeLessThanOrEqual(1)
+  })
+  it('never suggests an easy-access seat unless the user needs one', () => {
+    const s = createSeatService([{ id: 'E1', zone: 'easy-access', rows: 1, perRow: 3 }])
+    expect(s.suggest('E1-1-1', 'a')).toBeNull()
+    s.setNeedsEasyAccess('a', true)
+    expect(s.suggest('E1-1-1', 'a')).not.toBeNull()
+  })
+})

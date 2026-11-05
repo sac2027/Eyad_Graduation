@@ -147,6 +147,33 @@ export function createSeatService(defs: SectionDef[] = SECTION_DEFS, rivalSeed =
       return ok(out)
     },
     expireHolds,
+    /** Another guest takes this exact seat, if it is still free. Used to demonstrate the duplicate-seat conflict. */
+    rivalTake(seatId: string): boolean {
+      const seat = seats.get(seatId)
+      if (!seat || seat.zone !== 'general' || seat.status !== 'available') return false
+      put({ ...seat, status: 'confirmed', confirmedBy: 'rival' })
+      bump()
+      return true
+    },
+    /** The nearest free seat in the same section that this user is allowed to hold. */
+    suggest(seatId: string, userId: string): Seat | null {
+      const from = seats.get(seatId)
+      if (!from) return null
+      let best: Seat | null = null
+      let bestD = Infinity
+      for (const id of bySection.get(from.section) ?? []) {
+        const s2 = seats.get(id)!
+        if (s2.status !== 'available') continue
+        if (s2.zone === 'vip' || s2.zone === 'ops') continue
+        if (s2.zone === 'easy-access' && !needsEasyAccess.has(userId)) continue
+        const d = Math.abs(s2.row - from.row) * 3 + Math.abs(s2.number - from.number)
+        if (d < bestD) {
+          bestD = d
+          best = s2
+        }
+      }
+      return best
+    },
     /** Another guest takes a free general seat. Never touches held or confirmed seats. */
     simulateRival(now: number, sectionId?: string): { seatId: string } | null {
       expireHolds(now)

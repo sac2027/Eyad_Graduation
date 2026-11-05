@@ -3,12 +3,6 @@ import { Link, NavLink, Outlet, Route, Routes } from 'react-router-dom'
 import { Toaster } from 'sonner'
 import { DemoConsole } from '@/features/demo-console/DemoConsole'
 import { GuestHome } from '@/features/guest/GuestHome'
-import { Guide } from '@/features/guest/Guide'
-import { Dashboard } from '@/features/graduate/Dashboard'
-import { Attire } from '@/features/graduate/Attire'
-import { Tickets } from '@/features/graduate/Tickets'
-import { AdminPage } from '@/features/admin/AdminPage'
-import { KitPage } from '@/features/kit/KitPage'
 import { useLocale, useT } from '@/i18n'
 import { useSession } from '@/session/sessionStore'
 import { Button } from '@/ui/Button'
@@ -17,6 +11,12 @@ import { PhaseBanner } from './PhaseBanner'
 import { CompletionHost } from '@/features/journey/CompletionHost'
 
 const HonorPage = lazy(() => import('@/features/honors/HonorPage'))
+const Guide = lazy(() => import('@/features/guest/Guide').then((m) => ({ default: m.Guide })))
+const Dashboard = lazy(() => import('@/features/graduate/Dashboard').then((m) => ({ default: m.Dashboard })))
+const Attire = lazy(() => import('@/features/graduate/Attire').then((m) => ({ default: m.Attire })))
+const Tickets = lazy(() => import('@/features/graduate/Tickets').then((m) => ({ default: m.Tickets })))
+const AdminPage = lazy(() => import('@/features/admin/AdminPage').then((m) => ({ default: m.AdminPage })))
+const KitPage = lazy(() => import('@/features/kit/KitPage').then((m) => ({ default: m.KitPage })))
 
 function Layout() {
   const t = useT()
@@ -45,7 +45,9 @@ function Layout() {
         </Button>
       </header>
       <PhaseBanner />
-      <Outlet />
+      <Suspense fallback={<main className="min-h-[40dvh]" aria-busy="true" />}>
+        <Outlet />
+      </Suspense>
       <DemoConsole />
       <CompletionHost />
       <Toaster position="top-center" dir={dir} />

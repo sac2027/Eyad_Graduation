@@ -1,5 +1,5 @@
 import type { HonorTier } from '@/domain/types'
-import { AWARD_PROFILE } from './awardGeometry'
+import { AWARD_PROFILE } from './awardProfile'
 import { TIER_MATERIALS } from './tierMaterials'
 
 function shade(hex: string, f: number): string {

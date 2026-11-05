@@ -419,3 +419,23 @@ tests/unit/         *.test.ts   tests/e2e/ *.spec.ts
 - **Spec coverage:** time travel and URL state (Tasks 3, 8); ceremony-day animation (12); completion and afterglow (13); journey bar and scroll (11); award, tiers, name, fallbacks (17); seats, holds, QR, capacity (7, 16, 18); attire (15); guest and accessibility (14); Matrix rules and the loop slot (10); i18n and RTL (5); motion, brand and library roles (Global Constraints, 6); testing and worst-case data (19). The `ceremonyDateStatus` toggle lives in Tasks 2 and 8.
 - **Type consistency:** times are epoch milliseconds everywhere. `Phase`, `DaySlot` and `StageId` are defined once in Task 2 and reused. `HonorTier` is defined in Task 4 and reused in Tasks 7 and 17. `Persona`, `Seat` and `SeatZone` are defined in Task 7 and reused in Tasks 14 to 18.
 - **Open item:** the real Matrix loops from Eyad drop into `public/matrix/` and `MATRIX_LOOPS` (Task 10). The Base UI package name, the QR library and the guideline page 78 pairings are verified at install.
+
+
+---
+
+## Implementation notes (deviations from this plan)
+
+Recorded after the build, so the plan matches what exists.
+
+- **TypeScript 6.0.3, not 7.0.2.** `typescript-eslint` 8.72 supports TypeScript below 6.1, so 7.x broke linting. Revisit when `typescript-eslint` supports 7.
+- **`@base-ui/react` 1.9.0 (stable)** replaced the release candidate `@base-ui-components/react`.
+- **URL time format** is Riyadh local time without an offset (`?t=2027-04-07T20:20`), shorter than the ISO-with-offset form planned.
+- **The clock reads `?t=` before the first render**, so loading straight into a phase is never treated as time moving forward (otherwise the completion sequence would play on load).
+- **Matrix loops** are four generator exports (hero, ascent, completion, afterglow; the honors loop reuses ascent), recoloured and re-encoded because the originals were 3000px and 47 MB in total.
+- **Task 6 browser tests** run against a `/kit` page added for that purpose.
+- **Seat grid** is a labelled group of toggle buttons, not an ARIA grid: axe rejected `aria-pressed` on `gridcell`.
+- **Colour contrast:** white on brand green (3.7:1) and turquoise on brand yellow (4.15:1) fail AA for small text, so small text on green and yellow is black. Large headings keep turquoise on yellow.
+- **Capability probe** also runs a small CPU benchmark (median of three runs, 22 ms threshold). It is skipped under browser automation unless `?bench=1` is present.
+- **The 2D honor version** is an animated flat SVG of the same award, not a pre-rendered video. A pre-rendered clip per tier is still an option.
+- **Not done:** the award does not settle into the page corner on scroll (a small tier medallion appears instead), and there is no sound.
+- **Gown return window and pickup** use the schedule's mock dates. Demo buttons simulate the desk steps.

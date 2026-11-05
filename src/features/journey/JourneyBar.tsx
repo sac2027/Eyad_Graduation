@@ -3,6 +3,7 @@ import { useLocale, useT, formatDate } from '@/i18n'
 import { useSession } from '@/session/sessionStore'
 import { STAGE_ORDER, SCHEDULE, type StageId } from '@/time/schedule'
 import { useReducedMotion } from '@/ui/motionPrefs'
+import { DayBar } from './DayAscent'
 import { useJourney } from './useJourney'
 import { Walker } from './Walker'
 
@@ -22,6 +23,7 @@ export function JourneyBar({ variant = 'story', completed, className }: JourneyB
   const j = useJourney()
   const pct = `${(j.progress * 100).toFixed(3)}%`
   const next = j.nextDeadline
+  if (j.phase === 'ceremony-day') return <DayBar className={className} />
 
   return (
     <div className={clsx('w-full', className)} data-journey-bar={variant} data-progress={j.progress.toFixed(4)} data-stage={j.stageId}>

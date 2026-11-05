@@ -2,6 +2,7 @@ import { STAGE_ORDER } from '@/time/schedule'
 import { useDemoFlags } from '@/features/demo-console/flags'
 import { useT } from '@/i18n'
 import { useReducedMotion } from '@/ui/motionPrefs'
+import { DayAscent } from './DayAscent'
 import { JourneyBar } from './JourneyBar'
 import { JourneyStory } from './JourneyStory'
 import { useJourney } from './useJourney'
@@ -26,9 +27,11 @@ function StaticJourney() {
   )
 }
 
-/** The scroll story needs motion and a capable device. Everyone else gets the same content as a list. */
+/** Ceremony day gets the Ascent. Otherwise the scroll story, or a list for reduced motion and weak devices. */
 export function JourneySection() {
   const reduced = useReducedMotion()
   const lowEnd = useDemoFlags((s) => s.lowEnd)
+  const { phase } = useJourney()
+  if (phase === 'ceremony-day') return <DayAscent />
   return reduced || lowEnd ? <StaticJourney /> : <JourneyStory />
 }

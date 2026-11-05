@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { SCHEDULE } from '@/time/schedule'
-import { getDayProgress, getJourneyProgress, getNextDeadline, getStageStatus } from '@/time/stageEngine'
+import { getDayProgress, getJourneyProgress, getNextDeadline, getSlotProgress, getStageStatus } from '@/time/stageEngine'
 
 const at = (iso: string) => Date.parse(iso)
 const HOUR = 3_600_000
@@ -74,5 +74,19 @@ describe('getNextDeadline', () => {
   })
   it('returns null when none remain', () => {
     expect(getNextDeadline(at('2027-06-01T00:00:00+03:00'))).toBeNull()
+  })
+})
+
+describe('getSlotProgress', () => {
+  it('is null outside ceremony day', () => {
+    expect(getSlotProgress(at('2027-04-06T12:00:00+03:00'))).toBeNull()
+    expect(getSlotProgress(at('2027-04-07T21:30:00+03:00'))).toBeNull()
+  })
+  it('reports slot, index and fraction', () => {
+    const r = getSlotProgress(at('2027-04-07T20:30:00+03:00'))!
+    expect(r.slot).toBe('ceremony')
+    expect(r.index).toBe(3)
+    expect(r.p).toBeCloseTo(0.5, 6)
+    expect(getSlotProgress(at('2027-04-07T15:00:00+03:00'))).toMatchObject({ slot: 'arrival', index: 1, p: 0 })
   })
 })

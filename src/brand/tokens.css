@@ -30,7 +30,13 @@
   --accent-2: var(--color-yellow);
   --hero-ground: var(--color-turquoise);
   --hero-text: var(--color-beige);
+  --header-bg: var(--color-beige);
+  --header-fg: var(--color-turquoise);
 }
+
+/* Whole-site phase tints: flat brand colours only. */
+[data-phase='ceremony-day'], [data-phase='afterglow'] { --header-bg: var(--color-turquoise); --header-fg: var(--color-beige); }
+[data-phase='honors-day'] { --header-bg: var(--color-turquoise); --header-fg: var(--color-beige); }
 
 html { background: var(--ground); color: var(--text); font-family: var(--font-body); }
 body { margin: 0; min-height: 100dvh; }

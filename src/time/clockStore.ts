@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { create } from 'zustand'
+import { parseTimeParam } from './urlState'
 
 export type ClockMode = 'real' | 'frozen' | 'playing'
 
@@ -22,10 +23,20 @@ function stop() {
   timer = null
 }
 
+/** A time in the URL (?t=) is applied before the first render, so loading into a phase is not seen as time moving. */
+function initialFromUrl(): number | null {
+  try {
+    return parseTimeParam(window.location.search)
+  } catch {
+    return null
+  }
+}
+const urlTime = initialFromUrl()
+
 /** The only place in the app allowed to read the real clock. */
 export const useClock = create<ClockState>((set, get) => ({
-  mode: 'real',
-  simulated: Date.now(),
+  mode: urlTime === null ? 'real' : 'frozen',
+  simulated: urlTime ?? Date.now(),
   speed: 0,
   setSimulated(ms) {
     stop()

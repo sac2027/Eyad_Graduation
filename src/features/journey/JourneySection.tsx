@@ -2,6 +2,7 @@ import { STAGE_ORDER } from '@/time/schedule'
 import { useDemoFlags } from '@/features/demo-console/flags'
 import { useT } from '@/i18n'
 import { useReducedMotion } from '@/ui/motionPrefs'
+import { Afterglow } from './Afterglow'
 import { DayAscent } from './DayAscent'
 import { JourneyBar } from './JourneyBar'
 import { JourneyStory } from './JourneyStory'
@@ -33,5 +34,6 @@ export function JourneySection() {
   const lowEnd = useDemoFlags((s) => s.lowEnd)
   const { phase } = useJourney()
   if (phase === 'ceremony-day') return <DayAscent />
+  if (phase === 'afterglow') return <Afterglow />
   return reduced || lowEnd ? <StaticJourney /> : <JourneyStory />
 }

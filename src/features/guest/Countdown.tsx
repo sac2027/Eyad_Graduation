@@ -4,6 +4,7 @@ import { useNow } from '@/time/clockStore'
 import { getPhase } from '@/time/phaseEngine'
 import { SCHEDULE } from '@/time/schedule'
 import { useDemoFlags } from '@/features/demo-console/flags'
+import { daysSinceCeremony } from '@/features/journey/completion'
 
 const SEC = 1000
 const MIN = 60 * SEC
@@ -20,7 +21,7 @@ export function Countdown() {
 
   if (dateStatus === 'tbc') return <p className="text-xl font-semibold">{t('count.tbc')}</p>
   if (phase === 'afterglow') {
-    const n = Math.max(0, Math.floor((now - SCHEDULE.afterglowStart) / DAY))
+    const n = daysSinceCeremony(now)
     return <p className="text-xl font-semibold">{t('count.since', { n })}</p>
   }
   if (now >= target) return <p className="text-xl font-semibold">{t('count.live')}</p>

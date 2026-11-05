@@ -14,6 +14,7 @@ import { useSession } from '@/session/sessionStore'
 import { Button } from '@/ui/Button'
 import { RootPhase } from './RootPhase'
 import { PhaseBanner } from './PhaseBanner'
+import { CompletionHost } from '@/features/journey/CompletionHost'
 
 const HonorPage = lazy(() => import('@/features/honors/HonorPage'))
 
@@ -46,6 +47,7 @@ function Layout() {
       <PhaseBanner />
       <Outlet />
       <DemoConsole />
+      <CompletionHost />
       <Toaster position="top-center" dir={dir} />
     </>
   )

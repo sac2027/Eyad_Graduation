@@ -49,7 +49,7 @@ export function Countdown() {
             format={{ minimumIntegerDigits: 2, useGrouping: false }}
             className="font-display text-5xl font-black tabular-nums sm:text-6xl"
           />
-          <div className="mt-1 text-sm opacity-80" dir={locale === 'ar' ? 'rtl' : 'ltr'}>{t(p.u)}</div>
+          <div className="mt-1 text-sm opacity-90" dir={locale === 'ar' ? 'rtl' : 'ltr'}>{t(p.u)}</div>
         </div>
       ))}
     </div>

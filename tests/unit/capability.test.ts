@@ -48,3 +48,12 @@ describe('buildIcs', () => {
     expect(ics.split('\r\n').length).toBeGreaterThan(8)
   })
 })
+
+describe('detectCapability: CPU benchmark', () => {
+  it('falls back on a slow benchmark and keeps the full scene on a fast one', () => {
+    expect(detectCapability({ hasWebGL: true, lowEndFlag: false, benchMs: 40 })).toBe('fallback')
+    expect(detectCapability({ hasWebGL: true, lowEndFlag: false, benchMs: 23 })).toBe('fallback')
+    expect(detectCapability({ hasWebGL: true, lowEndFlag: false, benchMs: 6 })).toBe('full')
+    expect(detectCapability({ hasWebGL: true, lowEndFlag: false, benchMs: 22 })).toBe('full')
+  })
+})

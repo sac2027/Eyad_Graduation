@@ -80,8 +80,8 @@ export function DayBar({ className }: { className?: string }) {
                     style={{ width: state === 'done' ? '100%' : state === 'current' ? `${p * 100}%` : '0%', transition: reduced ? 'none' : 'width 700ms var(--ease-out-strong)' }}
                   />
                 </div>
-                <div className={clsx('mt-1 truncate text-xs sm:text-sm', state === 'current' ? 'font-black' : 'opacity-80')}>{t(`slot.${slot}`)}</div>
-                <div className="hidden text-xs opacity-70 sm:block" dir="ltr">{time(w.start)}</div>
+                <div className={clsx('mt-1 truncate text-xs sm:text-sm', state === 'current' ? 'font-black' : 'opacity-90')}>{t(`slot.${slot}`)}</div>
+                <div className="hidden text-xs opacity-90 sm:block" dir="ltr">{time(w.start)}</div>
               </div>
             )
           })}
@@ -110,7 +110,7 @@ export function DayAscent() {
         <div className="bg-turquoise px-5 py-7 [transform:skewX(-5deg)] sm:px-8">
           <div className="[transform:skewX(5deg)]">
             {slot === 'ceremony' && (
-              <p className="mb-4 inline-flex items-center gap-2 bg-yellow px-3 py-1 text-sm font-black text-turquoise" data-live>
+              <p className="mb-4 inline-flex items-center gap-2 bg-yellow px-3 py-1 text-sm font-black text-black" data-live>
                 <span aria-hidden className="size-2 rounded-full bg-turquoise" />
                 {t('day.live')}
               </p>

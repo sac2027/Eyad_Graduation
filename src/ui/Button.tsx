@@ -14,11 +14,12 @@ const button = cva(
   {
     variants: {
       variant: {
-        primary: 'bg-green text-white [--wipe:var(--color-turquoise)]',
-        secondary: 'bg-turquoise text-beige [--wipe:var(--color-green)]',
+        primary: 'bg-green text-black [--wipe:var(--color-turquoise)] [--wipe-text:var(--color-beige)]',
+        secondary: 'bg-turquoise text-beige [--wipe:var(--color-green)] [--wipe-text:#000]',
         ghost: 'bg-transparent text-turquoise outline outline-2 -outline-offset-2 outline-turquoise [--wipe:var(--color-beige)]',
-        gold: 'bg-yellow text-turquoise [--wipe:var(--color-beige)]',
-        destructive: 'bg-error text-ink [--wipe:var(--color-warning)]',
+        gold: 'bg-yellow text-black [--wipe:var(--color-beige)]',
+        'ghost-dark': 'bg-transparent text-black outline outline-2 -outline-offset-2 outline-black [--wipe:var(--color-turquoise)] [--wipe-text:var(--color-beige)]',
+        destructive: 'bg-error text-black [--wipe:var(--color-warning)]',
       },
       size: { md: 'h-11 text-base', lg: 'h-14 px-7 text-lg' },
     },

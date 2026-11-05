@@ -249,7 +249,7 @@ export const ar: Record<string, string> = {
   'tickets.step3': 'اختر مقاعدك',
   'tickets.easy': 'أحد المرافقين يحتاج مقاعد سهلة الوصول',
   'tickets.easy.link': 'أو أجب عن سؤال التسهيلات',
-  'tickets.used-up': 'استخدمت كل مقاعدك ({n}).',
+  'tickets.used-up': 'استخدمت كل مقاعدك ({seats}).',
   'tickets.confirm': 'أكّد المقاعد',
   'tickets.confirmed': 'تم تأكيد المقاعد',
   'tickets.expired': 'انتهت مهلة الاحتفاظ بالمقعد. اختره من جديد.',

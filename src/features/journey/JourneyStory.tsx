@@ -200,7 +200,7 @@ export function JourneyStory() {
           <Scene g={g} passedIdx={passedIdx} s={s} />
         </div>
         <div className="relative z-10 mx-auto w-full max-w-3xl pb-1" aria-live="polite">
-          <p className="text-sm opacity-80">{t('journey.scene', { n: stageIdx + 1 })}</p>
+          <p className="text-sm opacity-90">{t('journey.scene', { n: stageIdx + 1 })}</p>
           <h2 className="text-2xl font-black sm:text-3xl" data-story-stage={STAGE_ORDER[stageIdx]}>
             {t(`stage.${STAGE_ORDER[stageIdx]}`)}
           </h2>
@@ -210,7 +210,7 @@ export function JourneyStory() {
         <div
           data-reveal={revealed ? 'on' : 'off'}
           aria-hidden={!revealed}
-          className="absolute inset-0 z-20 grid place-items-center overflow-hidden bg-yellow text-turquoise transition-[clip-path] duration-700 ease-[var(--ease-in-out-strong)] [clip-path:inset(0_0_100%_0)] data-[reveal=on]:[clip-path:inset(0)] data-[reveal=off]:pointer-events-none"
+          className="absolute inset-0 z-20 grid place-items-center overflow-hidden bg-yellow text-black transition-[clip-path] duration-700 ease-[var(--ease-in-out-strong)] [clip-path:inset(0_0_100%_0)] data-[reveal=on]:[clip-path:inset(0)] data-[reveal=off]:pointer-events-none"
         >
           <MatrixLoop id="completion" background="yellow" stripes="turquoise" className="absolute inset-0 h-full w-full" />
           <div className="relative mx-4 max-w-xl bg-yellow px-8 py-7 text-center [transform:skewX(-5deg)]">
@@ -222,7 +222,7 @@ export function JourneyStory() {
                 {persona.role === 'graduate' && (
                   <ButtonLink to="/me" variant="secondary" size="lg" tabIndex={revealed ? 0 : -1}>{t('journey.reveal.grad')}</ButtonLink>
                 )}
-                <ButtonLink to="/guide" variant="ghost" size="lg" tabIndex={revealed ? 0 : -1}>{t('journey.reveal.guest')}</ButtonLink>
+                <ButtonLink to="/guide" variant="ghost-dark" size="lg" tabIndex={revealed ? 0 : -1}>{t('journey.reveal.guest')}</ButtonLink>
               </div>
             </div>
           </div>

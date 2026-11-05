@@ -85,7 +85,7 @@ export function JourneyBar({ variant = 'story', completed, className }: JourneyB
         {variant === 'tracker' && (
           <span>{next ? t('journey.next', { stage: t(`stage.${next.id}`), date: formatDate(next.due, locale) }) : t('journey.none')}</span>
         )}
-        {variant === 'story' && <span className="opacity-80">{formatDate(SCHEDULE.ceremonyDay.ceremony.start, locale)}</span>}
+        {variant === 'story' && <span className="opacity-90">{formatDate(SCHEDULE.ceremonyDay.ceremony.start, locale)}</span>}
       </div>
     </div>
   )

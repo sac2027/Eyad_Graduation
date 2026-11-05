@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { ABAYA_SIZES, BISHT_SIZES, gownService, useGownRecord } from '@/data'
 import { PERSONAS } from '@/data'
-import { useLocale, useT, formatDate, plural } from '@/i18n'
+import { useLocale, useT, formatDate } from '@/i18n'
+import { placesLeft } from '@/i18n/plurals'
 import { useSession } from '@/session/sessionStore'
 import { useNow } from '@/time/clockStore'
 import { SCHEDULE } from '@/time/schedule'
@@ -72,7 +73,7 @@ export function Attire() {
 
       <ol className="my-5 grid grid-cols-5 gap-1 text-center text-xs" aria-label={t('attire.title')}>
         {FLOW.map((s, i) => (
-          <li key={s} data-flow={s} data-reached={i <= stepIdx} className={`rounded-lg px-1 py-2 ${i <= stepIdx ? 'bg-green font-bold text-white' : 'bg-white'}`}>
+          <li key={s} data-flow={s} data-reached={i <= stepIdx} className={`rounded-lg px-1 py-2 ${i <= stepIdx ? 'bg-green font-bold text-black' : 'bg-white'}`}>
             {t(`gown.${s}`)}
           </li>
         ))}
@@ -107,11 +108,7 @@ export function Attire() {
                     <Chip key={s.id} selected={slotId === s.id} onToggle={() => left > 0 && setSlotId(s.id)} disabled={left <= 0} data-slot={s.id} className="justify-between">
                       <span dir="ltr">{formatDate(s.start, locale, { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', hour12: false })}</span>
                       <span className="ms-2 text-xs">
-                        {left > 0
-                          ? plural(locale, left, locale === 'ar'
-                            ? { one: 'مكان واحد متبقٍ', two: 'مكانان متبقيان', few: `${left} أماكن متبقية`, many: `${left} مكانًا متبقيًا`, other: `${left} مكان متبقٍ` }
-                            : { one: 'one place left', other: `${left} places left` })
-                          : t('attire.full')}
+                        {left > 0 ? placesLeft(locale, left) : t('attire.full')}
                       </span>
                     </Chip>
                   )

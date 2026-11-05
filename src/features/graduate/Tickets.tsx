@@ -70,7 +70,7 @@ export function Tickets() {
       <section className="mt-6 rounded-2xl bg-white p-5" aria-labelledby="s1">
         <h2 id="s1" className="mb-3 text-xl font-bold">1. {t('tickets.step1')}</h2>
         {attending ? (
-          <p className="font-bold text-green" data-attending>{t('tickets.attending')} ✓</p>
+          <p className="font-bold text-turquoise" data-attending>{t('tickets.attending')} ✓</p>
         ) : (
           <Button onClick={() => attend(persona.id)} disabled={!bookingOpen}>{t('tickets.attend')}</Button>
         )}
@@ -99,7 +99,7 @@ export function Tickets() {
                 </Button>
               )}
             </div>
-            {ent.second === 'claimed' && <p className="mt-2 font-bold text-green" data-second="claimed">{t('tickets.claimed')} ✓</p>}
+            {ent.second === 'claimed' && <p className="mt-2 font-bold text-turquoise" data-second="claimed">{t('tickets.claimed')} ✓</p>}
             {ent.second === 'waitlist' && <p className="mt-2 font-bold" data-second="waitlist">{t('tickets.waitlist', { date: formatDate(SCHEDULE.seatsReleased, locale) })}</p>}
           </section>
 

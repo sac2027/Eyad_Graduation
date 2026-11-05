@@ -1,15 +1,14 @@
-import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { MatrixLoop } from '@/brand/matrix/MatrixLoop'
 import { honorTier } from '@/domain/honorTier'
 import { COLLEGE_COLORS, type HonorTier } from '@/domain/types'
-import { useDemoFlags } from '@/features/demo-console/flags'
 import { useLocale, useT, genderForm } from '@/i18n'
 import { useSession, type Persona } from '@/session/sessionStore'
 import { Button } from '@/ui/Button'
 import { useReducedMotion } from '@/ui/motionPrefs'
 import { toast } from '@/ui/toast'
 import { AwardFallback } from './AwardFallback'
-import { detectCapability, probeEnv } from './capability'
+import { useCapability } from './useCapability'
 import { HonorDetails } from './HonorDetails'
 import type { Beat } from './AwardScene'
 
@@ -30,10 +29,9 @@ export default function HonorPage() {
   const t = useT()
   const locale = useLocale((s) => s.locale)
   const { persona } = useSession()
-  const lowEnd = useDemoFlags((s) => s.lowEnd)
   const reduced = useReducedMotion()
   const tier = tierOf(persona)
-  const cap = useMemo(() => detectCapability(probeEnv(lowEnd)), [lowEnd])
+  const cap = useCapability()
   const [beat, setBeat] = useState<'playing' | Beat>('playing')
   const [skipToken, setSkipToken] = useState(0)
   const [replayToken, setReplayToken] = useState(0)
@@ -105,7 +103,7 @@ export default function HonorPage() {
           <div className="mx-auto max-w-3xl px-6 py-5 transition-[background-color,opacity] duration-500 [transform:skewX(-5deg)]" style={{ backgroundColor: shown ? 'var(--color-turquoise)' : 'transparent' }}>
             <div className="[transform:skewX(5deg)]" aria-live="polite">
               <div className="transition-[opacity,transform] duration-500 ease-[var(--ease-out-strong)]" style={{ opacity: shown ? 1 : 0, transform: shown ? 'none' : 'translateY(12px)' }} data-honor-copy={shown ? 'on' : 'off'}>
-                <p className="mb-1 inline-block bg-yellow px-3 py-0.5 text-sm font-black text-turquoise" data-honor-tier>{t(`honors.tier.${tier}`)}</p>
+                <p className="mb-1 inline-block bg-yellow px-3 py-0.5 text-sm font-black text-black" data-honor-tier>{t(`honors.tier.${tier}`)}</p>
                 <h1 className="break-words text-balance text-3xl font-black [overflow-wrap:anywhere] sm:text-5xl" data-honor-name>{persona.name[locale]}</h1>
                 <p className="mt-1 text-base sm:text-lg" data-honor-message>{genderForm(locale, persona.gender, { m: message, f: message })}</p>
               </div>
@@ -115,7 +113,7 @@ export default function HonorPage() {
               </div>
             </div>
           </div>
-          <p className="mx-auto mt-2 max-w-3xl text-xs opacity-80">{t('honors.private')}</p>
+          <p className="mx-auto mt-2 max-w-3xl text-xs opacity-95">{t('honors.private')}</p>
         </div>
 
         <div className="absolute end-4 top-4 flex gap-2">

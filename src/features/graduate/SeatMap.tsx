@@ -3,6 +3,7 @@ import clsx from 'clsx'
 import type { Seat, SectionSummary } from '@/domain/seats'
 import { seatService, useSeatVersion } from '@/data'
 import { useLocale, useT } from '@/i18n'
+import { seatsLabel } from '@/i18n/plurals'
 import { useNow } from '@/time/clockStore'
 import { HOLD_TTL_MS } from '@/data/services/seatService'
 import { Button } from '@/ui/Button'
@@ -66,8 +67,8 @@ function seatState(seat: Seat, userId: string, now: number): 'available' | 'mine
 }
 
 const SEAT_STYLE: Record<string, string> = {
-  available: 'bg-green text-white',
-  mine: 'bg-yellow text-turquoise outline outline-2 outline-turquoise',
+  available: 'bg-green text-black',
+  mine: 'bg-yellow text-black outline outline-2 outline-turquoise',
   held: 'bg-sand text-black',
   confirmed: 'bg-gray text-black',
   blocked: 'bg-black/20 text-black',
@@ -157,9 +158,9 @@ export function SeatMap({ userId, allowance, canEasy, onConfirmed }: SeatMapProp
       {section && (
         <section aria-labelledby="grid-h" className="rounded-2xl bg-white p-4" data-seat-grid-section={section}>
           <h3 id="grid-h" className="mb-2 text-lg font-bold">{t('seat.grid', { id: section })}</h3>
-          <div ref={grid} dir="ltr" className="overflow-x-auto" onKeyDown={onKey} role="grid" aria-label={t('seat.grid', { id: section })}>
+          <div ref={grid} dir="ltr" className="overflow-x-auto" onKeyDown={onKey} role="group" aria-label={t('seat.grid', { id: section })}>
             {rows.map((r) => (
-              <div key={r} role="row" className="mb-1 flex items-center gap-1">
+              <div key={r} className="mb-1 flex items-center gap-1">
                 <span aria-hidden className="w-5 text-xs">{r}</span>
                 {seats.filter((s) => s.row === r).map((s, i) => {
                   const st = seatState(s, userId, now)
@@ -167,7 +168,6 @@ export function SeatMap({ userId, allowance, canEasy, onConfirmed }: SeatMapProp
                   return (
                     <button
                       key={s.id}
-                      role="gridcell"
                       type="button"
                       data-seat={s.id}
                       data-state={st}
@@ -205,7 +205,7 @@ export function SeatMap({ userId, allowance, canEasy, onConfirmed }: SeatMapProp
             </div>
           )}
           {!conflict && pickedSeat.status === 'confirmed' && pickedSeat.confirmedBy === userId && (
-            <p className="mt-3 font-bold text-green" data-picked-confirmed>{t('tickets.confirmed')} ✓</p>
+            <p className="mt-3 font-bold text-turquoise" data-picked-confirmed>{t('tickets.confirmed')} ✓</p>
           )}
           {!conflict && !(pickedSeat.status === 'confirmed' && pickedSeat.confirmedBy === userId) && (
             <div className="mt-3 flex flex-wrap gap-2">
@@ -217,7 +217,7 @@ export function SeatMap({ userId, allowance, canEasy, onConfirmed }: SeatMapProp
               <Button variant="ghost" onClick={() => { if (seatService.rivalTake(pickedSeat.id)) toast.info(t('seat.conflict')) }} data-demo-rival>{t('tickets.demo.rival')}</Button>
             </div>
           )}
-          {mine.length >= allowance && <p className="mt-2 text-sm">{t('tickets.used-up', { n: allowance })}</p>}
+          {mine.length >= allowance && <p className="mt-2 text-sm">{t('tickets.used-up', { seats: seatsLabel(locale, allowance) })}</p>}
         </div>
       )}
 

@@ -4,8 +4,8 @@ import type { StageStatus } from '@/time/schedule'
 
 const STYLE: Record<StageStatus, string> = {
   upcoming: 'bg-gray text-black',
-  open: 'bg-green text-white',
-  'due-soon': 'bg-yellow text-turquoise',
+  open: 'bg-green text-black',
+  'due-soon': 'bg-yellow text-black',
   closed: 'bg-black/15 text-black',
 }
 

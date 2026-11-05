@@ -46,7 +46,7 @@ export function Dashboard() {
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-8" data-dashboard>
-      <section className="bg-turquoise px-5 py-6 text-beige [transform:skewX(-5deg)] sm:px-8">
+      <div className="overflow-x-clip"><section className="bg-turquoise px-5 py-6 text-beige [transform:skewX(-5deg)] sm:px-8">
         <div className="[transform:skewX(5deg)]">
           <h1 className="break-words text-4xl font-black [overflow-wrap:anywhere] sm:text-5xl" data-me-name>{t('me.hello', { name: persona.name[locale] })}</h1>
           <p className="mt-1">{genderForm(locale, persona.gender, { m: t('me.candidate.m'), f: t('me.candidate.f') })}</p>
@@ -54,7 +54,7 @@ export function Dashboard() {
             <JourneyBar variant="tracker" completed={completed} />
           </div>
         </div>
-      </section>
+      </section></div>
 
       <h2 className="mb-3 mt-8 text-2xl font-black text-turquoise">{t('me.tasks')}</h2>
       <ul className="grid gap-3 sm:grid-cols-2">
@@ -71,7 +71,7 @@ export function Dashboard() {
               {task.note && <p className="mt-1 text-sm">{task.note}</p>}
               <div className="mt-3">
                 {task.done ? (
-                  <span className="font-bold text-green">{t('me.done')} ✓</span>
+                  <span className="font-bold text-turquoise">{t('me.done')} ✓</span>
                 ) : task.to ? (
                   <ButtonLink to={task.to} variant="secondary">{task.cta}</ButtonLink>
                 ) : task.id === 'candidacy' ? (
@@ -84,10 +84,10 @@ export function Dashboard() {
       </ul>
 
       {tier && (
-        <section className="mt-8 flex flex-wrap items-center justify-between gap-3 bg-yellow px-5 py-4 text-turquoise [transform:skewX(-5deg)]" data-honor-card>
+        <div className="mt-8 overflow-x-clip"><section className="flex flex-wrap items-center justify-between gap-3 bg-yellow px-5 py-4 text-black [transform:skewX(-5deg)]" data-honor-card>
           <div className="[transform:skewX(5deg)]"><strong className="text-xl">{t('me.honor')}</strong></div>
           <div className="[transform:skewX(5deg)]"><ButtonLink to="/honors" variant="secondary">{t('me.honor.cta')}</ButtonLink></div>
-        </section>
+        </section></div>
       )}
     </main>
   )

@@ -249,7 +249,7 @@ export const en: Record<string, string> = {
   'tickets.step3': 'Choose your seats',
   'tickets.easy': 'Someone in my party needs easy-access seating',
   'tickets.easy.link': 'Or answer the access question',
-  'tickets.used-up': 'You have used all your seats ({n}).',
+  'tickets.used-up': 'You have used all your seats ({seats}).',
   'tickets.confirm': 'Confirm seats',
   'tickets.confirmed': 'Seats confirmed',
   'tickets.expired': 'The seat hold ran out. Choose it again.',

@@ -13,7 +13,7 @@ export function PhaseBanner() {
     : null
   if (!key) return null
   return (
-    <div role="status" key={key} data-phase-banner={phase} className="phase-banner bg-yellow px-4 py-2 text-center text-sm font-bold text-turquoise">
+    <div role="status" key={key} data-phase-banner={phase} className="phase-banner bg-yellow px-4 py-2 text-center text-sm font-bold text-black">
       {t(key)}
     </div>
   )

@@ -1,0 +1,33 @@
+/* Matrix-bar wipe for buttons: transform and opacity only, brand-flat colour, 5deg skew never flipped. */
+.matrix-wipe { position: absolute; inset: 0; display: flex; z-index: 0; pointer-events: none; }
+.matrix-wipe i {
+  flex: 1;
+  background: var(--wipe, currentColor);
+  transform: skewX(-5deg) scaleY(0);
+  transform-origin: bottom;
+  transition: transform 220ms var(--ease-out-strong);
+  transition-delay: calc(var(--i) * 18ms);
+}
+@media (hover: hover) and (pointer: fine) {
+  .matrix-btn:hover:not(:disabled):not([aria-busy='true']) .matrix-wipe i { transform: skewX(-5deg) scaleY(1); }
+  .matrix-btn:hover:not(:disabled):not([aria-busy='true']) { color: var(--wipe-text, inherit); }
+}
+.btn-content { transition: filter 200ms ease, opacity 200ms ease; }
+.btn-content.is-swapping { animation: swap-in 200ms var(--ease-out-strong); }
+@keyframes swap-in { from { filter: blur(2px); opacity: 0.7; } to { filter: blur(0); opacity: 1; } }
+
+.chip { transition: transform 140ms var(--ease-out-strong), background-color 150ms ease, color 150ms ease; }
+.chip:active { transform: scale(0.97); }
+
+.dialog-backdrop { position: fixed; inset: 0; background: rgb(11 47 51 / 0.55); opacity: 0; transition: opacity 200ms ease; }
+.dialog-backdrop[data-open] { opacity: 1; }
+.dialog-popup {
+  position: fixed; inset-block-start: 50%; inset-inline-start: 50%; translate: -50% -50%;
+  width: min(92vw, 34rem); max-height: 88dvh; overflow: auto;
+  background: #fff; color: var(--text); border-radius: 1rem; padding: 1.5rem;
+  opacity: 0; transform: scale(0.95);
+  transition: opacity 200ms var(--ease-out-strong), transform 200ms var(--ease-out-strong);
+}
+html[dir='rtl'] .dialog-popup { translate: 50% -50%; }
+.dialog-popup[data-open] { opacity: 1; transform: scale(1); }
+.dialog-popup[data-starting-style], .dialog-popup[data-ending-style] { opacity: 0; transform: scale(0.95); }

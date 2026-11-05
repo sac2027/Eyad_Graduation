@@ -1,5 +1,6 @@
 @import 'tailwindcss';
 @import './fonts.css';
+@import '../ui/ui.css';
 
 @theme {
   --color-turquoise: #115f66;

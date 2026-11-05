@@ -23,8 +23,10 @@ export function useUrlSync() {
       if (lang === 'en') url.searchParams.set('lang', 'en')
       else url.searchParams.delete('lang')
       const f = useDemoFlags.getState()
-      f.lowEnd ? url.searchParams.set('lowend', '1') : url.searchParams.delete('lowend')
-      f.worstCase ? url.searchParams.set('worst', '1') : url.searchParams.delete('worst')
+      if (f.lowEnd) url.searchParams.set('lowend', '1')
+      else url.searchParams.delete('lowend')
+      if (f.worstCase) url.searchParams.set('worst', '1')
+      else url.searchParams.delete('worst')
       window.history.replaceState(null, '', url)
     }
     const schedule = () => {

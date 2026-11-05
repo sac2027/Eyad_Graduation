@@ -1,9 +1,12 @@
-import { useEffect } from 'react'
+import { BrowserRouter } from 'react-router-dom'
+import { useLocale } from '@/i18n'
+import { AppRoutes } from './routes'
 
 export function App() {
-  useEffect(() => {
-    document.documentElement.lang = 'ar'
-    document.documentElement.dir = 'rtl'
-  }, [])
-  return <main className="p-6 font-display text-2xl text-turquoise">KFUPM</main>
+  useLocale() // keeps <html lang dir> in sync
+  return (
+    <BrowserRouter>
+      <AppRoutes />
+    </BrowserRouter>
+  )
 }

@@ -34,6 +34,7 @@ export const en: Record<string, string> = {
   'unit.s': 'seconds',
   'count.label': 'Time until the ceremony starts',
 
+  'cert.label': 'Your certificate',
   'stage.candidacy': 'Candidacy',
   'stage.information': 'Information',
   'stage.attire': 'Attire',

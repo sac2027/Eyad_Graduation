@@ -34,6 +34,7 @@ export const ar: Record<string, string> = {
   'unit.s': 'ثانية',
   'count.label': 'الوقت المتبقي حتى بدء الحفل',
 
+  'cert.label': 'شهادتك',
   'stage.candidacy': 'الترشح',
   'stage.information': 'المعلومات',
   'stage.attire': 'الزي',

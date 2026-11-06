@@ -3,7 +3,7 @@ import { PERSONAS, seatService, useGownRecord, useSeatVersion } from '@/data'
 import { useLocale, useT, formatDate, genderForm } from '@/i18n'
 import { useSession } from '@/session/sessionStore'
 import { useJourney } from '@/features/journey/useJourney'
-import { JourneyBar } from '@/features/journey/JourneyBar'
+import { ProgressTrail } from '@/features/stadium/ProgressTrail'
 import { SCHEDULE, type StageId } from '@/time/schedule'
 import { getStageStatus } from '@/time/stageEngine'
 import { Button, ButtonLink } from '@/ui/Button'
@@ -36,6 +36,12 @@ export function Dashboard() {
   if (confirmed) completed.add('candidacy')
   if (gown.status !== 'none') completed.add('attire')
   if (hasSeat) completed.add('tickets')
+  // A step is late for this graduate when its deadline has passed and it is not done.
+  const late: Partial<Record<StageId, boolean>> = {}
+  for (const id of ['candidacy', 'attire', 'tickets'] as const) {
+    const due = SCHEDULE.stages[id].due
+    if (due !== undefined && j.now > due && !completed.has(id)) late[id] = true
+  }
 
   const tasks: { id: StageId; title: string; cta: string; to?: string; note?: string; done: boolean }[] = [
     { id: 'candidacy', title: t('task.candidacy'), cta: t('task.candidacy.cta'), done: confirmed },
@@ -51,7 +57,7 @@ export function Dashboard() {
           <h1 className="break-words text-4xl font-black [overflow-wrap:anywhere] sm:text-5xl" data-me-name>{t('me.hello', { name: persona.name[locale] })}</h1>
           <p className="mt-1">{genderForm(locale, persona.gender, { m: t('me.candidate.m'), f: t('me.candidate.f') })}</p>
           <div className="mt-5">
-            <JourneyBar variant="tracker" completed={completed} />
+            <ProgressTrail now={j.now} late={late} />
           </div>
         </div>
       </section></div>

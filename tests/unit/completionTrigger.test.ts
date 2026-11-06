@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { daysSinceCeremony, octagonSpans, shouldPlayCompletion } from '@/features/journey/completion'
+import { daysSinceCeremony, shouldPlayCompletion } from '@/features/journey/completion'
 import { SCHEDULE } from '@/time/schedule'
 
 const at = (iso: string) => Date.parse(`${iso}+03:00`)
@@ -38,12 +38,3 @@ describe('daysSinceCeremony', () => {
   })
 })
 
-describe('octagonSpans', () => {
-  it('describes a symmetric octagon silhouette', () => {
-    const s = octagonSpans(500, 235, 170, 20)
-    expect(s).toHaveLength(20)
-    for (let i = 0; i < 10; i++) expect(s[i].h).toBeCloseTo(s[19 - i].h, 3)
-    expect(Math.max(...s.map((b) => b.h))).toBeGreaterThan(300)
-    expect(s.every((b) => b.h > 0)).toBe(true)
-  })
-})

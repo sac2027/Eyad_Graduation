@@ -136,7 +136,7 @@ export function Stands({ g, s }: { g: SceneGeom; s: SceneState }) {
               const yIn = lerp(g.rim + 62, g.rim + 96, t - 0.05)
               const yOut = lerp(g.rim - 20, g.rim + 96 + slope * (g.cx - innerX - outL), t - 0.05)
               return (
-                <line key={`c${i}`} x1={xIn} y1={yIn} x2={xOut} y2={yOut} stroke={i % 3 === 0 ? C.yellow : C.beige}
+                <line key={`c${i}`} className="crowd-twinkle" style={{ animationDelay: `${-i * 0.37}s` }} x1={xIn} y1={yIn} x2={xOut} y2={yOut} stroke={i % 3 === 0 ? C.yellow : C.beige}
                   strokeOpacity={crowdOpacity} strokeWidth="3" strokeLinecap="round" strokeDasharray="0 11" />
               )
             })}
@@ -224,7 +224,7 @@ export function Posts({ g, states, only = () => true }: { g: SceneGeom; states: 
             {lamp.glow > 0 && <circle cx={p.x} cy={p.y - h} r={r * 3.4} fill={lamp.fill} opacity={lamp.glow} />}
             <rect x={p.x - 3.5 * p.scale} y={p.y - h + r} width={7 * p.scale} height={h - r} rx={2 * p.scale} fill={C.beige} opacity="0.85" />
             <ellipse cx={p.x} cy={p.y} rx={14 * p.scale} ry={4 * p.scale} fill={C.deep} opacity="0.6" />
-            <circle cx={p.x} cy={p.y - h} r={r} fill={st === 'next' ? C.night : lamp.fill} stroke={lamp.fill} strokeWidth={3 * p.scale} opacity={lamp.opacity} />
+            <circle cx={p.x} cy={p.y - h} r={r} style={{ fill: st === 'next' ? C.night : lamp.fill, stroke: lamp.fill, transition: 'fill 0.9s ease, stroke 0.9s ease' }} strokeWidth={3 * p.scale} opacity={lamp.opacity} />
           </g>
         )
       })}
@@ -249,7 +249,7 @@ export function StageLayer({ g, s, showCertificate }: { g: SceneGeom; s: SceneSt
           const x0 = stage.x + b * stage.w
           const tx = x0 + b * g.w * 1.3
           return (
-            <g key={i} data-beam>
+            <g key={i} data-beam className="beam-sweep" style={{ transformOrigin: `${x0}px ${backTop + 8}px`, animationDelay: `${-i * 1.3}s`, animationDuration: `${5.5 + (i % 3)}s` }}>
               <polygon points={`${x0 - 8},${backTop + 8} ${x0 + 8},${backTop + 8} ${tx + 110},${-BLEED} ${tx - 110},${-BLEED}`} fill={C.blue} opacity="0.12" />
               <polygon points={`${x0 - 3},${backTop + 8} ${x0 + 3},${backTop + 8} ${tx + 34},${-BLEED} ${tx - 34},${-BLEED}`} fill={C.beige} opacity="0.16" />
             </g>

@@ -12,3 +12,24 @@
 @media (prefers-reduced-motion: reduce) {
   .graduate-aura { animation: none; }
 }
+
+/* Ceremony-day beams sweep slowly across the sky; the crowd's lights twinkle. */
+@keyframes beam-sweep {
+  from { transform: rotate(-7deg); }
+  to { transform: rotate(7deg); }
+}
+.beam-sweep {
+  transform-box: view-box;
+  animation: beam-sweep 6s ease-in-out infinite alternate;
+}
+@keyframes crowd-twinkle {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
+.crowd-twinkle { animation: crowd-twinkle 2.6s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .beam-sweep, .crowd-twinkle { animation: none; }
+}
+:root[data-motion='reduced'] .beam-sweep,
+:root[data-motion='reduced'] .crowd-twinkle,
+:root[data-motion='reduced'] .graduate-aura { animation: none; }

@@ -50,6 +50,7 @@ export const en: Record<string, string> = {
   'families.seat': 'My seat',
   'families.access': 'Accessibility',
   'nav.signin': 'Sign in',
+  'me.trail': 'Your nine steps',
   'scene.here': 'You are here',
   'scene.deadline': 'Deadline {date}',
   'welcome.line': 'Welcome to the journey of Class 57',

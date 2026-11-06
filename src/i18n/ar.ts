@@ -50,6 +50,7 @@ export const ar: Record<string, string> = {
   'families.seat': 'مقعدي',
   'families.access': 'تسهيلات الوصول',
   'nav.signin': 'تسجيل الدخول',
+  'me.trail': 'خطواتك التسع',
   'scene.here': 'أنت هنا',
   'scene.deadline': 'آخر موعد {date}',
   'welcome.line': 'أهلًا بك في رحلة الدفعة 57',

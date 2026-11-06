@@ -10,7 +10,7 @@ import { Logo } from '@/brand/logo/Logo'
 import { Button } from '@/ui/Button'
 import { RootPhase } from './RootPhase'
 import { PhaseBanner } from './PhaseBanner'
-import { CompletionHost } from '@/features/journey/CompletionHost'
+import { CertificateMomentHost } from '@/features/moment/CertificateMoment'
 
 const HonorPage = lazy(() => import('@/features/honors/HonorPage'))
 const Guide = lazy(() => import('@/features/guest/Guide').then((m) => ({ default: m.Guide })))
@@ -63,7 +63,7 @@ function Layout() {
         <Outlet />
       </Suspense>
       <DemoConsole />
-      <CompletionHost />
+      <CertificateMomentHost />
       <Toaster position="top-center" dir={dir} />
     </>
   )

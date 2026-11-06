@@ -39,7 +39,7 @@ export function StepSection({ step, gender, status, isGrad }: Props) {
       <div className={dark ? 'bg-turquoise text-beige [transform:skewY(-2deg)]' : ''}>
         <div className={`mx-auto grid max-w-5xl items-center gap-6 px-4 py-8 md:grid-cols-[1.1fr_1fr] md:gap-10 ${dark ? '[transform:skewY(2deg)]' : ''}`}>
           <div>
-            <div className={`font-display text-7xl font-black leading-none sm:text-8xl ${dark ? 'text-yellow' : 'text-turquoise/25'}`} aria-hidden>
+            <div className={`font-display text-7xl font-black leading-none sm:text-8xl ${dark ? 'text-yellow' : 'text-turquoise'}`} aria-hidden>
               {formatNumber(n, locale).padStart(2, formatNumber(0, locale))}
             </div>
             <p className={`mt-2 text-sm font-bold uppercase tracking-wide ${dark ? 'text-beige/90' : 'text-turquoise'}`}>{t(`stage.${id}`)}</p>

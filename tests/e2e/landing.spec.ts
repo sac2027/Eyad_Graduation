@@ -14,12 +14,19 @@ test.describe('phone', () => {
     await expect(page.getByText(/كلمة المرور|password/i)).toHaveCount(0)
   })
 
+  test('a guest sees passed steps as passed, never late', async ({ page }) => {
+    await page.goto('/?t=2027-03-16T10:00&persona=guest')
+    await expect(page.locator('[data-checkpoint="candidacy"]')).toHaveAttribute('data-checkpoint-state', 'passed')
+  })
+
   test('the journey shows nine checkpoints with the current one marked', async ({ page }) => {
     await page.goto('/?t=2027-03-16T10:00')
     await expect(page.locator('[data-scene="tall"]')).toBeVisible()
     await expect(page.locator('[data-checkpoint]')).toHaveCount(9)
     await expect(page.locator('[data-checkpoint="attire"]')).toHaveAttribute('data-checkpoint-state', 'current')
-    await expect(page.locator('[data-checkpoint="candidacy"]')).toHaveAttribute('data-checkpoint-state', 'passed')
+    // the default persona never confirmed their details, so the passed deadline shows as late
+    await expect(page.locator('[data-checkpoint="candidacy"]')).toHaveAttribute('data-checkpoint-state', 'late')
+    await expect(page.locator('[data-checkpoint="information"]')).toHaveAttribute('data-checkpoint-state', 'passed')
     await expect(page.locator('[data-checkpoint="tickets"]')).toHaveAttribute('data-checkpoint-state', 'next')
     await expect(page.getByRole('img', { name: 'شهادتك' })).toBeVisible()
   })

@@ -12,6 +12,7 @@ import { useConfirmed } from '@/features/graduate/checklist'
 import { FamiliesBlock } from '@/features/steps/FamiliesBlock'
 import { StepSection } from '@/features/steps/StepSection'
 import { personalStatus, STEPS } from '@/features/steps/steps'
+import { ScrollRail } from '@/features/rail/ScrollRail'
 
 const DEFAULT_GRAD = PERSONAS.find((p) => p.role === 'graduate')!
 
@@ -35,6 +36,9 @@ export function GuestHome() {
     gownDone: gown.status === 'slot-booked' || gown.status === 'picked-up' || gown.status === 'returned',
     hasSeat: seatService.listUserSeats(persona.id).some((x) => x.status === 'confirmed'),
   }
+  // The scene, the rail and the dashboard agree on which steps are late for this graduate.
+  const late = isGrad ? Object.fromEntries(STEPS.map((st) => [st.id, personalStatus(st.id, facts, now) === 'late'])) : undefined
+  const outfit = gender === 'm' ? 'bisht' : 'abaya'
   const line = isGrad ? t(`${key}.named.${persona.gender}`, { name: persona.name[locale] }) : t(`${key}.anon`)
 
   const toStep = (id: StageId) => {
@@ -47,11 +51,12 @@ export function GuestHome() {
   }
 
   return (
-    <main>
+    <main className="pr-7 md:pr-16">
       <section aria-labelledby="hero-title" className="overflow-hidden bg-ink text-beige" data-hero>
         <StadiumScene
           now={now}
-          outfit={gender === 'm' ? 'bisht' : 'abaya'}
+          outfit={outfit}
+          late={late}
           mode="live"
           dateStatus={dateStatus}
           onCheckpoint={toStep}
@@ -62,8 +67,7 @@ export function GuestHome() {
               </h1>
               <p className="flex flex-wrap items-center justify-center gap-x-4 text-sm">
                 <span className="opacity-90">{t('landing.place', { date: formatDate(SCHEDULE.ceremonyDay.ceremony.start, locale, { day: 'numeric', month: 'long', year: 'numeric' }) })}</span>
-                <button type="button" onClick={asGraduate} className="min-h-11 font-semibold underline underline-offset-4">{t('landing.ways.grad')}</button>
-                <Link to="/guide" onClick={() => setPersona('guest')} className="inline-flex min-h-11 items-center font-semibold underline underline-offset-4">{t('landing.ways.guest')}</Link>
+<WaysIn className="hidden [@media(min-aspect-ratio:1/1)]:contents" onGrad={asGraduate} onGuest={() => setPersona('guest')} />
               </p>
             </div>
           }
@@ -74,12 +78,27 @@ export function GuestHome() {
           <ButtonLink to="/me/tickets" variant="gold">{t('families.seat')}</ButtonLink>
           <ButtonLink to="/guide#access" variant="gold">{t('families.access')}</ButtonLink>
         </nav>
+        <p className="flex justify-center gap-6 pb-3 text-sm [@media(min-aspect-ratio:1/1)]:hidden">
+          <WaysIn onGrad={asGraduate} onGuest={() => setPersona('guest')} />
+        </p>
       </section>
 
       {STEPS.map((step) => (
         <StepSection key={step.id} step={step} gender={gender} isGrad={isGrad} status={isGrad ? personalStatus(step.id, facts, now) : null} />
       ))}
       <FamiliesBlock />
+      <ScrollRail now={now} outfit={outfit} late={late} />
     </main>
+  )
+}
+
+/** The two ways in: as a graduate or as a guest. */
+function WaysIn({ onGrad, onGuest, className }: { onGrad: () => void; onGuest: () => void; className?: string }) {
+  const t = useT()
+  return (
+    <span className={className ?? 'contents'}>
+      <button type="button" onClick={onGrad} className="min-h-11 font-semibold underline underline-offset-4">{t('landing.ways.grad')}</button>
+      <Link to="/guide" onClick={onGuest} className="inline-flex min-h-11 items-center font-semibold underline underline-offset-4">{t('landing.ways.guest')}</Link>
+    </span>
   )
 }

@@ -590,3 +590,20 @@ The old components are deleted in Task 15. Update `tests/e2e/journey.spec.ts` an
 - [ ] **Step 6: Performance check on a phone profile.** Use Playwright with CPU throttling at 4× and a 390×844 viewport. Record 5 s of `requestAnimationFrame` deltas on `/` at mid-journey: the median should be ≤ 20 ms, and no more than 5% of frames should be over 50 ms.
 - [ ] **Step 7: Screenshots for the requester.** Take mid-journey, ceremony night 20:20, the certificate moment at 21:30, and the afterglow, in `ar` at 390 and 1440 px. Save them in `docs/review/final/`.
 - [ ] **Step 8: Commit and push** (`chore: remove old journey, deploy redirects, final checks`)
+
+---
+
+## Implementation notes (deviations)
+
+- **Countdown target** is 21:30 on 7 April (`SCHEDULE.afterglowStart`), as agreed in the spec.
+- **Scene layers** are in one file, `src/features/stadium/layers.tsx`, not a `layers/` folder. The stage screens are their own component (`StageScreens.tsx`).
+- **Checkpoint labels**:
+  - On phones only the current step shows its name, as a pill that grows away from the aisle.
+  - Checkpoint ⑨ is labelled "Your certificate" above the podium.
+  - The visible certificate caption was dropped to avoid collisions; the certificate keeps an accessible name.
+- **Rail posts** are plain marks, not buttons, because a slider cannot contain buttons; the slider handles keyboard input. Clicking a post on desktop jumps to its section, and on phones the whole rail opens the step list.
+- **Ways in on phones**: "I'm graduating / I'm a guest" sits under the families buttons on portrait screens, and the header has a Sign in button.
+- **Welcome moment**: automated browsers skip it unless the URL has `?welcome=1`, so the tests see the page itself, the same approach as the CPU benchmark.
+- **Dashboard**: shows a nine-step trail (`ProgressTrail`) in the scene's colours instead of the old Journey Bar.
+- **Removed**: the old story, ascent, completion and afterglow components. The after-ceremony "photos" and "survey" cards went with the afterglow screen; certificate collection and gown return live in step ⑨.
+- **Performance** (production build, 390×844, CPU ×4, headless): median frame 16.7 ms and 0% of frames over 50 ms, both mid-journey and on ceremony night. Landing bundle 137 KB gzipped.

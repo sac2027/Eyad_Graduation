@@ -1,0 +1,14 @@
+/* The graduate's aura breathes slowly (4 s); still poses and reduced motion keep it calm. */
+@keyframes aura-breathe {
+  0%, 100% { transform: scale(0.96); opacity: 0.85; }
+  50% { transform: scale(1.05); opacity: 1; }
+}
+.graduate-aura {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: aura-breathe 4s ease-in-out infinite;
+}
+[data-mode='still'] .graduate-aura { animation: none; }
+@media (prefers-reduced-motion: reduce) {
+  .graduate-aura { animation: none; }
+}

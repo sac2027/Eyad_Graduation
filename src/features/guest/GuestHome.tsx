@@ -39,7 +39,7 @@ export function GuestHome() {
         <StadiumScene
           now={now}
           outfit={gender === 'm' ? 'bisht' : 'abaya'}
-          mode="still"
+          mode="live"
           dateStatus={dateStatus}
           onCheckpoint={toStep}
           headline={

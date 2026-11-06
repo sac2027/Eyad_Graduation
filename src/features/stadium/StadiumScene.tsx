@@ -1,11 +1,14 @@
-import type { ReactNode } from 'react'
+import { useMemo, type ReactNode } from 'react'
+import { useDemoFlags } from '@/features/demo-console/flags'
+import { useReducedMotion } from '@/ui/motionPrefs'
+import { FigureLayer } from './FigureLayer'
+import './stadium.css'
 import { formatDate, formatNumber, useLocale, useT } from '@/i18n'
 import { checkpointStates, pathProgress, type CheckpointState } from '@/time/pathEngine'
 import { SCHEDULE, STAGE_ORDER, type StageId } from '@/time/schedule'
 import { daysSinceCeremony } from '@/features/journey/completion'
 import { daysSinceLabel } from '@/i18n/plurals'
 import { countdownParts } from './countdown'
-import { FIGURE_BOX, Graduate } from './figure/Graduate'
 import type { Outfit } from './figure/frames'
 import { figureAt, geometryFor, type SceneGeom } from './geometry'
 import { Aisle, certHeight, certWidth, ChairBlocks, GoldSparkles, Posts, Sky, Skyline, StageLayer, Stands, postAt } from './layers'
@@ -35,15 +38,40 @@ export function StadiumScene({ now, outfit, mode, dateStatus = 'confirmed', late
   const states = checkpointStates(now, { late })
   const ordered = STAGE_ORDER.map((id) => states[id])
   const progress = dateStatus === 'tbc' ? 0 : pathProgress(now)
-  const fig = s.figure === 'holding' ? figureAt(1, g) : figureAt(progress, g)
+  const reduced = useReducedMotion()
+  const lowEnd = useDemoFlags((f) => f.lowEnd)
+  const calm = reduced || lowEnd
+  const at = s.figure === 'holding' ? figureAt(1, g) : figureAt(progress, g)
   // Holding the certificate he steps forward into the light: drawn larger so the moment reads.
-  const heroScale = s.figure === 'holding' ? 1.7 : 1
-  const boxH = g.figureH * fig.scale * heroScale * (FIGURE_BOX.h / FIGURE_BOX.bodyH)
-  const boxW = (boxH * FIGURE_BOX.w) / FIGURE_BOX.h
-  const figTop = fig.y - boxH * (FIGURE_BOX.feetY / FIGURE_BOX.h)
+  const fig = s.figure === 'holding' ? { ...at, scale: at.scale * 1.7 } : at
+  const figMode = s.figure === 'holding' ? 'hold-certificate' : mode === 'live' && !calm ? 'walk' : 'still'
   const current = ordered.lastIndexOf('current')
   const litTo = current >= 0 ? g.aisle[Math.min(current, 5)].y : null
-  const behind = (i: number) => postAt(g, i).y <= fig.y
+  const figRow = Math.round(at.y)
+  // The artwork only changes when the scene state does, not every second.
+  const sKey = JSON.stringify(s)
+  const statesKey = ordered.join()
+  const back = useMemo(
+    () => (
+      <>
+        <Sky g={g} />
+        <Skyline g={g} />
+        <Stands g={g} s={s} />
+        <StageLayer g={g} s={s} showCertificate={s.figure !== 'holding'} />
+        {s.goldAccents && <GoldSparkles g={g} />}
+        <ChairBlocks g={g} s={s} />
+        <Aisle g={g} litTo={litTo} />
+        <Posts g={g} states={ordered} only={(i) => postAt(g, i).y <= at.y} />
+      </>
+    ),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [wide, sKey, statesKey, litTo, figRow],
+  )
+  const front = useMemo(
+    () => <Posts g={g} states={ordered} only={(i) => postAt(g, i).y > at.y} />,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [wide, statesKey, figRow],
+  )
 
   return (
     <div
@@ -57,24 +85,10 @@ export function StadiumScene({ now, outfit, mode, dateStatus = 'confirmed', late
       aria-label={t('scene.label', { n: formatNumber(s.lampsLit, locale) })}
     >
       <svg viewBox={`0 0 ${g.w} ${g.h}`} className="absolute inset-0 h-full w-full overflow-visible" aria-hidden>
-        <Sky g={g} />
-        <Skyline g={g} />
-        <Stands g={g} s={s} />
-        <StageLayer g={g} s={s} showCertificate={s.figure !== 'holding'} />
-        {s.goldAccents && <GoldSparkles g={g} />}
-        <ChairBlocks g={g} s={s} />
-        <Aisle g={g} litTo={litTo} />
-        <Posts g={g} states={ordered} only={(i) => behind(i)} />
-        <Graduate
-          outfit={outfit}
-          height={boxH}
-          x={fig.x - boxW / 2}
-          y={figTop}
-          mode={s.figure === 'holding' ? 'hold-certificate' : mode === 'live' ? 'walk' : 'still'}
-          aura={s.figure === 'holding' ? 'bright' : 'soft'}
-        />
-        {s.figure === 'holding' && <circle cx={fig.x} cy={fig.y - 8} r={g.figureH * fig.scale * 0.9} fill="#F0BA4F" opacity="0.12" />}
-        <Posts g={g} states={ordered} only={(i) => !behind(i)} />
+        {back}
+        <FigureLayer target={fig} figureH={g.figureH} outfit={outfit} mode={figMode} aura={s.figure === 'holding' ? 'bright' : 'soft'} instant={calm} />
+        {s.figure === 'holding' && <circle cx={at.x} cy={at.y - 8} r={g.figureH * at.scale * 1.5} fill="#F0BA4F" opacity="0.12" />}
+        {front}
       </svg>
 
       <Screens g={g} now={now} tbc={dateStatus === 'tbc'} />

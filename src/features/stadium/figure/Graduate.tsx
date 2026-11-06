@@ -1,4 +1,5 @@
-import { useId } from 'react'
+import { useId, useRef } from 'react'
+import { useWalkFrame } from './useWalkFrame'
 import { HOLD_FRAMES, HOLD_HANDS, WALK_FRAMES, type Outfit } from './frames'
 
 export type GraduateMode = 'walk' | 'still' | 'hold-certificate'
@@ -23,12 +24,17 @@ const INK = '#0b2f33'
 export const FIGURE_BOX = { w: 160, h: 290, feetY: 262, centerX: 80, bodyH: 240 }
 
 /** The graduate: a faceless silhouette from behind, with a soft gold aura and a thin rim of stage light. */
-export function Graduate({ outfit, height, mode, aura = 'soft', frame = 0, x, y, className = '' }: Props) {
+export function Graduate({ outfit, height, mode, aura = 'soft', frame, x, y, className = '' }: Props) {
   const id = useId().replace(/:/g, '')
-  const d = mode === 'hold-certificate' ? HOLD_FRAMES[outfit] : WALK_FRAMES[outfit][mode === 'walk' ? frame % 12 : 0]
+  const ref = useRef<SVGSVGElement>(null)
+  // Without a fixed frame, a walking figure animates itself.
+  const live = useWalkFrame(mode === 'walk' && frame === undefined, ref)
+  const shown = mode === 'walk' ? (frame ?? live) % 12 : 0
+  const d = mode === 'hold-certificate' ? HOLD_FRAMES[outfit] : WALK_FRAMES[outfit][shown]
   const auraOpacity = aura === 'bright' ? 0.6 : 0.35
   return (
     <svg
+      ref={ref}
       viewBox="-30 -30 160 290"
       x={x}
       y={y}
@@ -38,14 +44,14 @@ export function Graduate({ outfit, height, mode, aura = 'soft', frame = 0, x, y,
       aria-hidden
       data-graduate={outfit}
       data-mode={mode}
-      data-frame={mode === 'walk' ? frame % 12 : 0}
+      data-frame={shown}
     >
       <defs>
         <filter id={`aura-${id}`} x="-60%" y="-40%" width="220%" height="180%">
           <feGaussianBlur stdDeviation="14" />
         </filter>
       </defs>
-      <g data-aura className="graduate-aura" style={{ transformOrigin: '50px 120px' }}>
+      <g data-aura className="graduate-aura">
         <ellipse cx="50" cy="120" rx="46" ry="118" fill="#F0BA4F" opacity={auraOpacity} filter={`url(#aura-${id})`} />
         <ellipse cx="50" cy="40" rx="30" ry="34" fill="#ECE0C7" opacity={auraOpacity * 0.5} filter={`url(#aura-${id})`} />
       </g>

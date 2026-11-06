@@ -52,6 +52,8 @@ export const en: Record<string, string> = {
   'nav.signin': 'Sign in',
   'scene.here': 'You are here',
   'scene.deadline': 'Deadline {date}',
+  'welcome.line': 'Welcome to the journey of Class 57',
+  'welcome.sub': 'Your night is coming',
   'screens.days': 'days',
   'screens.hms': 'hours : minutes : seconds',
   'screens.until': 'until your certificate is in your hands',

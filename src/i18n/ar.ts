@@ -52,6 +52,8 @@ export const ar: Record<string, string> = {
   'nav.signin': 'تسجيل الدخول',
   'scene.here': 'أنت هنا',
   'scene.deadline': 'آخر موعد {date}',
+  'welcome.line': 'أهلًا بك في رحلة الدفعة 57',
+  'welcome.sub': 'ليلتك تقترب',
   'screens.days': 'يوم',
   'screens.hms': 'ساعة : دقيقة : ثانية',
   'screens.until': 'حتى تحمل شهادتك بين يديك',

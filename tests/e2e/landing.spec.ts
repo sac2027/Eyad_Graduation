@@ -26,8 +26,9 @@ test.describe('phone', () => {
 
   test('the stage screens count down to the certificate moment', async ({ page }) => {
     await page.goto('/?t=2027-03-16T10:00')
-    await expect(page.locator('[data-screen="left"]')).toContainText('22')
-    await expect(page.locator('[data-screen="right"]')).toContainText('11:30:00')
+    await expect(page.locator('[data-screen="left"]')).toHaveAttribute('data-days', '22')
+    await expect(page.locator('[data-screen="right"]')).toHaveAttribute('data-time', '11:30:00')
+    await expect(page.locator('[data-screens-label]')).toHaveText('حتى تحمل شهادتك بين يديك')
   })
 
   test('with worst-case data at 320px nothing scrolls sideways', async ({ page }) => {

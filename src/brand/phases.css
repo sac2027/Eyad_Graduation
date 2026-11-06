@@ -1,0 +1,18 @@
+.marker-pulse { transform-origin: center; transform-box: fill-box; animation: marker-pulse 1.8s var(--ease-out-strong) infinite; }
+@keyframes marker-pulse { from { transform: scale(1); opacity: 0.9; } to { transform: scale(2.6); opacity: 0; } }
+
+.phase-banner { animation: banner-in 260ms var(--ease-out-strong); }
+@keyframes banner-in { from { opacity: 0; transform: translateY(-100%); } to { opacity: 1; transform: translateY(0); } }
+[data-day-ascent][data-slot='ceremony'] .marker-pulse { animation: none; }
+
+.award-fallback-rise { animation: award-rise 2.2s var(--ease-out-strong) both; }
+@keyframes award-rise { from { opacity: 0; transform: translateY(48px) scale(0.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+/* The logo follows the header: colour version on light, white version on turquoise. */
+.logo-on-dark { display: none; }
+[data-phase='ceremony-day'] .logo-on-light,
+[data-phase='afterglow'] .logo-on-light,
+[data-phase='honors-day'] .logo-on-light { display: none; }
+[data-phase='ceremony-day'] .logo-on-dark,
+[data-phase='afterglow'] .logo-on-dark,
+[data-phase='honors-day'] .logo-on-dark { display: inline-block; }

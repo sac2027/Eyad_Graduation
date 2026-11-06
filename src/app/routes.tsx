@@ -11,6 +11,7 @@ import { Button } from '@/ui/Button'
 import { RootPhase } from './RootPhase'
 import { PhaseBanner } from './PhaseBanner'
 import { CertificateMomentHost } from '@/features/moment/CertificateMoment'
+import { Fireworks } from '@/features/celebrate/Fireworks'
 
 const HonorPage = lazy(() => import('@/features/honors/HonorPage'))
 const Guide = lazy(() => import('@/features/guest/Guide').then((m) => ({ default: m.Guide })))
@@ -64,6 +65,7 @@ function Layout() {
       </Suspense>
       <DemoConsole />
       <CertificateMomentHost />
+      <Fireworks />
       <Toaster position="top-center" dir={dir} />
     </>
   )

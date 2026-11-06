@@ -63,7 +63,7 @@ const STATES: [string, (p: import('@playwright/test').Page) => Promise<void>][] 
   }],
   ['honor hero (gold, after the sequence)', async (p) => {
     await p.goto('/honors?persona=grad-m-gold&lang=en')
-    await p.locator('canvas').waitFor()
+    await p.locator('canvas:not([data-fx])').waitFor()
     await p.getByRole('button', { name: 'Skip' }).click()
   }],
   ['honor hero (2D version)', async (p) => {

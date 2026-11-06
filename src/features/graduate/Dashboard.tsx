@@ -9,6 +9,7 @@ import { getStageStatus } from '@/time/stageEngine'
 import { Button, ButtonLink } from '@/ui/Button'
 import { StatusChip } from '@/ui/StatusChip'
 import { useConfirmed } from './checklist'
+import { celebrate } from '@/features/celebrate/celebrate'
 
 export function Dashboard() {
   const t = useT()
@@ -81,7 +82,7 @@ export function Dashboard() {
                 ) : task.to ? (
                   <ButtonLink to={task.to} variant="secondary">{task.cta}</ButtonLink>
                 ) : task.id === 'candidacy' ? (
-                  <Button onClick={() => confirm(persona.id)} disabled={status === 'upcoming' || status === 'closed'}>{task.cta}</Button>
+                  <Button onClick={() => { confirm(persona.id); celebrate('task', `candidacy:${persona.id}`) }} disabled={status === 'upcoming' || status === 'closed'}>{task.cta}</Button>
                 ) : null}
               </div>
             </li>

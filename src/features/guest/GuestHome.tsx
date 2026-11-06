@@ -1,4 +1,10 @@
+import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { celebrate, useCelebrations } from '@/features/celebrate/celebrate'
+import { welcomeThisVisit } from '@/features/celebrate/welcome'
+import { getPhase } from '@/time/phaseEngine'
+import { getNow } from '@/time/clockStore'
+import { useReducedMotion } from '@/ui/motionPrefs'
 import { PERSONAS } from '@/data/fixtures/graduates'
 import { useDemoFlags } from '@/features/demo-console/flags'
 import { StadiumScene } from '@/features/stadium/StadiumScene'
@@ -23,6 +29,23 @@ export function GuestHome() {
   const nav = useNavigate()
   const { persona, setPersona } = useSession()
   const dateStatus = useDemoFlags((s) => s.dateStatus)
+  const lowEnd = useDemoFlags((s) => s.lowEnd)
+  const reduced = useReducedMotion()
+  const [welcome, setWelcome] = useState(welcomeThisVisit)
+  // The welcome moment: lights on, fireworks over the stage, a welcome line on the screens; about 4 s.
+  useEffect(() => {
+    if (!welcome) return
+    const { phase } = getPhase(getNow())
+    celebrate(phase === 'ceremony-day' || phase === 'afterglow' ? 'ceremony-entry' : 'welcome', 'landing-show')
+    const tm = window.setTimeout(() => setWelcome(false), reduced || lowEnd ? 3000 : 4200)
+    return () => window.clearTimeout(tm)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [welcome])
+  const skipWelcome = () => {
+    if (!welcome) return
+    setWelcome(false)
+    useCelebrations.getState().stop()
+  }
   const isGrad = persona.role === 'graduate'
   const gender = isGrad ? persona.gender : DEFAULT_GRAD.gender
 
@@ -52,13 +75,14 @@ export function GuestHome() {
 
   return (
     <main className="pr-7 md:pr-16">
-      <section aria-labelledby="hero-title" className="overflow-hidden bg-ink text-beige" data-hero>
+      <section aria-labelledby="hero-title" className="overflow-hidden bg-ink text-beige" data-hero onClick={skipWelcome}>
         <StadiumScene
           now={now}
           outfit={outfit}
           late={late}
           mode="live"
           dateStatus={dateStatus}
+          welcome={welcome}
           onCheckpoint={toStep}
           headline={
             <div className="flex h-full flex-col items-center justify-start gap-1 text-center">

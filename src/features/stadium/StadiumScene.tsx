@@ -81,6 +81,7 @@ export function StadiumScene({ now, outfit, mode, dateStatus = 'confirmed', late
       data-figure={s.figure}
       data-progress={progress.toFixed(3)}
       data-beams={s.beams}
+      data-welcome={welcome ? 'on' : undefined}
       role="group"
       aria-label={t('scene.label', { n: formatNumber(s.lampsLit, locale) })}
     >

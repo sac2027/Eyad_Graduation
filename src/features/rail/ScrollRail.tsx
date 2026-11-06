@@ -11,7 +11,7 @@ import { useReducedMotion } from '@/ui/motionPrefs'
 import { railProgress, scrollForProgress } from './railMath'
 import { RailSheet } from './RailSheet'
 
-const TOP = 28
+const TOP = 50
 const BOTTOM = 56
 const LAMP: Record<CheckpointState, string> = {
   passed: 'bg-green',

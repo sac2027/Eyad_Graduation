@@ -57,3 +57,15 @@
   html.hide-native-scrollbar { scrollbar-width: none; }
   html.hide-native-scrollbar::-webkit-scrollbar { display: none; }
 }
+
+/* Welcome moment: the stadium's lights come on bank by bank. */
+@keyframes lights-on {
+  from { filter: brightness(0.3); }
+  to { filter: brightness(1); }
+}
+[data-welcome='on'] [data-layer='skyline'] { animation: lights-on 0.9s ease-out both; }
+[data-welcome='on'] [data-layer='stands'] { animation: lights-on 0.9s ease-out 0.35s both; }
+[data-welcome='on'] [data-layer='chairs'] { animation: lights-on 0.9s ease-out 0.7s both; }
+[data-welcome='on'] [data-layer='aisle'] { animation: lights-on 0.9s ease-out 0.9s both; }
+[data-welcome='on'] [data-layer='stage'] { animation: lights-on 1s ease-out 1.1s both; }
+:root[data-motion='reduced'] [data-welcome='on'] [data-layer] { animation: none; }

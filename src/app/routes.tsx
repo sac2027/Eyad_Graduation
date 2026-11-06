@@ -32,7 +32,7 @@ function Layout() {
       </a>
       <header className="flex flex-wrap items-center justify-between gap-x-2 bg-[var(--header-bg)] px-4 py-1 text-[var(--header-fg)]">
         <Link to="/" className="inline-flex min-h-11 items-center" aria-label="KFUPM">
-          <Logo height={26} />
+          <Logo height={30} />
         </Link>
         <nav aria-label="Main" className="order-3 flex w-full flex-wrap items-center sm:order-none sm:w-auto">
           <NavLink to="/" end className={link}>{t('nav.home')}</NavLink>

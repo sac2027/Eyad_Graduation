@@ -4,8 +4,8 @@ import stacked from './stacked.svg?url'
 import stackedNegative from './stacked-negative.svg?url'
 
 const FILES = {
-  horizontal: { positive: horizontal, negative: horizontalNegative, ratio: 450.11 / 47.52 },
-  stacked: { positive: stacked, negative: stackedNegative, ratio: 227.69 / 69.77 },
+  horizontal: { positive: horizontal, negative: horizontalNegative, ratio: 188.25 / 31.55 },
+  stacked: { positive: stacked, negative: stackedNegative, ratio: 188.25 / 31.54 },
 }
 
 interface Props {

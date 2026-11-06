@@ -1,5 +1,7 @@
 import { expect, test } from '@playwright/test'
 
+test.fixme(true, 'Old journey, replaced by the stadium scene. Rewritten in Task 9/15 of docs/superpowers/plans/2026-11-06-journey-redesign.md')
+
 async function jumpTo(page: import('@playwright/test').Page, value: string) {
   const input = page.getByLabel('Jump to date and time')
   await input.fill(value)

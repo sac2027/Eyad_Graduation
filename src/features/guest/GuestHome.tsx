@@ -1,14 +1,14 @@
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { PERSONAS } from '@/data/fixtures/graduates'
-import { useLocale, useT, formatDate } from '@/i18n'
+import { useDemoFlags } from '@/features/demo-console/flags'
+import { StadiumScene } from '@/features/stadium/StadiumScene'
+import { formatDate, useLocale, useT } from '@/i18n'
 import { useSession } from '@/session/sessionStore'
 import { useNow } from '@/time/clockStore'
-import { getPhase } from '@/time/phaseEngine'
-import { SCHEDULE } from '@/time/schedule'
-import { Button, ButtonLink } from '@/ui/Button'
-import { Countdown } from './Countdown'
-import { JourneySection } from '@/features/journey/JourneySection'
-import { MatrixLoop } from '@/brand/matrix/MatrixLoop'
+import { SCHEDULE, type StageId } from '@/time/schedule'
+import { ButtonLink } from '@/ui/Button'
+
+const DEFAULT_GRAD = PERSONAS.find((p) => p.role === 'graduate')!
 
 export function GuestHome() {
   const t = useT()
@@ -16,56 +16,51 @@ export function GuestHome() {
   const now = useNow(1000)
   const nav = useNavigate()
   const { persona, setPersona } = useSession()
-  const { phase } = getPhase(now)
+  const dateStatus = useDemoFlags((s) => s.dateStatus)
+  const isGrad = persona.role === 'graduate'
+  const gender = isGrad ? persona.gender : DEFAULT_GRAD.gender
 
-  const asGraduate = () => {
-    if (persona.role !== 'graduate') setPersona(PERSONAS.find((p) => p.role === 'graduate')!.id)
-    nav('/me')
+  const done = now >= SCHEDULE.afterglowStart
+  const key = done ? 'landing.done' : 'landing.line'
+  const line = isGrad ? t(`${key}.named.${persona.gender}`, { name: persona.name[locale] }) : t(`${key}.anon`)
+
+  const toStep = (id: StageId) => {
+    const el = document.getElementById(`step-${id}`)
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
-  const asGuest = () => {
-    setPersona('guest')
-    nav('/guide')
+  const asGraduate = () => {
+    if (!isGrad) setPersona(DEFAULT_GRAD.id)
+    nav('/me')
   }
 
   return (
     <main>
-      <section aria-labelledby="hero-title" className="relative overflow-hidden bg-turquoise text-beige" data-hero>
-        <MatrixLoop id="hero" background="turquoise" stripes="green" seed={57} density={0.6} frequency={0.05} className="absolute end-0 top-0 h-28 w-full md:h-full md:w-[46%]" />
-        <div className="relative mx-auto grid min-h-[calc(100dvh-4.5rem)] max-w-5xl content-center gap-8 px-4 pb-10 pt-32 md:pt-10">
-          <div>
-            <h1 id="hero-title" className="text-balance text-[clamp(2.5rem,9vw,5.5rem)] font-black leading-[1.05]">
-              {t(`hero.${phase}`)}
-            </h1>
-            <p className="mt-3 max-w-xl text-lg">{t('hero.sub')}</p>
-            <p className="mt-1 text-base opacity-90">{t('hero.date', { date: formatDate(SCHEDULE.ceremonyDay.ceremony.start, locale) })}</p>
-          </div>
-          <Countdown />
-          <div id="practical" className="grid gap-3 sm:grid-cols-3">
-            <ButtonLink to="/guide#gates" variant="gold" size="lg">{t('cta.gate')}</ButtonLink>
-            <ButtonLink to="/me/tickets" variant="gold" size="lg">{t('cta.seat')}</ButtonLink>
-            <ButtonLink to="/guide#map" variant="gold" size="lg">{t('cta.map')}</ButtonLink>
-          </div>
-          <a href="#journey" className="inline-flex min-h-11 w-fit items-center gap-2 font-semibold underline underline-offset-4">
-            {t('cta.journey')}
-            <span aria-hidden>↓</span>
-          </a>
-        </div>
-      </section>
-
-      <JourneySection />
-
-      <section aria-labelledby="roles-title" className="mx-auto max-w-5xl px-4 py-14">
-        <h2 id="roles-title" className="mb-6 text-3xl font-black text-turquoise">{t('role.title')}</h2>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="rounded-2xl bg-white p-6">
-            <Button size="lg" onClick={asGraduate}>{t('cta.me')}</Button>
-            <p className="mt-3 text-sm">{t('role.graduate.note')}</p>
-          </div>
-          <div className="rounded-2xl bg-white p-6">
-            <Button size="lg" variant="secondary" onClick={asGuest}>{t('cta.guest')}</Button>
-            <p className="mt-3 text-sm">{t('role.guest.note')}</p>
-          </div>
-        </div>
+      <section aria-labelledby="hero-title" className="overflow-hidden bg-ink text-beige" data-hero>
+        <StadiumScene
+          now={now}
+          outfit={gender === 'm' ? 'bisht' : 'abaya'}
+          mode="still"
+          dateStatus={dateStatus}
+          onCheckpoint={toStep}
+          headline={
+            <div className="flex h-full flex-col items-center justify-start gap-1 text-center">
+              <h1 id="hero-title" className="text-balance font-display text-[clamp(1.25rem,2.5vw,2.4rem)] font-black leading-[1.15]">
+                {line}
+              </h1>
+              <p className="flex flex-wrap items-center justify-center gap-x-4 text-sm">
+                <span className="opacity-90">{t('landing.place', { date: formatDate(SCHEDULE.ceremonyDay.ceremony.start, locale, { day: 'numeric', month: 'long', year: 'numeric' }) })}</span>
+                <button type="button" onClick={asGraduate} className="min-h-11 font-semibold underline underline-offset-4">{t('landing.ways.grad')}</button>
+                <Link to="/guide" onClick={() => setPersona('guest')} className="inline-flex min-h-11 items-center font-semibold underline underline-offset-4">{t('landing.ways.guest')}</Link>
+              </p>
+            </div>
+          }
+        />
+        <nav id="practical" aria-label={t('families.title')} className="mx-auto grid max-w-5xl grid-cols-2 gap-2 px-4 py-3 sm:grid-cols-4" data-families>
+          <ButtonLink to="/guide#gates" variant="gold">{t('families.gates')}</ButtonLink>
+          <ButtonLink to="/guide#map" variant="gold">{t('families.parking')}</ButtonLink>
+          <ButtonLink to="/me/tickets" variant="gold">{t('families.seat')}</ButtonLink>
+          <ButtonLink to="/guide#access" variant="gold">{t('families.access')}</ButtonLink>
+        </nav>
       </section>
     </main>
   )

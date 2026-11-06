@@ -11,19 +11,27 @@ interface Props {
   aura?: 'soft' | 'bright'
   /** Walk frame to show (0..11). The walk animation drives this. */
   frame?: number
+  /** Top-left position when nested inside another SVG. */
+  x?: number
+  y?: number
   className?: string
 }
 
 const INK = '#0b2f33'
 
+/** Box geometry, for placing the figure by its feet: the box is 160 x 290, feet at y 232 + 30. */
+export const FIGURE_BOX = { w: 160, h: 290, feetY: 262, centerX: 80, bodyH: 240 }
+
 /** The graduate: a faceless silhouette from behind, with a soft gold aura and a thin rim of stage light. */
-export function Graduate({ outfit, height, mode, aura = 'soft', frame = 0, className = '' }: Props) {
+export function Graduate({ outfit, height, mode, aura = 'soft', frame = 0, x, y, className = '' }: Props) {
   const id = useId().replace(/:/g, '')
   const d = mode === 'hold-certificate' ? HOLD_FRAMES[outfit] : WALK_FRAMES[outfit][mode === 'walk' ? frame % 12 : 0]
   const auraOpacity = aura === 'bright' ? 0.6 : 0.35
   return (
     <svg
       viewBox="-30 -30 160 290"
+      x={x}
+      y={y}
       width={(height * 160) / 290}
       height={height}
       className={`overflow-visible ${className}`}

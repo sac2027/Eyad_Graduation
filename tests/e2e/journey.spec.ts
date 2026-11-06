@@ -1,5 +1,7 @@
 import { expect, test } from '@playwright/test'
 
+test.fixme(true, 'Old journey, replaced by the stadium scene. Rewritten in Task 9/15 of docs/superpowers/plans/2026-11-06-journey-redesign.md')
+
 test('the marker sits at the attire stage on 14 March', async ({ page }) => {
   await page.goto('/?t=2027-03-14T09:00')
   const bar = page.locator('[data-journey-bar="story"]').first()

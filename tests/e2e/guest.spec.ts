@@ -5,7 +5,7 @@ test.use({ viewport: { width: 390, height: 844 } })
 test('all guide content is reachable without signing in', async ({ page }) => {
   await page.goto('/guide?persona=guest&lang=en')
   for (const id of ['gates', 'map', 'access', 'schedule', 'dress', 'faq']) await expect(page.locator(`#${id}`)).toBeAttached()
-  await expect(page.getByText(/sign in|password/i)).toHaveCount(0)
+  await expect(page.locator('main').getByText(/sign in|password/i)).toHaveCount(0)
   await expect(page.locator('[data-gate-map]').first()).toBeVisible()
 })
 
@@ -37,8 +37,8 @@ test('a graduate can apply easy-access seating from the route result', async ({ 
   await expect(page.getByRole('button', { name: /Done\. Easy-access seats/ })).toBeVisible()
 })
 
-test('the landing "Gates and parking" button lands on the gates section', async ({ page }) => {
+test('the landing "Which gate" link lands on the gates section', async ({ page }) => {
   await page.goto('/?lang=en')
-  await page.getByRole('link', { name: 'Gates and parking' }).click()
+  await page.locator('[data-families]').getByRole('link', { name: 'Which gate' }).click()
   await expect(page).toHaveURL(/\/guide#gates/)
 })

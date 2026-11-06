@@ -1,5 +1,7 @@
 import { expect, test } from '@playwright/test'
 
+test.fixme(true, 'Old journey, replaced by the stadium scene. Rewritten in Task 9/15 of docs/superpowers/plans/2026-11-06-journey-redesign.md')
+
 const cases: [string, string, string[]][] = [
   ['2027-04-07T09:00', 'morning', []],
   ['2027-04-07T16:00', 'arrival', ['morning']],

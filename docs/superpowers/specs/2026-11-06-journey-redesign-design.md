@@ -1,6 +1,6 @@
 # Journey redesign: design
 
-Date: 2026-11-06. Status: draft for approval.
+Date: 2026-11-06. Status: approved by Eyad on 2026-11-06, with the welcome moment added.
 
 ## Intent and the why
 
@@ -224,7 +224,7 @@ A single canvas fireworks and confetti engine, using brand colours only (yellow,
 
 | Trigger | Effect |
 |---|---|
-| First visit in a session | A short burst over the stage, about 3 s. Tap to skip |
+| First landing-page visit in a session (requested by Eyad) | The **welcome moment**, about 4 s, tap to skip: the stadium's light banks switch on one after another, a burst of fireworks over the stage, and a one-line welcome on the stage screens («أهلًا بك في رحلة الدفعة ٥٧» / "Welcome to the journey of Class 57") before they switch to the countdown. Under reduced motion or low-end: the lights are simply on and the welcome line shows for 3 s, with no fireworks |
 | Completing a step (gown booked, seat confirmed) | A short burst of confetti |
 | The real certificate moment (scene at 21:30, and section ⑨ from 21:30 on) | Full fireworks |
 | Reaching ⑨ in the rail or section ⑨ before 21:30 | A small burst of light only |

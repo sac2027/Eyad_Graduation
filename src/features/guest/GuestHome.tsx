@@ -7,6 +7,11 @@ import { useSession } from '@/session/sessionStore'
 import { useNow } from '@/time/clockStore'
 import { SCHEDULE, type StageId } from '@/time/schedule'
 import { ButtonLink } from '@/ui/Button'
+import { seatService, useGownRecord, useSeatVersion } from '@/data'
+import { useConfirmed } from '@/features/graduate/checklist'
+import { FamiliesBlock } from '@/features/steps/FamiliesBlock'
+import { StepSection } from '@/features/steps/StepSection'
+import { personalStatus, STEPS } from '@/features/steps/steps'
 
 const DEFAULT_GRAD = PERSONAS.find((p) => p.role === 'graduate')!
 
@@ -22,6 +27,14 @@ export function GuestHome() {
 
   const done = now >= SCHEDULE.afterglowStart
   const key = done ? 'landing.done' : 'landing.line'
+  useSeatVersion()
+  const gown = useGownRecord(persona.id)
+  const confirmed = useConfirmed((st) => !!st.confirmed[persona.id])
+  const facts = {
+    confirmed,
+    gownDone: gown.status === 'slot-booked' || gown.status === 'picked-up' || gown.status === 'returned',
+    hasSeat: seatService.listUserSeats(persona.id).some((x) => x.status === 'confirmed'),
+  }
   const line = isGrad ? t(`${key}.named.${persona.gender}`, { name: persona.name[locale] }) : t(`${key}.anon`)
 
   const toStep = (id: StageId) => {
@@ -62,6 +75,11 @@ export function GuestHome() {
           <ButtonLink to="/guide#access" variant="gold">{t('families.access')}</ButtonLink>
         </nav>
       </section>
+
+      {STEPS.map((step) => (
+        <StepSection key={step.id} step={step} gender={gender} isGrad={isGrad} status={isGrad ? personalStatus(step.id, facts, now) : null} />
+      ))}
+      <FamiliesBlock />
     </main>
   )
 }

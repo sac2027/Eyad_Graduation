@@ -263,7 +263,7 @@ expect(figureAt(0, g)).toMatchObject({ x: g.aisle[0].x, y: g.aisle[0].y })
   - the podium with `<Certificate labelled />`
   - `<Graduate>` at `figureAt`
 - **Labels** are HTML, absolutely positioned at the post coordinates converted to percentages. They alternate start and end, logical sides that flip in RTL. On `tall` they show the number and name only, and are 44 px buttons that call `onCheckpoint`.
-- **Choosing a geometry**: `useMediaQuery('(min-aspect-ratio: 1/1)')` picks `wide` or `tall`.
+- **Choosing a geometry**: a small `useWideAspect(): boolean` hook in `src/features/stadium/useWideAspect.ts` (matchMedia `(min-aspect-ratio: 1/1)` with a change listener) picks `wide` or `tall`.
 
 - [ ] **Step 4: Run the tests and confirm they pass.**
 

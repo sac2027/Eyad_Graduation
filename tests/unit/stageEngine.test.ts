@@ -28,13 +28,13 @@ describe('getStageStatus', () => {
 describe('getJourneyProgress', () => {
   it('is 0 before the first milestone and 1 at the last', () => {
     expect(getJourneyProgress(at('2026-11-05T09:00:00+03:00'))).toBe(0)
-    expect(getJourneyProgress(SCHEDULE.milestones[7].at)).toBe(1)
+    expect(getJourneyProgress(SCHEDULE.milestones[8].at)).toBe(1)
     expect(getJourneyProgress(at('2027-05-01T00:00:00+03:00'))).toBe(1)
   })
-  it('is i/7 at milestone i', () => {
+  it('is i/8 at milestone i', () => {
     const m = SCHEDULE.milestones
-    expect(getJourneyProgress(m[2].at)).toBeCloseTo(2 / 7, 6)
-    expect(getJourneyProgress(m[5].at)).toBeCloseTo(5 / 7, 6)
+    expect(getJourneyProgress(m[2].at)).toBeCloseTo(2 / 8, 6)
+    expect(getJourneyProgress(m[5].at)).toBeCloseTo(5 / 8, 6)
   })
   it('never decreases as time moves forward (hourly samples)', () => {
     let prev = -1

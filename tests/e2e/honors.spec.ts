@@ -97,3 +97,32 @@ test('the long Arabic name wraps in the overlay and nothing scrolls sideways at 
   expect(over).toBe(false)
   await ctx.close()
 })
+
+test('the unboxing runs its lighting script: blackout, spotlight, beams, then the settle', async ({ page }) => {
+  await page.goto(GOLD)
+  const hero = page.locator('[data-honor-hero]')
+  await expect(hero).toHaveAttribute('data-light-cue', /^(blackout|spot)$/)
+  await expect(hero).toHaveAttribute('data-light-cue', /^(spot|beams|spill)$/, { timeout: 8000 })
+  await page.getByRole('button', { name: 'Skip' }).click()
+  await expect(hero).toHaveAttribute('data-light-cue', 'settle')
+})
+
+test('the honor ends with fireworks in the tier colours; no honor, no fireworks', async ({ page }) => {
+  await page.goto(GOLD)
+  await page.getByRole('button', { name: 'Skip' }).click()
+  await expect(page.locator('[data-fireworks="honor-gold"]')).toBeAttached()
+  await page.goto('/honors?persona=grad-m-none&lang=en')
+  await page.waitForTimeout(600)
+  await expect(page.locator('[data-fireworks]')).toHaveCount(0)
+})
+
+test('reduced motion goes straight to the settled light', async ({ page }) => {
+  await page.goto(`${GOLD}&reduced=1`)
+  await expect(page.locator('[data-honor-hero]')).toHaveAttribute('data-light-cue', 'settle')
+})
+
+test('the 2D version plays the same lighting script', async ({ page }) => {
+  await page.goto(`${GOLD}&lowend=1`)
+  await expect(page.locator('[data-honor-lights]')).toBeAttached()
+  await expect(page.locator('[data-honor-hero]')).toHaveAttribute('data-light-cue', 'settle', { timeout: 6000 })
+})

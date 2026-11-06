@@ -1,0 +1,79 @@
+/* The graduate's aura breathes slowly (4 s); still poses and reduced motion keep it calm. */
+@keyframes aura-breathe {
+  0%, 100% { transform: scale(0.96); opacity: 0.85; }
+  50% { transform: scale(1.05); opacity: 1; }
+}
+.graduate-aura {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: aura-breathe 4s ease-in-out infinite;
+}
+[data-mode='still'] .graduate-aura { animation: none; }
+@media (prefers-reduced-motion: reduce) {
+  .graduate-aura { animation: none; }
+}
+
+/* Ceremony-day beams sweep slowly across the sky; the crowd's lights twinkle. */
+@keyframes beam-sweep {
+  from { transform: rotate(-7deg); }
+  to { transform: rotate(7deg); }
+}
+.beam-sweep {
+  transform-box: view-box;
+  animation: beam-sweep 6s ease-in-out infinite alternate;
+}
+@keyframes crowd-twinkle {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
+.crowd-twinkle { animation: crowd-twinkle 2.6s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .beam-sweep, .crowd-twinkle { animation: none; }
+}
+:root[data-motion='reduced'] .beam-sweep,
+:root[data-motion='reduced'] .crowd-twinkle,
+:root[data-motion='reduced'] .graduate-aura { animation: none; }
+
+/* The small burst when the rail's graduate takes the certificate. */
+@keyframes rail-burst {
+  from { transform: translate(-50%, -50%) scale(0.2); opacity: 1; }
+  to { transform: translate(-50%, -50%) scale(1.6); opacity: 0; }
+}
+.rail-burst {
+  position: absolute;
+  left: 50%;
+  top: 8%;
+  width: 70px;
+  height: 70px;
+  border-radius: 9999px;
+  border: 3px solid #f0ba4f;
+  box-shadow: 0 0 18px #f0ba4f;
+  animation: rail-burst 1.1s ease-out 2 both;
+}
+:root[data-motion='reduced'] .rail-burst { animation: none; opacity: 0; }
+
+/* On the landing page the rail is the scrollbar (desktop only). */
+@media (min-width: 768px) {
+  html.hide-native-scrollbar { scrollbar-width: none; }
+  html.hide-native-scrollbar::-webkit-scrollbar { display: none; }
+}
+
+/* Welcome moment: the stadium's lights come on bank by bank. */
+@keyframes lights-on {
+  from { filter: brightness(0.3); }
+  to { filter: brightness(1); }
+}
+[data-welcome='on'] [data-layer='skyline'] { animation: lights-on 0.9s ease-out both; }
+[data-welcome='on'] [data-layer='stands'] { animation: lights-on 0.9s ease-out 0.35s both; }
+[data-welcome='on'] [data-layer='chairs'] { animation: lights-on 0.9s ease-out 0.7s both; }
+[data-welcome='on'] [data-layer='aisle'] { animation: lights-on 0.9s ease-out 0.9s both; }
+[data-welcome='on'] [data-layer='stage'] { animation: lights-on 1s ease-out 1.1s both; }
+:root[data-motion='reduced'] [data-welcome='on'] [data-layer] { animation: none; }
+
+/* Honor page (2D): the beams sway behind the award. */
+@keyframes honor-beam {
+  0%, 100% { rotate: -4deg; }
+  50% { rotate: 4deg; }
+}
+.honor-beam { animation: honor-beam 5s ease-in-out infinite; }
+:root[data-motion='reduced'] .honor-beam { animation: none; }

@@ -63,18 +63,17 @@ const STATES: [string, (p: import('@playwright/test').Page) => Promise<void>][] 
   }],
   ['honor hero (gold, after the sequence)', async (p) => {
     await p.goto('/honors?persona=grad-m-gold&lang=en')
-    await p.locator('canvas').waitFor()
+    await p.locator('canvas:not([data-fx])').waitFor()
     await p.getByRole('button', { name: 'Skip' }).click()
   }],
   ['honor hero (2D version)', async (p) => {
     await p.goto('/honors?persona=grad-f-silver&lang=en&lowend=1')
     await p.locator('[data-honor-cta="on"]').waitFor({ timeout: 8000 })
   }],
-  ['journey reveal', async (p) => {
-    await p.goto('/?t=2027-03-14T09:00&lang=en')
-    await p.evaluate(() => { const el = document.getElementById('journey')!; window.scrollTo(0, el.offsetTop + el.offsetHeight) })
-    await p.locator('[data-reveal="on"]').waitFor()
-    await p.waitForTimeout(900)
+  ['landing scene on a phone on ceremony night', async (p) => {
+    await p.setViewportSize({ width: 390, height: 844 })
+    await p.goto('/?t=2027-04-07T20:20')
+    await p.locator('[data-scene="tall"]').waitFor()
   }],
   ['access route result', async (p) => {
     await p.goto('/guide?persona=grad-m-gold&lang=en#access')

@@ -1,15 +1,17 @@
 import { lazy, Suspense } from 'react'
-import { Link, NavLink, Outlet, Route, Routes } from 'react-router-dom'
+import { Link, NavLink, Outlet, Route, Routes, useNavigate } from 'react-router-dom'
 import { Toaster } from 'sonner'
 import { DemoConsole } from '@/features/demo-console/DemoConsole'
 import { GuestHome } from '@/features/guest/GuestHome'
 import { useLocale, useT } from '@/i18n'
 import { useSession } from '@/session/sessionStore'
+import { PERSONAS } from '@/data/fixtures/graduates'
 import { Logo } from '@/brand/logo/Logo'
 import { Button } from '@/ui/Button'
 import { RootPhase } from './RootPhase'
 import { PhaseBanner } from './PhaseBanner'
-import { CompletionHost } from '@/features/journey/CompletionHost'
+import { CertificateMomentHost } from '@/features/moment/CertificateMoment'
+import { Fireworks } from '@/features/celebrate/Fireworks'
 
 const HonorPage = lazy(() => import('@/features/honors/HonorPage'))
 const Guide = lazy(() => import('@/features/guest/Guide').then((m) => ({ default: m.Guide })))
@@ -22,7 +24,12 @@ const KitPage = lazy(() => import('@/features/kit/KitPage').then((m) => ({ defau
 function Layout() {
   const t = useT()
   const { locale, setLocale, dir } = useLocale()
-  const { persona } = useSession()
+  const { persona, setPersona } = useSession()
+  const nav = useNavigate()
+  const signIn = () => {
+    setPersona(PERSONAS.find((p) => p.role === 'graduate')!.id)
+    nav('/me')
+  }
   const link = 'inline-flex min-h-11 items-center px-3 font-semibold text-[var(--header-fg)] aria-[current=page]:underline underline-offset-4'
   return (
     <>
@@ -31,8 +38,8 @@ function Layout() {
         {t('nav.skip')}
       </a>
       <header className="flex flex-wrap items-center justify-between gap-x-2 bg-[var(--header-bg)] px-4 py-1 text-[var(--header-fg)]">
-        <Link to="/" className="inline-flex min-h-11 items-center" aria-label="KFUPM">
-          <Logo height={26} />
+        <Link to="/" className="inline-flex min-h-11 items-center [--logo-h:22px] sm:[--logo-h:30px]" aria-label="KFUPM">
+          <Logo height={30} />
         </Link>
         <nav aria-label="Main" className="order-3 flex w-full flex-wrap items-center sm:order-none sm:w-auto">
           <NavLink to="/" end className={link}>{t('nav.home')}</NavLink>
@@ -41,16 +48,24 @@ function Layout() {
           <NavLink to="/honors" className={link}>{t('nav.honors')}</NavLink>
           {persona.role === 'admin' && <NavLink to="/admin" className={link}>{t('nav.admin')}</NavLink>}
         </nav>
-        <Button variant="ghost" size="md" onClick={() => setLocale(locale === 'ar' ? 'en' : 'ar')} className="order-2 text-[var(--header-fg)] outline-[var(--header-fg)] sm:order-none" lang={locale === 'ar' ? 'en' : 'ar'}>
-          {t('nav.language')}
-        </Button>
+        <div className="order-2 flex items-center gap-2 sm:order-none">
+          {persona.role !== 'graduate' && (
+            <Button variant="ghost" size="md" onClick={signIn} className="text-[var(--header-fg)]! outline-[var(--header-fg)]!" data-signin>
+              {t('nav.signin')}
+            </Button>
+          )}
+          <Button variant="ghost" size="md" onClick={() => setLocale(locale === 'ar' ? 'en' : 'ar')} className="text-[var(--header-fg)]! outline-[var(--header-fg)]!" lang={locale === 'ar' ? 'en' : 'ar'}>
+            {t('nav.language')}
+          </Button>
+        </div>
       </header>
       <PhaseBanner />
       <Suspense fallback={<main className="min-h-[40dvh]" aria-busy="true" />}>
         <Outlet />
       </Suspense>
       <DemoConsole />
-      <CompletionHost />
+      <CertificateMomentHost />
+      <Fireworks />
       <Toaster position="top-center" dir={dir} />
     </>
   )

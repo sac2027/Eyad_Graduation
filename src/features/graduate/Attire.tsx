@@ -12,6 +12,7 @@ import { Chip } from '@/ui/Chip'
 import { QrCard } from '@/ui/QrCard'
 import { StatusChip } from '@/ui/StatusChip'
 import { toast } from '@/ui/toast'
+import { celebrate } from '@/features/celebrate/celebrate'
 
 const FLOW = ['none', 'requested', 'slot-booked', 'picked-up', 'returned'] as const
 
@@ -70,7 +71,10 @@ function AttireInner() {
         r.error === 'full' ? t('attire.error.full') : r.error === 'past' ? t('attire.error.past') : r.error === 'out-of-order' ? t('attire.error.order') : t('attire.error.closed'),
       )
     }
-    else toast.success(t('attire.booked'))
+    else {
+      toast.success(t('attire.booked'))
+      celebrate('task', `attire:${persona.id}`)
+    }
   }
   const slot = gownService.slots.find((s) => s.id === rec.slotId)
 

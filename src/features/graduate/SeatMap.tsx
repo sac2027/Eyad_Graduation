@@ -8,6 +8,7 @@ import { useNow } from '@/time/clockStore'
 import { HOLD_TTL_MS } from '@/data/services/seatService'
 import { Button } from '@/ui/Button'
 import { toast } from '@/ui/toast'
+import { celebrate } from '@/features/celebrate/celebrate'
 
 /** Where each section sits on the overview: reserved blocks by hand, general sections around the ring. */
 function layout(sections: SectionSummary[]) {
@@ -235,6 +236,7 @@ export function SeatMap({ userId, allowance, canEasy, onConfirmed }: SeatMapProp
               const r = seatService.confirm(userId, now)
               if (r.ok) {
                 toast.success(t('tickets.confirmed'))
+                celebrate('task', `seats:${userId}`)
                 onConfirmed?.()
               } else {
                 setExpired(true)

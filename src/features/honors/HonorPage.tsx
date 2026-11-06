@@ -11,6 +11,9 @@ import { AwardFallback } from './AwardFallback'
 import { useCapability } from './useCapability'
 import { HonorDetails } from './HonorDetails'
 import type { Beat } from './AwardScene'
+import { HonorLights } from './HonorLights'
+import { LIGHT_CUES, type CueId } from './lightCues'
+import { celebrate } from '@/features/celebrate/celebrate'
 
 const AwardScene = lazy(() => import('./AwardScene'))
 
@@ -33,6 +36,7 @@ export default function HonorPage() {
   const tier = tierOf(persona)
   const cap = useCapability()
   const [beat, setBeat] = useState<'playing' | Beat>('playing')
+  const [cue, setCue] = useState<CueId>('blackout')
   const [skipToken, setSkipToken] = useState(0)
   const [replayToken, setReplayToken] = useState(0)
   const [away, setAway] = useState(false)
@@ -46,11 +50,24 @@ export default function HonorPage() {
     setBeat('playing')
     if (reduced) {
       setBeat('end')
+      setCue('settle')
       return
     }
-    const ids = [setTimeout(() => onBeat('message'), 1600), setTimeout(() => onBeat('cta'), 2600), setTimeout(() => onBeat('end'), 3200)]
+    // The lighting script runs compressed to the shorter 2D sequence.
+    const k = 3.2 / 10.4
+    const ids = [
+      ...LIGHT_CUES.map((c) => setTimeout(() => setCue(c.id), c.at * k * 1000)),
+      setTimeout(() => onBeat('message'), 1600),
+      setTimeout(() => onBeat('cta'), 2600),
+      setTimeout(() => onBeat('end'), 3200),
+    ]
     return () => ids.forEach(clearTimeout)
   }, [tier, cap, reduced, replayToken])
+
+  // The honor earns its fireworks, in the tier's colours, once per session.
+  useEffect(() => {
+    if (beat === 'end' && tier) celebrate(`honor-${tier}`, persona.id)
+  }, [beat, tier, persona.id])
 
   useEffect(() => {
     const el = hero.current
@@ -75,7 +92,7 @@ export default function HonorPage() {
 
   return (
     <main data-honor-page data-tier={tier} data-capability={cap}>
-      <section ref={hero} data-honor-hero data-beat={beat} aria-label={t('honors.aria', { tier: t(`honors.tier.${tier}`) })} className="relative isolate h-[calc(100dvh-9rem)] min-h-[36rem] overflow-hidden bg-turquoise text-beige sm:h-[calc(100dvh-3.5rem)]">
+      <section ref={hero} data-honor-hero data-beat={beat} data-light-cue={cue} aria-label={t('honors.aria', { tier: t(`honors.tier.${tier}`) })} className="relative isolate h-[calc(100dvh-9rem)] min-h-[36rem] overflow-hidden bg-turquoise text-beige sm:h-[calc(100dvh-3.5rem)]">
         <MatrixLoop id="honors" background="turquoise" stripes="yellow" intensity={0.3} className="absolute inset-0 -z-20 h-full w-full" />
         <div aria-hidden className="absolute inset-0 -z-10 bg-black/60" />
         <div className="absolute inset-x-0 top-0 bottom-[32%] sm:bottom-[27%]">
@@ -90,10 +107,12 @@ export default function HonorPage() {
                 skipToken={skipToken}
                 replayToken={replayToken}
                 onBeat={onBeat}
+                onCue={setCue}
               />
             </Suspense>
           ) : (
-            <div className="grid h-full place-items-center pt-6">
+            <div className="relative grid h-full place-items-center pt-6">
+              <HonorLights tier={tier} cue={cue} />
               <AwardFallback tier={tier} name={persona.name[locale]} animate={!reduced} />
             </div>
           )}
@@ -120,7 +139,7 @@ export default function HonorPage() {
           {beat !== 'end' ? (
             <Button variant="gold" onClick={() => setSkipToken((n) => n + 1)} data-honor-skip>{t('honors.skip')}</Button>
           ) : (
-            <Button variant="gold" onClick={() => { setBeat('playing'); setReplayToken((n) => n + 1) }} data-honor-replay>{t('honors.replay')}</Button>
+            <Button variant="gold" onClick={() => { setBeat('playing'); setCue('blackout'); setReplayToken((n) => n + 1) }} data-honor-replay>{t('honors.replay')}</Button>
           )}
         </div>
       </section>

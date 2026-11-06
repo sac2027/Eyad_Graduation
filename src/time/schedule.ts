@@ -4,6 +4,7 @@ export type StageId =
   | 'attire'
   | 'tickets'
   | 'rehearsal'
+  | 'arrival'
   | 'ceremony'
   | 'celebration'
   | 'certificate'
@@ -43,6 +44,7 @@ export const STAGE_ORDER: StageId[] = [
   'attire',
   'tickets',
   'rehearsal',
+  'arrival',
   'ceremony',
   'celebration',
   'certificate',
@@ -62,7 +64,8 @@ export const SCHEDULE: Schedule = {
     attire: { opens: at('2027-03-14T00:00:00'), due: at('2027-03-25T23:59:59'), closes: at('2027-04-01T23:59:59') },
     tickets: { opens: at('2027-03-14T00:00:00'), due: at('2027-03-25T23:59:59'), closes: at('2027-04-01T23:59:59') },
     rehearsal: { opens: at('2027-04-04T00:00:00'), closes: at('2027-04-05T23:59:59') },
-    ceremony: { opens: at('2027-04-07T00:00:00'), closes: at('2027-04-07T21:30:00') },
+    arrival: { opens: at('2027-04-07T15:00:00'), closes: at('2027-04-07T18:45:00') },
+    ceremony: { opens: at('2027-04-07T18:45:00'), closes: at('2027-04-07T21:30:00') },
     celebration: { opens: at('2027-04-07T21:00:00'), closes: at('2027-04-07T23:59:59') },
     certificate: { opens: at('2027-04-07T21:30:00'), due: at('2027-04-15T23:59:59') },
   },
@@ -72,7 +75,8 @@ export const SCHEDULE: Schedule = {
     { id: 'attire', at: at('2027-03-14T00:00:00') },
     { id: 'tickets', at: at('2027-03-21T00:00:00') },
     { id: 'rehearsal', at: at('2027-04-04T00:00:00') },
-    { id: 'ceremony', at: at('2027-04-07T15:00:00') },
+    { id: 'arrival', at: at('2027-04-07T15:00:00') },
+    { id: 'ceremony', at: at('2027-04-07T20:00:00') },
     { id: 'celebration', at: at('2027-04-07T21:00:00') },
     { id: 'certificate', at: at('2027-04-07T21:30:00') },
   ],

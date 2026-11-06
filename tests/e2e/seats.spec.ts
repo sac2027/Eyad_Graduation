@@ -94,7 +94,7 @@ test('a guest sees a ticket link view with a QR and no login', async ({ page }) 
   await page.goto('/me/tickets?persona=guest&lang=en')
   await expect(page.locator('[data-tickets-guest]')).toBeVisible()
   await expect(page.locator('[data-qr-card] svg[role="img"]')).toBeVisible()
-  await expect(page.getByText(/sign in|password/i)).toHaveCount(0)
+  await expect(page.locator('main').getByText(/sign in|password/i)).toHaveCount(0)
 })
 
 test('the seat grid works from the keyboard', async ({ page }) => {

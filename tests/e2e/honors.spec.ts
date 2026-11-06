@@ -29,7 +29,7 @@ test('a graduate without an honor sees only the ceremony details', async ({ page
   await page.goto('/honors?persona=grad-m-none&lang=en')
   await expect(page.locator('[data-honor-page]')).toHaveAttribute('data-tier', 'none')
   await expect(page.locator('[data-honor-details]')).toBeVisible()
-  await expect(page.locator('canvas')).toHaveCount(0)
+  await expect(page.locator('canvas:not([data-fx])')).toHaveCount(0)
   await expect(page.locator('[data-honor-hero]')).toHaveCount(0)
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Honors ceremony')
 })
@@ -54,7 +54,7 @@ test('with WebGL unavailable the name, tier and details are still shown (2D vers
   await page.goto('/honors?persona=grad-m-gold&lang=en&lowend=1')
   await expect(page.locator('[data-honor-page]')).toHaveAttribute('data-capability', 'fallback')
   await expect(page.locator('[data-award-fallback="gold"]').first()).toBeVisible()
-  await expect(page.locator('canvas')).toHaveCount(0)
+  await expect(page.locator('canvas:not([data-fx])')).toHaveCount(0)
   await expect(page.locator('[data-honor-cta="on"]')).toBeVisible({ timeout: 6000 })
   await expect(page.locator('[data-honor-name]')).toHaveText('Khaled Alotaibi')
   await expect(page.locator('[data-honor-details]')).toBeAttached()
@@ -96,4 +96,33 @@ test('the long Arabic name wraps in the overlay and nothing scrolls sideways at 
   const over = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1)
   expect(over).toBe(false)
   await ctx.close()
+})
+
+test('the unboxing runs its lighting script: blackout, spotlight, beams, then the settle', async ({ page }) => {
+  await page.goto(GOLD)
+  const hero = page.locator('[data-honor-hero]')
+  await expect(hero).toHaveAttribute('data-light-cue', /^(blackout|spot)$/)
+  await expect(hero).toHaveAttribute('data-light-cue', /^(spot|beams|spill)$/, { timeout: 8000 })
+  await page.getByRole('button', { name: 'Skip' }).click()
+  await expect(hero).toHaveAttribute('data-light-cue', 'settle')
+})
+
+test('the honor ends with fireworks in the tier colours; no honor, no fireworks', async ({ page }) => {
+  await page.goto(GOLD)
+  await page.getByRole('button', { name: 'Skip' }).click()
+  await expect(page.locator('[data-fireworks="honor-gold"]')).toBeAttached()
+  await page.goto('/honors?persona=grad-m-none&lang=en')
+  await page.waitForTimeout(600)
+  await expect(page.locator('[data-fireworks]')).toHaveCount(0)
+})
+
+test('reduced motion goes straight to the settled light', async ({ page }) => {
+  await page.goto(`${GOLD}&reduced=1`)
+  await expect(page.locator('[data-honor-hero]')).toHaveAttribute('data-light-cue', 'settle')
+})
+
+test('the 2D version plays the same lighting script', async ({ page }) => {
+  await page.goto(`${GOLD}&lowend=1`)
+  await expect(page.locator('[data-honor-lights]')).toBeAttached()
+  await expect(page.locator('[data-honor-hero]')).toHaveAttribute('data-light-cue', 'settle', { timeout: 6000 })
 })

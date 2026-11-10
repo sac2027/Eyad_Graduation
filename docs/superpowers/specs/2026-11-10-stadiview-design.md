@@ -81,7 +81,7 @@ All code is original. The reference is licensed PolyForm Noncommercial; nothing 
 - C. Representative 3D with fewer seats plus the full 2D grid. Not needed at this scale; kept only as the lowest tier.
 
 ### Finding the seat under the pointer
-- **A. Arithmetic picking (chosen).** Intersect the pointer ray with the seat plane and convert the hit point to block, row and seat by division. O(1) for the pitch; at most 72 plane tests for the stands.
+- **A. Arithmetic picking with an exact finish (chosen).** The seat grid's arithmetic turns the pointer ray into a handful of candidate seats; the seat picked is the one whose chair box the ray enters first. No per-instance raycast and no GPU readback. A flat-plane pick alone would choose the wrong chair at shallow camera angles.
 - B. three's built-in instanced raycast. Tests every instance on every pointer move.
 - C. GPU colour-ID readback (what the reference does). A synchronous read stalls the pipeline on phones.
 
@@ -196,7 +196,7 @@ export interface SectionInfo {
   id: 'P1' | 'P2' | 'P3' | 'P4' | 'P5' | 'P6' | 'VIP' | 'NW' | 'NE' | 'S' | 'E' | 'ACC'
   kind: 'pitch' | 'stand'
   rows: number
-  start: number   // first seat index
+  start: number   // first seat index; the male pitch blocks are interleaved in line-up order, so enumerate a block through the `section` array
   count: number
   gate: 1 | 2 | 3 | 4 | 5
 }
@@ -227,6 +227,8 @@ export interface VenueLayout {
   /** Pitch grid lookup for picking: block × row × column → seat index, −1 where there is no seat. */
   pitchCell: Int32Array     // 6 × pitchRows × 14
   pitchRows: number         // 45 at the baseline numbers
+  /** One entry per stand row (72 at the baseline), for picking and for drawing the tiers. */
+  standRows: StandRow[]
   idOf(index: number): string
   indexOf(id: string): number   // −1 when unknown
 }
@@ -240,10 +242,11 @@ export interface VenueLayout {
 **Rendering.** Two `InstancedMesh` objects share one 24-triangle chair geometry: pitch seats and bays (2,998), and stand seats (5,000). The instance matrix comes from `position` and `yaw`. `instanceColor` carries state: available green, booked dimmed, outside the student's zone darkened, hover and selection gold. Only changed instances are rewritten.
 
 **Picking.**
-- **Pitch:** intersect the pointer ray with the plane y = 0.45. From the hit point, the row comes from x (inverting the row formula, rejecting hits in a cross aisle), the block and column from z (rejecting hits in an aisle), and the seat index from `pitchCell`.
-- **Stands:** for each stand row, intersect the ray with that row's horizontal plane and test whether the hit lies in the row's footprint; take the nearest hit.
-- **Bays:** tested as 12 small boxes.
-- The stands need at most 72 row-plane tests (6 + 15 + 15 + 20 + 12 + 4).
+- Every seat has a pick box: 0.5 wide, 0.95 high and 0.5 deep, centred on the seat and turned to its facing direction.
+- **Pitch:** the ray is clipped to the slab between the floor and the top of the chairs. Walking that short segment, each point converts to block, row and column by division (inverting the row and block formulas); the boxes of that cell and its neighbours are tested, and the nearest hit wins. A ray over an aisle, a cross aisle or past a partial last row hits nothing.
+- **Stands:** for each of the 72 stand rows, the ray is clipped to that row's slab; the seat numbers it passes come from division along the row (or from the angle, on the east curve), and those boxes are tested.
+- **Bays:** tested as 12 boxes.
+- **Occluders:** solid structures block picking, so a seat cannot be picked through a wall. They are the stage backdrop, the VIP canopy, and the rear and side walls of the stands (the east curve's rear wall is an arc). The scene draws its walls from the same list, so what blocks the pointer is what blocks the eye.
 
 ## 5. Camera
 
@@ -251,8 +254,8 @@ One rig with three modes: `orbit`, `fly`, `pov`.
 
 | Mode | Behaviour |
 |---|---|
-| Orbit (default) | Camera at (72, 64, −88), north-east of the stadium, looking at (−8, 0, 0), field of view 42°. From here the stage, the six blocks and the south stand's KFUPM letters all read the right way up. Drag orbits, wheel or pinch zooms. Polar angle 18°–80°, radius 60–220. A slow idle rotation runs until the first pointer press, wheel or key; automated browsers skip it unless the URL has `?idle=1` |
-| Fly | A curve from the current pose, up and over, to the seat's eye point, travelled at an eased, arc-length-even speed; 2.6 s, strong ease-in-out; the look target blends from the current view to the seat's default target; field of view eases to 62° |
+| Orbit (default) | Camera at (72, 64, −88), north-east of the stadium, looking at (−8, 0, 0), field of view 42° on landscape screens. On portrait screens the field of view widens (up to 72°) and the opening distance grows (up to the 220 limit) so the six blocks and the stage still fit. From here the stage, the six blocks and the south stand's KFUPM letters all read the right way up. Drag orbits, wheel or pinch zooms. Polar angle 18°–80°, radius 60–220. A slow idle rotation runs until the first pointer press, wheel or key; automated browsers skip it unless the URL has `?idle=1` |
+| Fly | A curve from the current pose, up and over, arriving from 12 m behind and 7 m above the seat, travelled at an eased, arc-length-even speed; 2.6 s, the project's strong ease-in-out curve; the look target blends from the current view to the seat's default target; field of view eases to 62° |
 | POV | Eye at seat origin + (0, 1.15, 0). Drag looks around: yaw 360°, pitch −35° to +50°, with inertia. Wheel or pinch changes field of view 40°–75° |
 
 - **Default look target:** pitch seats look at the podium (−42, 3.2, 0); stand seats look at (−20, 1.5, 0).
@@ -340,6 +343,7 @@ Faceless, low-poly, head-and-shoulders-and-torso figures seated in chairs. No fa
 ## Testing
 
 - **Unit (most of the assertions):**
+  - picking compared with a brute-force test of all 7,998 chair boxes for hundreds of random rays
   - layout counts (2,986; 12; 5,000; 7,998) and every zone's count
   - unique ids, and no two seats closer than 0.5 m
   - all pitch seats inside the pitch
@@ -347,7 +351,7 @@ Faceless, low-poly, head-and-shoulders-and-torso figures seated in chairs. No fa
   - camera eye and target maths
   - services and locator rules
   - bearing and distance maths
-- **End-to-end:** the scene exposes a debug hook (`window.__stadiview`) with `project(seatId)` returning the screen position of the seat at picking height (0.45 above its floor) and the current mode, so Playwright can click real seats under software WebGL. No frame-rate assertions in CI.
+- **End-to-end:** in development and under automation the scene exposes a debug hook (`window.__stadiview`): it projects a seat (a point on its upper back) or any world point to screen coordinates, reports the mode, hover, selection and camera, and can select a seat directly. Playwright uses it to hover and click real seats under software WebGL. No frame-rate assertions in CI; stadium URLs in tests use `?tier=1`.
 - **Accessibility:** axe on the HUD; the canvas-free path is tested by keyboard.
 - **Performance:** measured by a script on the production build, as for the landing page, and by hand on a reference phone.
 

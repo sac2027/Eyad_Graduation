@@ -132,7 +132,10 @@ describe('venue config', () => {
   })
 
   it('gives the occluders their heights: walls 1.1 above the last row, the canopy at 9.5 to 9.8 over the VIP box', () => {
-    expect(VENUE.walls).toEqual({ thickness: 0.3, rise: 1.1 })
+    expect(VENUE.walls).toEqual({ thickness: 0.3, rise: 1.1, stands: ['VIP', 'NW', 'NE', 'S', 'E'] })
+    // Only real stands are walled, and the flat accessibility platform is left open.
+    for (const id of VENUE.walls.stands) expect(VENUE.stands.some((s) => s.id === id)).toBe(true)
+    expect(VENUE.walls.stands).not.toContain('ACC')
     expect(VENUE.canopy).toMatchObject({ over: 'VIP', xMin: -17, xMax: 17, zMin: -60, zMax: -50, yBottom: 9.5, yTop: 9.8, columns: 4 })
     const vip = line('VIP')
     expect(VENUE.canopy.xMin).toBeLessThan(vip.xMin)

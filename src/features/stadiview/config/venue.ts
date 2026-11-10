@@ -169,8 +169,12 @@ export interface VenueConfig {
   /** The grandstands, in the order their seats are numbered in the layout. */
   stands: StandConfig[]
 
-  /** Rear walls of the stands: `thickness` deep, rising `rise` above the last row's floor. Side walls slope up to meet them. */
-  walls: { thickness: number; rise: number }
+  /**
+   * Rear walls of the stands: `thickness` deep, rising `rise` above the last row's floor. Side walls
+   * slope up to meet them. `stands` names the stands that are walled in; one left out is open at the
+   * back and the ends, like the flat accessibility platform.
+   */
+  walls: { thickness: number; rise: number; stands: StandId[] }
 
   /**
    * The roof slab over one stand, on `columns` columns of `columnWidth`. The rear wall of the stand
@@ -304,7 +308,9 @@ export const VENUE: VenueConfig = {
     { kind: 'line', id: 'ACC', gate: 3, side: 'south', xMin: -35, xMax: 0, rows: 4, seatsPerRow: 50, seatPitch: 0.7, firstRowZ: 47.3, firstRowY: 0.3, tread: 1.1, riser: 0 },
   ],
 
-  walls: { thickness: 0.3, rise: 1.1 },
+  // Every raked stand is walled. The accessibility platform is not: a wall behind it would stand in
+  // front of the south stand's first rows.
+  walls: { thickness: 0.3, rise: 1.1, stands: ['VIP', 'NW', 'NE', 'S', 'E'] },
 
   canopy: { over: 'VIP', xMin: -17, xMax: 17, zMin: -60, zMax: -50, yBottom: 9.5, yTop: 9.8, columns: 4, columnWidth: 0.4 },
 

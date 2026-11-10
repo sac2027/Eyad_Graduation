@@ -24,9 +24,10 @@ export interface SectionInfo {
   /**
    * Index of the section's first seat. For stands, the seats are `start` to `start + count - 1`.
    * The male pitch blocks are interleaved in line-up order, so list a pitch block's seats through
-   * the layout's `section` array instead.
+   * the layout's `section` array instead. -1 for a pitch block that has no seats.
    */
   start: number
+  /** Seats in the section. A pitch block's accessible bays point at it through `section` but are not counted here. */
   count: number
   gate: GateId
 }
@@ -76,7 +77,7 @@ export interface VenueLayout {
   zone: Uint8Array
   /** 1-based within the section; 0 for a bay. */
   row: Uint16Array
-  /** 1-based within the row. */
+  /** 1-based within the row. For a bay, its number among its block's bays: 1 is the north bay, 2 the south one. */
   number: Uint16Array
   /** 1-based position in the zone's procession order; 0 off the pitch. */
   lineup: Uint16Array

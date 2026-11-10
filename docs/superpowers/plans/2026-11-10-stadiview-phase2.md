@@ -51,7 +51,7 @@
 - Produces:
   - `VENUE` (the config object): pitch, track, stage, blocks, zones, stands, gates, with the values of the spec's sections 2 and 3. `VENUE.zones` is the ordered list of 24 `{ id, gender, college, degree, count }`.
   - Types from the spec's section 4: `SeatKind`, `SeatState`, `SectionInfo`, `ZoneInfo`, `VenueLayout`.
-  - `rowX(row: number, cfg?: typeof VENUE): number`: x of a pitch row (row 1 at −30, pitch 1.0, 2.0 cross aisle after rows 15 and 30).
+  - `rowX(row: number, cfg?: typeof VENUE): number`: x of a pitch row (row 1 at −30, pitch 1.0, a 2.0 cross aisle after every 15th row).
   - `blockZ(block: number, seat: number, cfg?): number`: z of seat 1..14 in block 1..6 (seat 1 north-most; block 1 starts at z = −31.2; seat pitch 0.6; block period 10.8).
   - `buildPitch(cfg?): PitchSeats` where `PitchSeats = { count: number; position: Float32Array; block: Uint8Array; row: Uint16Array; number: Uint16Array; zone: Uint8Array; lineup: Uint16Array; zones: ZoneInfo[]; bays: { position: Float32Array; block: Uint8Array } }`
 
@@ -142,7 +142,8 @@ it('raises stand rows as they go back and faces them at the pitch', () => { /* S
 it('follows the config: changing one zone count changes the totals and nothing else breaks', () => {
   const cfg = structuredClone(VENUE); cfg.zones[0].count += 5
   const w = buildVenue(cfg)
-  expect(w.ranges.pitch[1]).toBe(2991); expect(w.count).toBe(8003)
+  expect(w.ranges.pitch[1]).toBe(2991); expect(w.count).toBe(8003); expect(w.pitchRows).toBe(46)
+  expect(w.pitchCell.length).toBe(6 * 46 * 14)
   expect(w.indexOf(w.idOf(w.count - 1))).toBe(w.count - 1)
 })
 it('spells KFUPM only inside rows 4 to 16 of the south stand', () => {
@@ -153,7 +154,7 @@ it('spells KFUPM only inside rows 4 to 16 of the south stand', () => {
 ```
 
 - [ ] **Step 2: Run them and confirm they fail.**
-- [ ] **Step 3: Implement.** Stand geometry is the spec's section 2 table. Ids follow the spec's section 4. The lettering uses a 5-letter bitmap, 13 rows tall, centred on the stand's 120 columns.
+- [ ] **Step 3: Implement.** Stand geometry is the spec's section 2 table. Seat 1 of every stand row is at the left end as seen from the pitch (east end for the south stand). The east curve is two halves of 12 × 50 seats either side of the entrance gap; its rows are numbered 1–12 and seats 1–100 across both halves. Ids follow the spec's section 4. The lettering uses a 5-letter bitmap, 13 rows tall, centred on the stand's 120 columns, starting with K at seat 1's end. `ranges` and `pitchRows` are computed from the config, never literal.
 - [ ] **Step 4: Run the tests and confirm they pass.**
 - [ ] **Step 5: Commit** (`feat(stadiview): stands and the assembled venue layout`)
 
@@ -183,7 +184,7 @@ it('picks every 37th seat when the ray comes straight down on it', () => {
 })
 it('picks a seat from a slanted camera ray', () => {
   const i = v.indexOf('P3-12-07'); const [x, z] = [v.position[i * 3], v.position[i * 3 + 2]]
-  const o = { x: 78, y: 62, z: 92 }; const t = { x, y: SEAT_PICK_Y, z }
+  const o = { x: 72, y: 64, z: -88 }; const t = { x, y: SEAT_PICK_Y, z }
   const len = Math.hypot(t.x - o.x, t.y - o.y, t.z - o.z)
   expect(pickSeat({ ox: o.x, oy: o.y, oz: o.z, dx: (t.x - o.x) / len, dy: (t.y - o.y) / len, dz: (t.z - o.z) / len }, v)).toBe(i)
 })
@@ -213,10 +214,12 @@ it('returns -1 past the last partial row of the male blocks', () => {
 - Consumes: `VenueLayout`, `VENUE`.
 - Produces:
   - `type Vec3 = [number, number, number]`
-  - `EYE_HEIGHT = 1.15`, `ORBIT_HOME = { position: [78, 62, 92], target: [-8, 0, 0], fov: 42 }`
+  - `EYE_HEIGHT = 1.15`, `ORBIT_HOME = { position: [72, 64, -88], target: [-8, 0, 0], fov: 42 }`
   - `seatEye(i: number, v: VenueLayout): Vec3`
   - `seatLook(i: number, v: VenueLayout): Vec3`: the podium `[-42, 3.2, 0]` for pitch seats and bays; `[-20, 1.5, 0]` for stand seats
-  - `flightPath(from: Vec3, eye: Vec3): Vec3[]`: four control points (from; a lifted point 30% along, at max(from.y, eye.y) + 34; a point 14 behind the seat and 16 above it; eye)
+  - `seatBack(i: number, v: VenueLayout): Vec3`: the unit vector pointing behind the seat (opposite its facing direction)
+  - `flightPath(from: Vec3, eye: Vec3, back: Vec3): Vec3[]`: four control points (from; a lifted point 30% along, at max(from.y, eye.y) + 34; the point `eye + 14 × back + (0, 16, 0)`; eye)
+  - `returnPath(from: Vec3, to: Vec3): Vec3[]`: three control points (from; the midpoint lifted to max(from.y, to.y) + 20; to), for flying back to an orbit pose
   - `clampOrbit(o: { theta: number; phi: number; radius: number }): { theta: number; phi: number; radius: number }`: phi 18°–80°, radius 60–220
   - `clampLook(yaw: number, pitch: number): { yaw: number; pitch: number }`: pitch −35° to +50°, yaw wrapped to (−π, π]
   - `lookAngles(eye: Vec3, target: Vec3): { yaw: number; pitch: number }`
@@ -233,9 +236,11 @@ it('looks at the podium from the pitch and toward the pitch from the stands', ()
   expect(seatLook(v.indexOf('E-01-050'), v)).toEqual([-20, 1.5, 0])
 })
 it('builds a flight that starts at the camera, rises, and ends at the eye', () => {
-  const p = flightPath([78, 62, 92], [-10, 1.15, 5])
-  expect(p).toHaveLength(4); expect(p[0]).toEqual([78, 62, 92]); expect(p[3]).toEqual([-10, 1.15, 5])
-  expect(p[1][1]).toBe(96)
+  const p = flightPath([72, 64, -88], [-10, 1.15, 5], [1, 0, 0])
+  expect(p).toHaveLength(4); expect(p[0]).toEqual([72, 64, -88]); expect(p[3]).toEqual([-10, 1.15, 5])
+  expect(p[1][1]).toBe(98); expect(p[2]).toEqual([4, 17.15, 5])
+  expect(seatBack(v.indexOf('P1-01-01'), v)).toEqual([1, 0, 0])
+  const r = returnPath([-10, 1.15, 5], [72, 64, -88]); expect(r).toHaveLength(3); expect(r[1][1]).toBe(84)
 })
 it('clamps the orbit and the look', () => {
   expect(clampOrbit({ theta: 1, phi: 0, radius: 500 })).toEqual({ theta: 1, phi: (18 * Math.PI) / 180, radius: 220 })
@@ -248,7 +253,7 @@ it('a pitch seat looking at the podium faces west', () => {
 ```
 
 - [ ] **Step 2: Run them and confirm they fail.**
-- [ ] **Step 3: Implement.** "Behind the seat" is opposite the seat's facing direction.
+- [ ] **Step 3: Implement.** A pitch seat faces −X, so its back vector is (1, 0, 0).
 - [ ] **Step 4: Run the tests and confirm they pass.**
 - [ ] **Step 5: Commit** (`feat(stadiview): camera maths`)
 
@@ -285,7 +290,7 @@ it('a pitch seat looking at the podium faces west', () => {
 - Create: `src/features/stadiview/scene/Floodlights.tsx` (masts, lamp banks, glow sprites)
 - Create: `src/features/stadiview/scene/matrixShader.ts`
 - Create: `src/features/stadiview/stadiview.css` (the scoped palette tokens)
-- Modify: `src/app/routes.tsx` (route `stadium`, nav link)
+- Modify: `src/app/routes.tsx` (a `stadium` route outside the header `Layout`, in a minimal shell that still mounts `RootPhase`, `DemoConsole`, `Toaster`, `CertificateMomentHost` and `Fireworks`; a "Stadium" link in the site header)
 - Modify: `src/i18n/ar.ts`, `src/i18n/en.ts` (`nav.stadium`, `sv.title`, `sv.fallback.title`, `sv.fallback.body`, `sv.loading`)
 - Test: `tests/e2e/stadiview.spec.ts`
 
@@ -299,9 +304,9 @@ it('a pitch seat looking at the podium faces west', () => {
   - `matrixBarsMaterial(colors: [string, string], skewDeg: 5): ShaderMaterial` with a `uTime` uniform
 
 - [ ] **Step 1: Write failing end-to-end tests**
-  - `/stadium?lang=en`: `[data-stadiview]` has `data-theme="stadiview"`; `[data-stadium-canvas] canvas` is visible; `window.__stadiview.ready` becomes true.
-  - The header shows a "Stadium" link that goes to `/stadium`.
-  - With WebGL disabled (a context launched with `--disable-gpu --disable-webgl --disable-webgl2` flags, as the honors spec does): `[data-stadium-fallback]` is visible and no canvas is attached.
+  - `/stadium?lang=en`: `[data-stadiview]` has `data-theme="stadiview"`; `[data-stadium-canvas] canvas` is visible and fills the viewport; `window.__stadiview.ready` becomes true; the page does not scroll (`document.documentElement.scrollHeight <= innerHeight`).
+  - On `/`, the site header shows a "Stadium" link that goes to `/stadium`; on `/stadium` a KFUPM logo link returns to `/`.
+  - With WebGL unavailable (`page.addInitScript` replaces `HTMLCanvasElement.prototype.getContext` so that it returns null for `webgl`, `webgl2` and `experimental-webgl`): `[data-stadium-fallback]` is visible and no canvas is attached.
   - `/` does not request any chunk whose URL contains `StadiView` or `three` (reuse the honors spec's network check).
   - No horizontal scroll at 390 px.
 - [ ] **Step 2: Run them and confirm they fail.**
@@ -331,7 +336,7 @@ it('a pitch seat looking at the podium faces west', () => {
   - `chairGeometry(): BufferGeometry` (seat pan and back, 24 triangles, origin on the floor, facing −Z)
   - `baseColor(i: number, v: VenueLayout): string`: green #009C5A for pitch seats and bays; deep #005A50 for stand seats; sand #E8DEC3 where `southLetterMask` is true
   - `colorFor(i, v, s: { hover: number; selected: number }): string`: gold #E7A614 for the hovered or selected seat, else `baseColor`
-  - `window.__stadiview.project(seatId: string): { x: number; y: number } | null`: the seat's screen position in CSS pixels, or null when off screen or behind the camera
+  - `window.__stadiview.project(seatId: string): { x: number; y: number } | null`: the screen position, in CSS pixels, of the point `SEAT_PICK_Y` above the seat's floor origin, or null when off screen or behind the camera
   - `window.__stadiview.state(): { mode: CameraMode; hover: string | null; selected: string | null }`
   - The tooltip: `[data-seat-tooltip]` with text "Block · College · Row · Seat · Status" (for stand seats: section, row, seat)
 
@@ -367,15 +372,16 @@ it('a pitch seat looking at the podium faces west', () => {
 
 - [ ] **Step 1: Write failing end-to-end tests**
   - Clicking `P3-12-07` changes `state().mode` to `'fly'` and then `'pov'` within 5 s; the camera ends within 0.05 of `seatEye` for that seat.
-  - In `pov`, `[data-sv-back]` is visible; clicking it returns `mode` to `'orbit'` and the camera to within 0.5 of `ORBIT_HOME.position`. Pressing Escape does the same.
+  - Record `camera().position` before selecting. In `pov`, `[data-sv-back]` is visible; clicking it returns `mode` to `'orbit'` and the camera to within 0.5 of the recorded position (the last orbit pose). Pressing Escape does the same.
+  - Idle rotation: without `?idle=1` the camera position is unchanged after 1 s; with `?idle=1` it changes, and stops changing after a pointer press.
   - Dragging in `pov` changes the view direction but not the camera position.
-  - Selecting `P1-01-01` and, 600 ms later, `S-10-060` ends in `pov` at `S-10-060`'s eye, and the sampled camera positions never jump more than 30 between consecutive samples taken every 100 ms.
+  - Selecting `P1-01-01` and, 600 ms later, `S-10-060` ends in `pov` at `S-10-060`'s eye, and the sampled camera positions never jump more than 35 between consecutive samples taken every 100 ms.
   - With `reduced=1`: the flight finishes within 800 ms.
   - Resizing the viewport from 1280×800 to 800×1100 in `pov` leaves `mode` as `'pov'` and the camera position unchanged.
 - [ ] **Step 2: Run them and confirm they fail.**
 - [ ] **Step 3: Implement.**
-  - Orbit: pointer drag changes theta and phi; wheel and pinch change radius; an idle rotation of 2° per second runs until the first interaction.
-  - Fly: a GSAP tween of one progress value along a Catmull-Rom curve through `flightPath`; 2.6 s in, 1.8 s out, `power3.inOut`; a new selection kills the tween and starts from the current pose.
+  - Orbit: pointer drag changes theta and phi; wheel and pinch change radius; an idle rotation of 2° per second runs until the first pointer press, wheel or key, and is skipped under `navigator.webdriver` unless the URL has `?idle=1`.
+  - Fly: a GSAP tween of one progress value, read with the curve's arc-length lookup (`getPointAt`), along a Catmull-Rom curve through `flightPath` (in) or `returnPath` (out); 2.6 s in, 1.8 s out, `power3.inOut`; a new selection kills the tween and starts from the current pose. Back returns to the orbit pose saved when the flight began.
   - POV: yaw and pitch from drag with inertia (velocity decays by 0.92 per frame); wheel and pinch change field of view between 40° and 75°.
   - Clicks are told apart from drags by a 5 px movement threshold.
   - Keyboard: arrows, plus, minus, Escape.

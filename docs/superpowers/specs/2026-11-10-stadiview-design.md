@@ -1,6 +1,6 @@
 # KFUPM StadiView: design
 
-Date: 2026-11-10. Status: draft for approval (Phase 1 output).
+Date: 2026-11-10. Status: draft for approval (Phase 1 output). Reviewed once by an independent builder check; its corrections are included.
 
 ## Intent and the why
 
@@ -81,7 +81,7 @@ All code is original. The reference is licensed PolyForm Noncommercial; nothing 
 - C. Representative 3D with fewer seats plus the full 2D grid. Not needed at this scale; kept only as the lowest tier.
 
 ### Finding the seat under the pointer
-- **A. Arithmetic picking (chosen).** Intersect the pointer ray with the seat plane and convert the hit point to block, row and seat by division. O(1) for the pitch; at most 68 plane tests for the stands.
+- **A. Arithmetic picking (chosen).** Intersect the pointer ray with the seat plane and convert the hit point to block, row and seat by division. O(1) for the pitch; at most 72 plane tests for the stands.
 - B. three's built-in instanced raycast. Tests every instance on every pointer move.
 - C. GPU colour-ID readback (what the reference does). A synchronous read stalls the pipeline on phones.
 
@@ -119,10 +119,10 @@ All values live in `src/features/stadiview/config/venue.ts`.
 | North VIP box | x −15 to 15. 6 rows × 50 seats at 0.6. First row z = −52, floor y = 3.0; tread 1.1, riser 0.45. Canopy slab at y = 9.5 over x ±17, z −50 to −60, on four columns |
 | North flanks (2) | West flank x −35 to −17; east flank x 17 to 35. 15 rows × 30 seats at 0.6. First row z = −52, y = 1.2; tread 0.85, riser 0.42 |
 | South stand | x −36 to 36. 20 rows × 120 seats at 0.6. First row z = 53, y = 1.2; tread 0.85, riser 0.42. "KFUPM" spelled in sand-coloured seats across rows 4–16 |
-| East curve | Centre (42.195, 0). 12 rows at radius 52 + 0.85k; 100 seats per row across −30° to +30° (0° is +X); y = 1.2 + 0.42k; seats face the centre |
+| East curve | Centre (42.195, 0). Two halves either side of the procession entrance: −34° to −4° and +4° to +34° (0° is +X). Each half has 12 rows at radius 52 + 0.85k with 50 seats per row; y = 1.2 + 0.42k; seats face the centre |
 | Accessibility zone | Flat platform at y = 0.3 in front of the south stand: 4 rows × 50 seats at 0.7; x −35 to 0; rows at z = 47.3, 48.4, 49.5, 50.6 |
 | Floodlight masts (4) | At (±75, 0, ±62), 42 high, lamp banks aimed at the pitch centre |
-| East procession entrance | (96, 0, 0), a gap in the east curve at track level |
+| East procession entrance | An 8° gap in the east curve at track level (about 7 m wide at the front row), centred on (97, 0, 0) |
 
 **Grandstand capacity:** 2,400 (south) + 1,200 (east) + 900 (north flanks) + 300 (VIP) + 200 (accessibility) = **5,000**.
 
@@ -153,8 +153,9 @@ All values live in `src/features/stadiview/config/venue.ts`.
   | 5 | 12.0 | 20.4 | Male |
   | 6 | 22.8 | 31.2 | Male |
 
-- Row 1 is nearest the stage at x = −30. Row pitch 1.0, with a 2.0 cross aisle after rows 15 and 30. Row x = −30 + (r − 1) + 2·⌊(r − 1) / 15⌋.
+- Row 1 is nearest the stage at x = −30. Row pitch 1.0, with a 2.0 cross aisle after every 15th row (after rows 15 and 30 at the baseline numbers). Row x = −30 + (r − 1) + 2·⌊(r − 1) / 15⌋.
 - Seat 1 of a block row is the north-most seat.
+- In every stand, seat 1 is at the left end of the row as seen from the pitch looking at that stand. The south stand's "KFUPM" therefore starts at its east end and reads correctly from the pitch, the VIP box and the opening camera.
 - **Block 1 (female, 629):** 45 rows; the last row has 13 seats. Back row at x = 18.
 - **Blocks 2–6 (male, 2,357):** a male row is 70 seats across the five blocks. 34 rows; the last row has 47 seats (blocks 2–4 full, 5 seats in block 5). Back row at x = 7.
 - **Accessible bays:** 12 extra positions, two per block, at x = −31.5 in front of row 1 at the block's two outer seats. They are outside the 2,986 count. A graduate with the accessibility toggle on may book a bay in their gender's blocks in place of a zone seat.
@@ -222,9 +223,10 @@ export interface VenueLayout {
   lineup: Uint16Array       // 1-based position in the zone's procession order; 0 off the pitch
   sections: SectionInfo[]
   zones: ZoneInfo[]
-  ranges: { pitch: [0, 2986]; bays: [2986, 2998]; stands: [2998, 7998] }
+  ranges: { pitch: [number, number]; bays: [number, number]; stands: [number, number] }   // [0, 2986], [2986, 2998], [2998, 7998] at the baseline
   /** Pitch grid lookup for picking: block × row × column → seat index, −1 where there is no seat. */
-  pitchCell: Int32Array     // 6 × 45 × 14
+  pitchCell: Int32Array     // 6 × pitchRows × 14
+  pitchRows: number         // 45 at the baseline numbers
   idOf(index: number): string
   indexOf(id: string): number   // −1 when unknown
 }
@@ -241,6 +243,7 @@ export interface VenueLayout {
 - **Pitch:** intersect the pointer ray with the plane y = 0.45. From the hit point, the row comes from x (inverting the row formula, rejecting hits in a cross aisle), the block and column from z (rejecting hits in an aisle), and the seat index from `pitchCell`.
 - **Stands:** for each stand row, intersect the ray with that row's horizontal plane and test whether the hit lies in the row's footprint; take the nearest hit.
 - **Bays:** tested as 12 small boxes.
+- The stands need at most 72 row-plane tests (6 + 15 + 15 + 20 + 12 + 4).
 
 ## 5. Camera
 
@@ -248,8 +251,8 @@ One rig with three modes: `orbit`, `fly`, `pov`.
 
 | Mode | Behaviour |
 |---|---|
-| Orbit (default) | Camera at (78, 62, 92) looking at (−8, 0, 0), field of view 42°. Drag orbits, wheel or pinch zooms. Polar angle 18°–80°, radius 60–220. A slow idle rotation until the first interaction |
-| Fly | A curve from the current pose, up and over, to the seat's eye point; 2.6 s, strong ease-in-out; the look target blends from the current view to the seat's default target; field of view eases to 62° |
+| Orbit (default) | Camera at (72, 64, −88), north-east of the stadium, looking at (−8, 0, 0), field of view 42°. From here the stage, the six blocks and the south stand's KFUPM letters all read the right way up. Drag orbits, wheel or pinch zooms. Polar angle 18°–80°, radius 60–220. A slow idle rotation runs until the first pointer press, wheel or key; automated browsers skip it unless the URL has `?idle=1` |
+| Fly | A curve from the current pose, up and over, to the seat's eye point, travelled at an eased, arc-length-even speed; 2.6 s, strong ease-in-out; the look target blends from the current view to the seat's default target; field of view eases to 62° |
 | POV | Eye at seat origin + (0, 1.15, 0). Drag looks around: yaw 360°, pitch −35° to +50°, with inertia. Wheel or pinch changes field of view 40°–75° |
 
 - **Default look target:** pitch seats look at the podium (−42, 3.2, 0); stand seats look at (−20, 1.5, 0).
@@ -302,6 +305,8 @@ Faceless, low-poly, head-and-shoulders-and-torso figures seated in chairs. No fa
 
 ## 9. HUD (built in Phase 3)
 
+**Page shell.** `/stadium` is an immersive route outside the site's normal header layout. It fills the viewport, locks page scroll (so the wheel zooms the camera), and has its own top bar. It still mounts the demo console, the toasts and the fireworks layer. The site header on other pages links to it.
+
 - **Top bar:** KFUPM logo, the title, role and profile switcher, language switcher.
 - **Bottom-left: 2D seat matrix.** A canvas-drawn top view of every seat with pan, zoom, search and filters (college, degree, available only, accessible). Hover and selection are mirrored in the 3D scene, and a marker shows what the 3D camera is looking at. Clicking a seat flies the camera to it.
 - **Right: inspector.** Block, college flag, row, seat, a POV preview, three checks (sightline to the stage, entry gate, distance to the procession aisle), and the primary button. In guest mode the button is replaced by a "View-only mode" indicator.
@@ -342,7 +347,7 @@ Faceless, low-poly, head-and-shoulders-and-torso figures seated in chairs. No fa
   - camera eye and target maths
   - services and locator rules
   - bearing and distance maths
-- **End-to-end:** the scene exposes a debug hook (`window.__stadiview`) with `project(seatId)` returning screen coordinates and the current mode, so Playwright can click real seats under software WebGL. No frame-rate assertions in CI.
+- **End-to-end:** the scene exposes a debug hook (`window.__stadiview`) with `project(seatId)` returning the screen position of the seat at picking height (0.45 above its floor) and the current mode, so Playwright can click real seats under software WebGL. No frame-rate assertions in CI.
 - **Accessibility:** axe on the HUD; the canvas-free path is tested by keyboard.
 - **Performance:** measured by a script on the production build, as for the landing page, and by hand on a reference phone.
 
@@ -358,3 +363,4 @@ Faceless, low-poly, head-and-shoulders-and-torso figures seated in chairs. No fa
 2. Female Block 1 order: bachelors in front (assumed), or postgraduates in front as listed in the brief?
 3. A site plan or satellite reference for gate positions and the accessibility zone.
 4. Artwork for the Student Affairs and Graduation Ceremony badges.
+5. Which gate VIP guests use (the baseline allocation does not say; the config assumes Gate 4).

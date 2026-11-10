@@ -207,6 +207,14 @@ export interface VenueConfig {
     pitchLook: Vec3
     /** What a stand seat looks at by default: the middle of the graduates. */
     standLook: Vec3
+    /**
+     * How far the overview camera may travel round its target. The polar angle is measured down
+     * from straight overhead, so polarMaxDeg below 90 keeps the camera above the ground; the radius
+     * is the distance from the target.
+     */
+    orbit: { polarMinDeg: number; polarMaxDeg: number; radiusMin: number; radiusMax: number }
+    /** How far a seated viewer may tilt their head in first person: degrees below (negative) and above the horizon. */
+    look: { pitchMinDeg: number; pitchMaxDeg: number }
   }
 }
 
@@ -343,5 +351,10 @@ export const VENUE: VenueConfig = {
     // Head height of someone standing at the podium.
     pitchLook: [-42, 3.2, 0],
     standLook: [-20, 1.5, 0],
+    // From nearly overhead down to a low sweep that is still well above the ground, and from just
+    // over the pitch out to the whole stadium with its surroundings.
+    orbit: { polarMinDeg: 18, polarMaxDeg: 80, radiusMin: 60, radiusMax: 220 },
+    // Down far enough to see the row in front, up far enough to see the floodlights.
+    look: { pitchMinDeg: -35, pitchMaxDeg: 50 },
   },
 }

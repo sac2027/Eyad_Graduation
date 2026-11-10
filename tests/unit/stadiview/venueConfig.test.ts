@@ -120,6 +120,22 @@ describe('venue config', () => {
     expect(VENUE.camera.standLook).toEqual([-20, 1.5, 0])
   })
 
+  it('limits the overview orbit and the first-person look, with the opening camera inside the orbit limits', () => {
+    expect(VENUE.camera.orbit).toEqual({ polarMinDeg: 18, polarMaxDeg: 80, radiusMin: 60, radiusMax: 220 })
+    expect(VENUE.camera.look).toEqual({ pitchMinDeg: -35, pitchMaxDeg: 50 })
+    const { position, target } = VENUE.camera.home
+    const radius = Math.hypot(position[0] - target[0], position[1] - target[1], position[2] - target[2])
+    const polarDeg = (Math.acos((position[1] - target[1]) / radius) * 180) / Math.PI
+    expect(radius).toBeGreaterThan(VENUE.camera.orbit.radiusMin)
+    expect(radius).toBeLessThan(VENUE.camera.orbit.radiusMax)
+    expect(polarDeg).toBeGreaterThan(VENUE.camera.orbit.polarMinDeg)
+    expect(polarDeg).toBeLessThan(VENUE.camera.orbit.polarMaxDeg)
+    // The orbit can never go level with the ground or under it, and the look stops short of straight up and down.
+    expect(VENUE.camera.orbit.polarMaxDeg).toBeLessThan(90)
+    expect(VENUE.camera.look.pitchMinDeg).toBeGreaterThan(-90)
+    expect(VENUE.camera.look.pitchMaxDeg).toBeLessThan(90)
+  })
+
   it('describes the pitch, the track and the stage', () => {
     expect(VENUE.pitch).toEqual({ length: 105, width: 68 })
     expect(VENUE.track).toMatchObject({ lanes: 8, laneWidth: 1.22, straightHalf: 42.195, innerRadius: 36.5 })

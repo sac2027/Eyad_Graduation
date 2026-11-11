@@ -23,15 +23,15 @@ export const PAINT = {
   land: '#0A1F1B',
   apron: '#1C302C',
   infield: '#0F4A3C',
-  grassLight: '#1E6A39',
-  grassDark: '#195D33',
-  track: '#0A574D',
-  trackLine: '#CFC6A8',
+  grassLight: '#1A5E33',
+  grassDark: '#16522C',
+  track: '#6A6146',
+  trackLine: '#E8DEC3',
   pitchLine: '#B9B6A6',
 
   // The seating floor on the pitch.
-  aisle: '#12302B',
-  pad: '#8F876C',
+  aisle: '#0D2622',
+  pad: '#17382F',
   runner: '#00594F',
 
   // Stands and other structures.

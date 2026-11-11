@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { Logo } from '@/brand/logo/Logo'
 import { useDemoFlags } from '@/features/demo-console/flags'
 import { extendDebugHook, installDebugHook, removeDebugHook } from '@/features/stadiview/debugHook'
+import { SeatTooltip } from '@/features/stadiview/hud/SeatTooltip'
 import { useStadium } from '@/features/stadiview/state/stadiumStore'
 import { useTier } from '@/features/stadiview/useTier'
 import { useLocale, useT } from '@/i18n'
@@ -86,6 +87,8 @@ export default function StadiViewPage() {
           {t('nav.language')}
         </button>
       </header>
+
+      {show3d && <SeatTooltip />}
 
       {show3d && !ready && (
         <div className="sv-centre">

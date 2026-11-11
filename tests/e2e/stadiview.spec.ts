@@ -4,10 +4,38 @@ import { expect, test, type Page } from '@playwright/test'
 /** Software WebGL is slow, so stadium tests run the lightest 3D tier unless they are about tiers. */
 const STADIUM = '/stadium?lang=en&tier=1'
 
+interface Point {
+  x: number
+  y: number
+}
+
 interface Hook {
   ready: boolean
   tier: number
   info(): { calls: number; triangles: number }
+  project(seatId: string): Point | null
+  projectPoint(p: [number, number, number]): Point | null
+  state(): { mode: string; hover: string | null; selected: string | null }
+  select(seatId: string): void
+  back(): void
+}
+
+const hook = (page: Page) => page.evaluateHandle(() => (window as unknown as { __stadiview: Hook }).__stadiview)
+
+async function project(page: Page, seatId: string): Promise<Point> {
+  const p = await (await hook(page)).evaluate((h, id) => h.project(id), seatId)
+  expect(p, `${seatId} should be on screen`).not.toBeNull()
+  return p!
+}
+
+async function state(page: Page) {
+  return (await hook(page)).evaluate((h) => h.state())
+}
+
+/** Moves the mouse onto a point the way a hand does: from nearby, in a few steps. */
+async function hoverAt(page: Page, p: Point) {
+  await page.mouse.move(p.x - 24, p.y - 18)
+  await page.mouse.move(p.x, p.y, { steps: 3 })
 }
 
 async function ready(page: Page) {
@@ -162,6 +190,157 @@ test.describe('the stadium on a phone', () => {
         expect(box.x).toBeGreaterThanOrEqual(0)
         expect(box.x + box.width).toBeLessThanOrEqual(390)
       }
+    })
+  }
+})
+
+test.describe('seats under the pointer', () => {
+  const tooltip = '[data-seat-tooltip]'
+
+  test('hovering a pitch seat turns it on in the store and names it in the tooltip', async ({ page }) => {
+    await page.goto(STADIUM)
+    await ready(page)
+    await hoverAt(page, await project(page, 'P3-12-07'))
+    await expect.poll(async () => (await state(page)).hover).toBe('P3-12-07')
+    const tip = page.locator(tooltip)
+    await expect(tip).toHaveAttribute('data-open', '')
+    await expect(tip).toContainText('Block 3')
+    await expect(tip).toContainText('Row 12')
+    await expect(tip).toContainText('Seat 7')
+    await expect(tip).toContainText('Computing & Mathematics')
+    await expect(tip).toContainText('Bachelor')
+    await expect(tip).toContainText('Available')
+    // The tooltip is for the eye; assistive technology gets the same facts elsewhere.
+    await expect(tip).toHaveAttribute('aria-hidden', 'true')
+  })
+
+  test('a pointer over an aisle highlights nothing and hides the tooltip', async ({ page }) => {
+    await page.goto(STADIUM)
+    await ready(page)
+    await hoverAt(page, await project(page, 'P3-12-07'))
+    await expect(page.locator(tooltip)).toHaveAttribute('data-open', '')
+    // The aisle between blocks 1 and 2, on the ground.
+    const aisle = await (await hook(page)).evaluate((h) => h.projectPoint([-26, 0, -21.6]))
+    expect(aisle).not.toBeNull()
+    await page.mouse.move(aisle!.x, aisle!.y, { steps: 3 })
+    await expect.poll(async () => (await state(page)).hover).toBeNull()
+    await expect(page.locator(tooltip)).not.toHaveAttribute('data-open', '')
+    // The sky has no seats either.
+    await page.mouse.move(700, 120, { steps: 3 })
+    await expect.poll(async () => (await state(page)).hover).toBeNull()
+  })
+
+  test('hovering a stand seat names its stand, row and seat, without a booking status', async ({ page }) => {
+    await page.goto(STADIUM)
+    await ready(page)
+    await hoverAt(page, await project(page, 'S-10-060'))
+    await expect.poll(async () => (await state(page)).hover).toBe('S-10-060')
+    const tip = page.locator(tooltip)
+    await expect(tip).toContainText('South stand')
+    await expect(tip).toContainText('Row 10')
+    await expect(tip).toContainText('Seat 60')
+    await expect(tip).not.toContainText('Available')
+  })
+
+  test('a wheelchair bay is named as one', async ({ page }) => {
+    await page.goto(STADIUM)
+    await ready(page)
+    await hoverAt(page, await project(page, 'P2-A1'))
+    await expect.poll(async () => (await state(page)).hover).toBe('P2-A1')
+    await expect(page.locator(tooltip)).toContainText('Block 2')
+    await expect(page.locator(tooltip)).toContainText('Wheelchair bay 1')
+  })
+
+  test('clicking a seat selects it', async ({ page }) => {
+    await page.goto(STADIUM)
+    await ready(page)
+    const p = await project(page, 'S-10-060')
+    await hoverAt(page, p)
+    await page.mouse.click(p.x, p.y)
+    await expect.poll(async () => (await state(page)).selected).toBe('S-10-060')
+  })
+
+  test('pressing, dragging 40 px and releasing over a seat does not select it', async ({ page }) => {
+    await page.goto(STADIUM)
+    await ready(page)
+    const p = await project(page, 'P3-12-07')
+    await page.mouse.move(p.x - 40, p.y)
+    await page.mouse.down()
+    await page.mouse.move(p.x, p.y, { steps: 5 })
+    await page.mouse.up()
+    await page.waitForTimeout(150)
+    expect((await state(page)).selected).toBeNull()
+  })
+
+  test('the hover follows the pointer from seat to seat without closing in between', async ({ page }) => {
+    await page.goto(STADIUM)
+    await ready(page)
+    await hoverAt(page, await project(page, 'P3-12-07'))
+    await expect.poll(async () => (await state(page)).hover).toBe('P3-12-07')
+    const next = await project(page, 'P4-12-07')
+    await page.mouse.move(next.x, next.y, { steps: 2 })
+    await expect.poll(async () => (await state(page)).hover).toBe('P4-12-07')
+    await expect(page.locator(tooltip)).toContainText('Block 4')
+    await expect(page.locator(tooltip)).toHaveAttribute('data-open', '')
+  })
+
+  test('leaving the canvas clears the hover', async ({ page }) => {
+    await page.goto(STADIUM)
+    await ready(page)
+    await hoverAt(page, await project(page, 'P3-12-07'))
+    await expect.poll(async () => (await state(page)).hover).toBe('P3-12-07')
+    // The language button is outside the canvas.
+    await page.locator('[data-sv-language]').hover()
+    await expect.poll(async () => (await state(page)).hover).toBeNull()
+  })
+
+  test('the seats fit the drawing budget: two draw calls for 7,998 chairs', async ({ page }) => {
+    await page.goto(STADIUM)
+    await ready(page)
+    const info = await (await hook(page)).evaluate((h) => h.info())
+    expect(info.calls).toBeLessThanOrEqual(80)
+    expect(info.triangles).toBeGreaterThan(7998 * 12)
+    expect(info.triangles).toBeLessThanOrEqual(450_000)
+  })
+
+  for (const lang of ['ar', 'en']) {
+    test(`the tooltip stays on screen and off the pointer at every edge (${lang})`, async ({ page }) => {
+      await page.goto(`/stadium?lang=${lang}&tier=1`)
+      await ready(page)
+      const viewport = page.viewportSize()!
+      // Seats spread over the picture; keep the ones nearest each edge of the screen.
+      const edges = await (await hook(page)).evaluate((h) => {
+        const ids: string[] = []
+        for (let r = 1; r <= 20; r += 3) for (let n = 1; n <= 120; n += 17) ids.push(`S-${String(r).padStart(2, '0')}-${String(n).padStart(3, '0')}`)
+        for (let b = 1; b <= 6; b++) for (let r = 1; r <= 33; r += 8) for (const n of [1, 14]) ids.push(`P${b}-${String(r).padStart(2, '0')}-${String(n).padStart(2, '0')}`)
+        for (let r = 1; r <= 12; r += 3) for (let n = 1; n <= 100; n += 11) ids.push(`E-${String(r).padStart(2, '0')}-${String(n).padStart(3, '0')}`)
+        for (let r = 1; r <= 15; r += 4) for (let n = 1; n <= 30; n += 7) ids.push(`NE-${String(r).padStart(2, '0')}-${String(n).padStart(3, '0')}`, `NW-${String(r).padStart(2, '0')}-${String(n).padStart(3, '0')}`)
+        const seen = ids.map((id) => ({ id, p: h.project(id) })).filter((s): s is { id: string; p: { x: number; y: number } } => s.p !== null)
+        const by = (f: (p: { x: number; y: number }) => number) => [...seen].sort((a, b) => f(a.p) - f(b.p))
+        return { left: by((p) => p.x).slice(0, 6), right: by((p) => -p.x).slice(0, 6), top: by((p) => p.y).slice(0, 6), bottom: by((p) => -p.y).slice(0, 6) }
+      })
+      let checked = 0
+      for (const [edge, candidates] of Object.entries(edges)) {
+        // Some candidates are hidden behind a wall or the title; use the first one the pointer really reaches.
+        for (const c of candidates) {
+          await page.mouse.move(c.p.x, c.p.y, { steps: 2 })
+          await page.waitForTimeout(120)
+          if ((await state(page)).hover === null) continue
+          const tip = page.locator(tooltip)
+          await expect(tip).toHaveAttribute('data-open', '')
+          await expect(tip).toContainText(lang === 'ar' ? /الصف/ : /Row/)
+          const box = (await tip.boundingBox())!
+          expect(box.x, `${edge}: left edge`).toBeGreaterThanOrEqual(0)
+          expect(box.y, `${edge}: top edge`).toBeGreaterThanOrEqual(0)
+          expect(box.x + box.width, `${edge}: right edge`).toBeLessThanOrEqual(viewport.width)
+          expect(box.y + box.height, `${edge}: bottom edge`).toBeLessThanOrEqual(viewport.height)
+          const covers = c.p.x >= box.x && c.p.x <= box.x + box.width && c.p.y >= box.y && c.p.y <= box.y + box.height
+          expect(covers, `${edge}: the tooltip must not sit on the pointer`).toBe(false)
+          checked++
+          break
+        }
+      }
+      expect(checked).toBeGreaterThanOrEqual(3)
     })
   }
 })

@@ -10,10 +10,13 @@ import type { Tier } from '@/features/stadiview/engine/tiers'
 import { Floodlights } from '@/features/stadiview/scene/Floodlights'
 import { Ground } from '@/features/stadiview/scene/Ground'
 import { SV } from '@/features/stadiview/scene/palette'
+import { SceneDebug } from '@/features/stadiview/scene/SceneDebug'
 import { createSceneKit, disposeSceneKit, SceneKitContext } from '@/features/stadiview/scene/sceneKit'
+import { Seats } from '@/features/stadiview/scene/Seats'
 import { Sky, SKY_RADIUS } from '@/features/stadiview/scene/Sky'
 import { Stage } from '@/features/stadiview/scene/Stage'
 import { Stands } from '@/features/stadiview/scene/Stands'
+import { usePointerPicking } from '@/features/stadiview/scene/usePointerPicking'
 
 export interface StadiumCanvasProps {
   /** The 3D tiers only: tier 0 never loads this file. */
@@ -124,6 +127,12 @@ function Lifecycle({ onReady, onLost }: Pick<StadiumCanvasProps, 'onReady' | 'on
   return null
 }
 
+/** Runs the seat search for the pointer. A component of its own so its frame callback sits beside the scene's others. */
+function Pointer() {
+  usePointerPicking()
+  return null
+}
+
 function Scene({ tier, still, onReady, onLost }: Omit<StadiumCanvasProps, 'label'>) {
   const kit = useMemo(() => createSceneKit(), [])
   useEffect(() => () => disposeSceneKit(kit), [kit])
@@ -138,8 +147,11 @@ function Scene({ tier, still, onReady, onLost }: Omit<StadiumCanvasProps, 'label
       <Stands animate={!still} />
       <Stage animate={!still} />
       <Floodlights cones={tier >= 2} />
+      <Seats />
+      <Pointer />
       <OverviewCamera />
       <Lifecycle onReady={onReady} onLost={onLost} />
+      <SceneDebug />
     </SceneKitContext.Provider>
   )
 }

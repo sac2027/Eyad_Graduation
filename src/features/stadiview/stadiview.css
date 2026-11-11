@@ -176,3 +176,53 @@ html[data-motion='reduced'] .sv-loading__bars i { animation: none; }
 .sv-fallback h2 { margin: 0 0 10px; font: 700 1.375rem/1.2 var(--font-display); text-wrap: balance; }
 .sv-fallback p { margin: 0 0 22px; max-width: 46ch; font-size: 1rem; line-height: 1.6; color: var(--sv-text-soft); text-wrap: pretty; }
 .sv-fallback__actions { display: flex; flex-wrap: wrap; gap: 14px; }
+
+/* ---- The seat tooltip ---- */
+
+/* The outer element only carries the position, moved by script as the pointer moves. */
+.sv-tip {
+  position: absolute;
+  inset-block-start: 0;
+  left: 0;
+  z-index: 20;
+  max-width: min(22rem, calc(100vw - 16px));
+  pointer-events: none;
+  will-change: transform;
+}
+/* The plate inside it carries the entrance: a short fade and a slight growth from the pointer's corner. */
+.sv-tip__plate {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  min-height: 0;
+  padding: 9px 16px 10px;
+  opacity: 0;
+  transform: scale(0.97);
+  transform-origin: var(--sv-tip-origin, left top);
+  /* Leaving is quicker than arriving. */
+  transition: opacity 90ms ease-out, transform 90ms ease-out;
+}
+.sv-tip[data-open] .sv-tip__plate {
+  opacity: 1;
+  transform: scale(1);
+  transition: opacity 125ms var(--ease-out-strong), transform 125ms var(--ease-out-strong);
+}
+.sv-tip__plate::before { border-color: var(--sv-line-gold-strong); box-shadow: 0 10px 28px rgb(0 0 0 / 0.5); }
+.sv-tip__text { display: flex; min-width: 0; flex-direction: column; gap: 3px; }
+.sv-tip__text strong { font: 600 0.875rem/1.3 var(--font-body); color: var(--sv-white); font-variant-numeric: tabular-nums; }
+.sv-tip__text span { font-size: 0.8125rem; line-height: 1.35; color: var(--sv-text-soft); }
+.sv-tip__status {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  margin-block-start: 1px;
+  font: 600 0.8125rem/1.3 var(--font-body);
+  color: var(--sv-white);
+  white-space: nowrap;
+}
+.sv-tip__status i { width: 8px; height: 8px; background: var(--sv-green); transform: var(--sv-lean); }
+@media (prefers-reduced-motion: reduce) {
+  .sv-tip__plate, .sv-tip[data-open] .sv-tip__plate { transform: none; transition: opacity 90ms ease-out; }
+}
+html[data-motion='reduced'] .sv-tip__plate, html[data-motion='reduced'] .sv-tip[data-open] .sv-tip__plate { transform: none; }

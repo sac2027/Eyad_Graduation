@@ -63,3 +63,6 @@ export const PAINT = {
   campus: '#0B2420',
   campusLight: '#102E29',
 } as const
+
+/** The march carpet: crimson with gold trims (decision F). */
+export const CARPET = { crimson: '#7A1A2C', trim: '#E7A614' } as const

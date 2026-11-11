@@ -11,6 +11,7 @@ import { Floodlights } from '@/features/stadiview/scene/Floodlights'
 import { Ground } from '@/features/stadiview/scene/Ground'
 import { PreviewCamera } from '@/features/stadiview/scene/PreviewCamera'
 import { Avatars } from '@/features/stadiview/scene/Avatars'
+import { MarchCarpet } from '@/features/stadiview/scene/MarchCarpet'
 import { SV } from '@/features/stadiview/scene/palette'
 import { SceneDebug } from '@/features/stadiview/scene/SceneDebug'
 import { SeatMarker } from '@/features/stadiview/scene/SeatMarker'
@@ -135,6 +136,7 @@ function Scene({ tier, still, onReady, onLost }: Omit<StadiumCanvasProps, 'label
       <Stands animate={!still} />
       <Stage animate={!still} />
       <Floodlights cones={tier >= 2} />
+      <MarchCarpet still={still} />
       <Seats />
       {settings.crowd > 0 && <Avatars crowd={settings.crowd} />}
       <SeatMarker still={still} />

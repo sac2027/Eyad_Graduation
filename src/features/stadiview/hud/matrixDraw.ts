@@ -2,8 +2,9 @@ import { VENUE } from '@/features/stadiview/config/venue'
 import { toScreen } from '@/features/stadiview/engine/planView'
 import type { PlanView } from '@/features/stadiview/engine/planView'
 import type { VenueLayout } from '@/features/stadiview/layout/types'
-import { SV } from '@/features/stadiview/scene/palette'
+import { CARPET, SV } from '@/features/stadiview/scene/palette'
 import type { CameraOnPlan } from '@/features/stadiview/state/cameraOnPlan'
+import { getMarchPath } from '@/features/stadiview/engine/marchPath'
 
 /**
  * Draws the stadium from above on a 2D canvas: the pitch, the track, the stage, the gates and
@@ -135,6 +136,9 @@ function drawStill(ctx: CanvasRenderingContext2D, s: MatrixScene): void {
     ctx.restore()
   }
 
+  // The march carpet, crimson with gold edges, with arrows the way the graduates walk once there is room for them.
+  drawCarpet(ctx, k, at)
+
   // The seats, one colour at a time and one strength at a time, so the canvas changes state rarely.
   const size = Math.max(1.5, SEAT_SIZE * k)
   const half = size / 2
@@ -237,4 +241,43 @@ function drawMoving(ctx: CanvasRenderingContext2D, s: MatrixScene): void {
   ctx.lineTo(10, 14)
   ctx.closePath()
   ctx.fill()
+}
+
+/** The march carpet on the map: a crimson band with gold edges, and gold arrows along it when zoomed in enough to read them. */
+function drawCarpet(ctx: CanvasRenderingContext2D, k: number, at: (x: number, z: number) => [number, number]): void {
+  const path = getMarchPath()
+  const width = VENUE.march.width * k
+  ctx.save()
+  ctx.lineJoin = 'round'
+  ctx.lineCap = 'butt'
+  ctx.beginPath()
+  path.points.forEach((p, i) => {
+    const [x, y] = at(p[0], p[2])
+    if (i === 0) ctx.moveTo(x, y)
+    else ctx.lineTo(x, y)
+  })
+  ctx.strokeStyle = CARPET.trim
+  ctx.lineWidth = Math.max(2, width)
+  ctx.stroke()
+  ctx.strokeStyle = CARPET.crimson
+  ctx.lineWidth = Math.max(1.2, width - Math.max(1, 0.3 * k))
+  ctx.stroke()
+  if (width >= 7) {
+    ctx.strokeStyle = CARPET.trim
+    ctx.lineWidth = Math.max(1, width * 0.12)
+    const size = width * 0.32
+    for (let s = 6; s < path.length - 2; s += 10) {
+      const { point, dir } = path.at(s)
+      const [x, y] = at(point[0], point[2])
+      // A chevron pointing along the walk: the map's x and y follow the venue's x and z.
+      const fx = dir[0]
+      const fy = dir[2]
+      ctx.beginPath()
+      ctx.moveTo(x - fx * size - fy * size, y - fy * size + fx * size)
+      ctx.lineTo(x + fx * size * 0.6, y + fy * size * 0.6)
+      ctx.lineTo(x - fx * size + fy * size, y - fy * size - fx * size)
+      ctx.stroke()
+    }
+  }
+  ctx.restore()
 }

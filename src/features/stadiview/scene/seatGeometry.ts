@@ -30,7 +30,16 @@ export const CHAIR_PROFILE: [number, number][] = [
  * the scene's lamps (that would cost a phone too much for 7,998 chairs), so the shading a lamp
  * would give is painted on instead: tops full, upright faces dimmer, the rear dimmest.
  */
-const SHADE = { seat: 1, backFront: 0.88, backTop: 1, front: 0.74, side: 0.68, rear: 0.6 }
+const SHADE = { seat: 1, backFront: 0.9, backTop: 1, front: 0.76, side: 0.7, rear: 0.7 }
+
+/**
+ * Upright faces also darken toward the floor, as they would in the shadow between rows: this much
+ * of their shade is left at floor level. Without it a row of chair backs seen from the seat behind
+ * is one flat band of colour; with it every row has a light top edge against the dark foot of the
+ * row beyond.
+ */
+const FLOOR_SHADE = 0.42
+const TOP = Math.max(...CHAIR_PROFILE.map((p) => p[1]))
 
 /** The outline cut into triangles. The corner where the seat meets the back rest points inward, so a simple fan would spill outside it. */
 const SIDE_TRIANGLES = [
@@ -58,9 +67,12 @@ export function chairGeometry(): BufferGeometry {
     const vy = c[1] - a[1]
     const vz = c[2] - a[2]
     const facing = (uy * vz - uz * vy) * out[0] + (uz * vx - ux * vz) * out[1] + (ux * vy - uy * vx) * out[2]
+    // Faces that look up keep one shade; the others fade toward the floor.
+    const upward = shade === 1
     for (const p of facing >= 0 ? [a, b, c] : [a, c, b]) {
       positions.push(p[0], p[1], p[2])
-      colors.push(shade, shade, shade)
+      const k = upward ? shade : shade * (FLOOR_SHADE + (1 - FLOOR_SHADE) * (p[1] / TOP))
+      colors.push(k, k, k)
     }
   }
 

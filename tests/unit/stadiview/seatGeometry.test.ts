@@ -81,7 +81,7 @@ describe('the chair', () => {
       const c = corner(k + 2)
       const i = index ? index.getX(k) : k
       const shade = color.getX(i)
-      expect(shade).toBeGreaterThan(0.3)
+      expect(shade).toBeGreaterThan(0.2)
       expect(shade).toBeLessThanOrEqual(1)
       // The same shade on all three channels: it only dims the seat's own colour.
       expect(color.getY(i)).toBe(shade)
@@ -93,6 +93,21 @@ describe('the chair', () => {
     }
     expect(brightestUp).toBe(1)
     expect(brightest).toBe(1)
+  })
+
+  it('darkens upright faces toward the floor, so rows of chair backs read as rows', () => {
+    const color = g.getAttribute('color')
+    // The rear face runs from the top of the back rest down to the floor behind the chair.
+    let atTop = 0
+    let atFloor = 1
+    for (let k = 0; k < count; k++) {
+      const c = corner(k)
+      const i = index ? index.getX(k) : k
+      if (c[2] < 0.2) continue // only the rear edge of the chair
+      if (c[1] > 0.9) atTop = Math.max(atTop, color.getX(i))
+      if (c[1] === 0) atFloor = Math.min(atFloor, color.getX(i))
+    }
+    expect(atFloor).toBeLessThan(atTop * 0.6)
   })
 })
 

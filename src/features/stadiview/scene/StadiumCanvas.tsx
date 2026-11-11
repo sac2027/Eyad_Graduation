@@ -1,12 +1,12 @@
-import { useEffect, useLayoutEffect, useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import { NeutralToneMapping, SpotLight } from 'three'
-import type { PerspectiveCamera } from 'three'
 import { Canvas, useThree } from '@react-three/fiber'
 import { VENUE } from '@/features/stadiview/config/venue'
 import { extendDebugHook } from '@/features/stadiview/debugHook'
-import { ORBIT_HOME, overviewFov } from '@/features/stadiview/engine/cameraMath'
+import { ORBIT_HOME } from '@/features/stadiview/engine/cameraMath'
 import { TIER_SETTINGS } from '@/features/stadiview/engine/tiers'
 import type { Tier } from '@/features/stadiview/engine/tiers'
+import { CameraRig } from '@/features/stadiview/scene/CameraRig'
 import { Floodlights } from '@/features/stadiview/scene/Floodlights'
 import { Ground } from '@/features/stadiview/scene/Ground'
 import { SV } from '@/features/stadiview/scene/palette'
@@ -67,21 +67,6 @@ function Lights({ spots }: { spots: boolean }) {
       ))}
     </>
   )
-}
-
-/** Holds the camera at the opening overview and keeps its field of view right for the screen's shape. */
-function OverviewCamera() {
-  const camera = useThree((s) => s.camera) as PerspectiveCamera
-  const size = useThree((s) => s.size)
-  const invalidate = useThree((s) => s.invalidate)
-  useLayoutEffect(() => {
-    camera.position.set(...ORBIT_HOME.position)
-    camera.lookAt(...ORBIT_HOME.target)
-    camera.fov = overviewFov(size.width / size.height)
-    camera.updateProjectionMatrix()
-    invalidate()
-  }, [camera, size, invalidate])
-  return null
 }
 
 /** Reports the first frame, watches for a lost graphics context, and feeds the debug hook. */
@@ -149,7 +134,7 @@ function Scene({ tier, still, onReady, onLost }: Omit<StadiumCanvasProps, 'label
       <Floodlights cones={tier >= 2} />
       <Seats />
       <Pointer />
-      <OverviewCamera />
+      <CameraRig still={still} />
       <Lifecycle onReady={onReady} onLost={onLost} />
       <SceneDebug />
     </SceneKitContext.Provider>

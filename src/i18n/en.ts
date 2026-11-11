@@ -440,4 +440,8 @@ export const en: Record<string, string> = {
   'sv.section.ACC': 'Accessibility platform',
   'sv.degree.B': 'Bachelor',
   'sv.degree.G': 'Postgraduate',
+  'sv.canvas.keys': 'The 3D stadium. Arrow keys turn the view, plus and minus zoom, Escape returns to the overview.',
+  'sv.back': 'Back to stadium overview',
+  'sv.pov.from': 'You are now seated. The view from:',
+  'sv.pov.hint': 'Drag to look around',
 }

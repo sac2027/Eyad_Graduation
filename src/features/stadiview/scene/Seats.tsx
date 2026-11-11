@@ -6,6 +6,7 @@ import { colorFor, SEAT_COLORS } from '@/features/stadiview/scene/seatColors'
 import { chairGeometry, seatMatrix } from '@/features/stadiview/scene/seatGeometry'
 import { poolAt } from '@/features/stadiview/scene/sceneKit'
 import { useStadium } from '@/features/stadiview/state/stadiumStore'
+import type { CameraMode } from '@/features/stadiview/state/stadiumStore'
 
 /** A hovered or selected chair is drawn this much larger, so one gold seat can be found among thousands. */
 const ACTIVE_SCALE = 1.3
@@ -45,7 +46,7 @@ export function Seats() {
     for (const hex of Object.values(SEAT_COLORS)) linear.set(hex, new Color(hex))
 
     /** Writes seat i's colour and size for the given hover and selection. Returns the mesh it lives in. */
-    const paint = (i: number, state: { hover: number; selected: number }): 0 | 1 => {
+    const paint = (i: number, state: { hover: number; selected: number; mode: CameraMode }): 0 | 1 => {
       const which = i < split ? 0 : 1
       const slot = which === 0 ? i : i - split
       const mesh = meshes[which]
@@ -60,7 +61,9 @@ export function Seats() {
       colors[slot * 3] = c.r * light
       colors[slot * 3 + 1] = c.g * light
       colors[slot * 3 + 2] = c.b * light
-      seatMatrix(mesh.instanceMatrix.array as Float32Array, slot, x, y, z, v.yaw[i], active ? ACTIVE_SCALE : 1)
+      // The larger size helps find a seat from far away. Up close, flying in or sitting in it, a swollen chair would only look wrong.
+      const large = active && state.mode === 'orbit'
+      seatMatrix(mesh.instanceMatrix.array as Float32Array, slot, x, y, z, v.yaw[i], large ? ACTIVE_SCALE : 1)
       return which
     }
 
@@ -79,7 +82,7 @@ export function Seats() {
   useEffect(() => {
     const { split, meshes, paint } = built
     // Repaint the seats whose state changed, and send only those to the graphics card.
-    const repaint = (state: { hover: number; selected: number }, previous: { hover: number; selected: number }) => {
+    const repaint = (state: { hover: number; selected: number; mode: CameraMode }, previous: { hover: number; selected: number }) => {
       const touched = new Set<number>()
       for (const i of [previous.hover, previous.selected, state.hover, state.selected]) if (i >= 0) touched.add(i)
       for (const i of touched) {

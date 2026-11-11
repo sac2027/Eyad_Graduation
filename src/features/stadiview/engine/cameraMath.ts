@@ -61,6 +61,13 @@ const FLIGHT_CREST = 18
 const FLIGHT_CREST_AT = 0.4
 /** The flight back out has no approach leg; one crest over its midpoint, this far above the higher end, shapes it. */
 const RETURN_CREST = 20
+/**
+ * A seat under a roof is closed in behind and above, exactly where the usual approach comes from.
+ * The camera reaches it from the open side instead: from this far in front and only this far up,
+ * low enough to pass under the edge of the roof, and settles backward into the chair.
+ */
+const FRONT_AHEAD = 12
+const FRONT_ABOVE = 2.5
 
 /**
  * How the rig must thread its curve through the flight points: pass this as the curve type of
@@ -111,7 +118,29 @@ export function seatLook(i: number, v: VenueLayout, cfg: VenueConfig = VENUE): V
  * (`seatBack`).
  */
 export function flightPath(from: Vec3, eye: Vec3, back: Vec3): Vec3[] {
-  const approach: Vec3 = [eye[0] + APPROACH_BEHIND * back[0], eye[1] + APPROACH_BEHIND * back[1] + APPROACH_ABOVE, eye[2] + APPROACH_BEHIND * back[2]]
+  return flightVia(from, [eye[0] + APPROACH_BEHIND * back[0], eye[1] + APPROACH_BEHIND * back[1] + APPROACH_ABOVE, eye[2] + APPROACH_BEHIND * back[2]], eye)
+}
+
+/**
+ * The same flight for a seat under a roof: the last point before the seat is in front of it and
+ * low, so the camera passes under the roof's edge and backs into the chair. `facing` is the level
+ * unit vector the seat faces along (`seatFacing`).
+ */
+export function frontFlightPath(from: Vec3, eye: Vec3, facing: Vec3): Vec3[] {
+  return flightVia(from, frontPoint(eye, facing), eye)
+}
+
+/**
+ * The point in front of a roofed seat that flights in and out of it pass through: out from under
+ * the roof, just above head height. A flight that leaves such a seat for another seat goes
+ * through it first.
+ */
+export function frontPoint(eye: Vec3, facing: Vec3): Vec3 {
+  return [eye[0] + FRONT_AHEAD * facing[0], eye[1] + FRONT_AHEAD * facing[1] + FRONT_ABOVE, eye[2] + FRONT_AHEAD * facing[2]]
+}
+
+/** A flight from the camera, over a crest, through an approach point, to the eye. */
+function flightVia(from: Vec3, approach: Vec3, eye: Vec3): Vec3[] {
   const crest: Vec3 = [
     from[0] + FLIGHT_CREST_AT * (approach[0] - from[0]),
     // Measured from the higher end, so the path still rises when it starts low (leaving one seat for another).
@@ -125,6 +154,16 @@ export function flightPath(from: Vec3, eye: Vec3, back: Vec3): Vec3[] {
 export function returnPath(from: Vec3, to: Vec3): Vec3[] {
   const crest: Vec3 = [(from[0] + to[0]) / 2, Math.max(from[1], to[1]) + RETURN_CREST, (from[2] + to[2]) / 2]
   return [[from[0], from[1], from[2]], crest, [to[0], to[1], to[2]]]
+}
+
+/**
+ * The flight back from a seat under a roof: out through the front first, under the roof's edge,
+ * and only then up and over to the overview pose. `from` is the seat's eye point.
+ */
+export function frontReturnPath(from: Vec3, to: Vec3, facing: Vec3): Vec3[] {
+  const exit = frontPoint(from, facing)
+  const crest: Vec3 = [(exit[0] + to[0]) / 2, Math.max(exit[1], to[1]) + RETURN_CREST, (exit[2] + to[2]) / 2]
+  return [[from[0], from[1], from[2]], exit, crest, [to[0], to[1], to[2]]]
 }
 
 /**

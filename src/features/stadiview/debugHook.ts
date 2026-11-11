@@ -25,7 +25,8 @@ export interface StadiViewDebug {
   state?(): { mode: CameraMode; hover: string | null; selected: string | null }
   select?(seatId: string): void
   back?(): void
-  camera?(): { position: Vec3; fov: number }
+  /** Where the camera is, its vertical field of view in degrees, and the unit vector it looks along. */
+  camera?(): { position: Vec3; fov: number; direction: Vec3 }
   /** Where the camera was when the most recent flight began; null before the first flight. */
   lastFlightStart?(): Vec3 | null
 }

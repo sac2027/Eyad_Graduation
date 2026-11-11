@@ -9,6 +9,9 @@ import {
   clampLook,
   clampOrbit,
   flightPath,
+  frontFlightPath,
+  frontPoint,
+  frontReturnPath,
   lookAngles,
   orbitFromPosition,
   orbitPosition,
@@ -722,11 +725,78 @@ describe('the flight as the camera rig will fly it', () => {
   })
 
   it('cannot reach a seat under the canopy from behind without passing through the box', () => {
-    // A known limit of approaching every seat from behind and above: the roofed box is closed on
-    // exactly those two sides. Kept as a test so the day the flight is given a way in from the
-    // front, this fails and the exception in the tests above can be removed.
+    // Why the front approach below exists: the roofed box is closed behind and above, exactly
+    // where the usual approach comes from.
     const i = v.indexOf('VIP-03-025')
     const p = flightPath(ORBIT_HOME.position, seatEye(i, v), seatBack(i, v))
     expect(passesThrough([new Vector3(...p[2]), new Vector3(...p[3])], i).wall).toBe(true)
+  })
+
+  it('approaches a seat under the canopy from 12 m in front of it and 2.5 m up', () => {
+    const i = v.indexOf('VIP-03-025')
+    const eye = seatEye(i, v)
+    const p = frontFlightPath(ORBIT_HOME.position, eye, seatFacing(i, v))
+    expect(p).toHaveLength(4)
+    expect(p[0]).toEqual(ORBIT_HOME.position)
+    expect(p[3]).toEqual(eye)
+    // The VIP box faces south, so "in front" is toward +Z.
+    expect(p[2][0]).toBeCloseTo(eye[0], 5)
+    expect(p[2][1]).toBeCloseTo(eye[1] + 2.5, 5)
+    expect(p[2][2]).toBeCloseTo(eye[2] + 12, 5)
+    // The crest follows the same rule as any other flight.
+    expect(p[1][1]).toBeCloseTo(Math.max(ORBIT_HOME.position[1], p[2][1]) + 18, 5)
+  })
+
+  it('flies into every seat under the canopy from the front without passing through a chair, a wall or the roof', () => {
+    let flown = 0
+    for (let i = 0; i < v.count; i++) {
+      if (v.section[i] !== roofed) continue
+      const eye = seatEye(i, v)
+      for (const from of [ORBIT_HOME.position, seatEye(v.indexOf('P3-12-07'), v), [-90, 30, 70] as Vec3]) {
+        const path = curve(frontFlightPath(from, eye, seatFacing(i, v))).getPoints(300)
+        expect(passesThrough(path, i), v.idOf(i)).toEqual({ wall: false, chair: false })
+      }
+      flown++
+    }
+    expect(flown).toBe(300)
+  })
+
+  it('flies back out of every seat under the canopy through the front, clear of the roof', () => {
+    for (let i = 0; i < v.count; i++) {
+      if (v.section[i] !== roofed) continue
+      const eye = seatEye(i, v)
+      const points = frontReturnPath(eye, ORBIT_HOME.position, seatFacing(i, v))
+      expect(points).toHaveLength(4)
+      expect(points[0]).toEqual(eye)
+      expect(points[3]).toEqual(ORBIT_HOME.position)
+      expect(passesThrough(curve(points).getPoints(300), i), v.idOf(i)).toEqual({ wall: false, chair: false })
+    }
+  })
+
+  it('leaves a seat under the canopy for another seat through the front, as the rig flies it', () => {
+    for (const fromId of ['VIP-01-001', 'VIP-03-025', 'VIP-06-050']) {
+      const a = v.indexOf(fromId)
+      const here = seatEye(a, v)
+      const exit = frontPoint(here, seatFacing(a, v))
+      for (const toId of ['P3-12-07', 'S-10-060', 'NW-08-015', 'E-06-075', 'VIP-06-001', 'VIP-01-050']) {
+        const b = v.indexOf(toId)
+        const eye = seatEye(b, v)
+        const way = v.section[b] === roofed ? frontFlightPath(exit, eye, seatFacing(b, v)) : flightPath(exit, eye, seatBack(b, v))
+        const path = curve([here, ...way]).getPoints(400)
+        // Neither its own chair nor the destination's counts as being passed through.
+        const hit = passesThrough(path, b)
+        expect(hit.wall, `${fromId} to ${toId}`).toBe(false)
+      }
+    }
+  })
+
+  it('never dips below eye level on the way in or out of a seat under the canopy', () => {
+    for (let i = 0; i < v.count; i++) {
+      if (v.section[i] !== roofed) continue
+      const eye = seatEye(i, v)
+      for (const points of [frontFlightPath(ORBIT_HOME.position, eye, seatFacing(i, v)), frontReturnPath(eye, ORBIT_HOME.position, seatFacing(i, v))]) {
+        for (const q of curve(points).getPoints(120)) expect(q.y).toBeGreaterThanOrEqual(eye[1] - 1e-6)
+      }
+    }
   })
 })

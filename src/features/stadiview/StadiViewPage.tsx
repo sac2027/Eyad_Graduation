@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom'
 import { Logo } from '@/brand/logo/Logo'
 import { useDemoFlags } from '@/features/demo-console/flags'
 import { extendDebugHook, installDebugHook, removeDebugHook } from '@/features/stadiview/debugHook'
+import { BackButton } from '@/features/stadiview/hud/BackButton'
+import { PovHint } from '@/features/stadiview/hud/PovHint'
 import { SeatTooltip } from '@/features/stadiview/hud/SeatTooltip'
 import { useStadium } from '@/features/stadiview/state/stadiumStore'
 import { useTier } from '@/features/stadiview/useTier'
@@ -64,7 +66,8 @@ export default function StadiViewPage() {
 
   return (
     <main data-stadiview data-theme="stadiview" data-tier={tier}>
-      <div className="sv-stage" data-stadium-canvas>
+      {/* The wrapper takes the keyboard: arrows turn the view, plus and minus zoom, Escape goes back. */}
+      <div className="sv-stage" data-stadium-canvas tabIndex={show3d ? 0 : undefined} role={show3d ? 'application' : undefined} aria-label={show3d ? t('sv.canvas.keys') : undefined}>
         {show3d && (
           <Suspense fallback={null}>
             <StadiumCanvas key={attempt} tier={tier} still={reduced || lowEnd} label={t('sv.canvas.label')} onReady={onReady} onLost={onLost} />
@@ -89,6 +92,8 @@ export default function StadiViewPage() {
       </header>
 
       {show3d && <SeatTooltip />}
+      {show3d && <PovHint />}
+      {show3d && <BackButton />}
 
       {show3d && !ready && (
         <div className="sv-centre">

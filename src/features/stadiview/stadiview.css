@@ -323,3 +323,95 @@ html[data-motion='reduced'] .sv-dock > *, html[data-motion='reduced'] .sv-hint >
 }
 .sv-tip__status[data-status='taken'] i { background: #6f8a83; }
 .sv-tip__status[data-status='mine'] i { background: var(--sv-gold); }
+
+/* ---- Small controls shared by the cards ---- */
+
+.sv-icon {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  color: var(--sv-sand);
+  background: none;
+  border: 0;
+  cursor: pointer;
+  transition: color 160ms ease, transform 160ms var(--ease-out-strong);
+}
+.sv-icon:active { transform: scale(0.94); }
+@media (hover: hover) and (pointer: fine) { .sv-icon:hover { color: var(--sv-gold); } }
+
+.sv-field {
+  min-width: 0;
+  min-height: 40px;
+  padding: 6px 10px;
+  font: 500 0.875rem/1.2 var(--font-body);
+  color: var(--sv-white);
+  background: rgb(0 90 80 / 0.28);
+  border: 1px solid var(--sv-line-green);
+  border-radius: 0;
+  caret-color: var(--sv-gold);
+}
+.sv-field::placeholder { color: rgb(232 222 195 / 0.62); }
+.sv-field:focus-visible { outline: 2px solid var(--sv-gold); outline-offset: 1px; }
+.sv-field[aria-invalid='true'] { border-color: #f08a7c; }
+select.sv-field { appearance: none; padding-inline-end: 26px; background-image: linear-gradient(45deg, transparent 50%, var(--sv-sand) 50%), linear-gradient(135deg, var(--sv-sand) 50%, transparent 50%); background-position: right 12px center, right 7px center; background-size: 5px 5px; background-repeat: no-repeat; }
+[dir='rtl'] select.sv-field { background-position: left 7px center, left 12px center; }
+select.sv-field option { color: #061a17; background: #fff; }
+
+.sv-chip {
+  min-height: 36px;
+  padding: 4px 12px;
+  font: 600 0.8125rem/1 var(--font-body);
+  color: var(--sv-sand);
+  background: none;
+  border: 1px solid var(--sv-line-gold);
+  cursor: pointer;
+  transition: color 160ms ease, border-color 160ms ease, transform 160ms var(--ease-out-strong);
+}
+.sv-chip:active { transform: scale(0.97); }
+@media (hover: hover) and (pointer: fine) { .sv-chip:hover { color: var(--sv-gold); border-color: var(--sv-line-gold-strong); } }
+
+.sv-check { display: inline-flex; align-items: center; gap: 8px; min-height: 36px; font-size: 0.8125rem; color: var(--sv-text-soft); cursor: pointer; }
+.sv-check input { width: 18px; height: 18px; margin: 0; accent-color: var(--sv-gold); }
+
+/* ---- The 2D seat matrix ---- */
+
+.sv-mx {
+  position: absolute;
+  inset-block-end: max(16px, env(safe-area-inset-bottom));
+  inset-inline-start: max(var(--sv-edge), env(safe-area-inset-left));
+  z-index: 12;
+  display: flex;
+  flex-direction: column;
+  width: min(22.5rem, calc(100vw - 2 * var(--sv-edge)));
+  max-height: calc(100dvh - 96px);
+}
+.sv-mx__head { display: grid; grid-template-columns: 1fr auto; align-items: center; column-gap: 8px; padding-inline-start: 14px; }
+.sv-mx__head h2 { margin: 0; padding-block-start: 8px; font: 700 1rem/1.2 var(--font-display); }
+.sv-mx__head p { grid-column: 1; margin: 0; padding-block-end: 8px; font-size: 0.8125rem; line-height: 1.3; color: var(--sv-text-soft); font-variant-numeric: tabular-nums; }
+.sv-mx__head .sv-icon { grid-column: 2; grid-row: 1 / span 2; }
+.sv-mx__tools { display: flex; gap: 6px; padding: 0 10px 8px 14px; }
+.sv-mx__tools form { display: flex; flex: 1; min-width: 0; }
+.sv-mx__tools .sv-field { flex: 1; text-align: start; }
+[dir='rtl'] .sv-mx__tools .sv-field { text-align: end; }
+.sv-mx__zoom { display: flex; border: 1px solid var(--sv-line-green); }
+.sv-mx__zoom .sv-icon { width: 40px; height: 38px; }
+.sv-mx__missing { margin: -2px 14px 8px; font-size: 0.8125rem; color: #ffb4a8; }
+.sv-mx__map { position: relative; height: 13.75rem; border-block: 1px solid var(--sv-line-green); }
+.sv-mx__map canvas { display: block; width: 100%; height: 100%; touch-action: none; cursor: crosshair; }
+.sv-mx__fit { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 14px 0; }
+.sv-mx__filters { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 10px; padding: 10px 14px 0; }
+.sv-mx__legend { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 0; padding: 10px 14px 12px; list-style: none; font-size: 0.75rem; color: var(--sv-text-soft); }
+.sv-mx__legend li { display: inline-flex; align-items: center; gap: 6px; }
+.sv-mx__legend i { width: 10px; height: 10px; }
+
+/* On a medium screen the map and the way back would sit on each other in first person; the map steps aside. */
+@media (max-width: 1099px) {
+  [data-mode='pov'] .sv-mx { display: none; }
+}
+/* Short screens: the map gives up height before the card leaves the screen. */
+@media (max-height: 760px) { .sv-mx__map { height: 10rem; } }
+@media (max-height: 640px) { .sv-mx__legend { display: none; } .sv-mx__map { height: 8rem; } }
+/* Seat numbers are typed left to right, but an Arabic hint must still read right to left. */
+[dir='rtl'] .sv-mx__tools .sv-field:placeholder-shown { direction: rtl; }

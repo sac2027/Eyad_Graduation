@@ -59,15 +59,22 @@ export function debugEnabled(): boolean {
   }
 }
 
-/** Creates the hook (when enabled) with the members the page knows before any 3D code has loaded. */
+/**
+ * Creates the hook (when enabled) with the members the page knows before any 3D code has loaded.
+ * A part of the page that mounted first may already have added to it; those members are kept.
+ */
 export function installDebugHook(tier: Tier): void {
   if (!debugEnabled()) return
-  window.__stadiview = { ready: false, tier, info: () => ({ calls: 0, triangles: 0 }) }
+  window.__stadiview = { ...window.__stadiview, ready: false, tier, info: window.__stadiview?.info ?? (() => ({ calls: 0, triangles: 0 })) }
 }
 
-/** Adds members to the hook, or replaces them. Does nothing when the hook is not installed. */
+/**
+ * Adds members to the hook, or replaces them. React runs a child's effects before its parent's, so
+ * a panel may get here before the page has installed the hook: the hook is then started here.
+ */
 export function extendDebugHook(part: Partial<StadiViewDebug>): void {
-  if (window.__stadiview) Object.assign(window.__stadiview, part)
+  if (!debugEnabled()) return
+  window.__stadiview = Object.assign(window.__stadiview ?? { ready: false, tier: 0 as Tier, info: () => ({ calls: 0, triangles: 0 }) }, part)
 }
 
 /** Takes the hook away when the page is left, so a stale scene cannot answer for a new one. */

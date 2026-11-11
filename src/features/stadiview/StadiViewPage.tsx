@@ -8,6 +8,7 @@ import { extendDebugHook, installDebugHook, removeDebugHook } from '@/features/s
 import { BackButton } from '@/features/stadiview/hud/BackButton'
 import { PovHint } from '@/features/stadiview/hud/PovHint'
 import { RoleSwitch } from '@/features/stadiview/hud/RoleSwitch'
+import { SeatMatrix } from '@/features/stadiview/hud/SeatMatrix'
 import { SeatTooltip } from '@/features/stadiview/hud/SeatTooltip'
 import { pitchSeats } from '@/features/stadiview/data/pitchSeatService'
 import { getDirectory } from '@/features/stadiview/data/graduateDirectory'
@@ -121,9 +122,10 @@ export default function StadiViewPage() {
   }
 
   const show3d = tier !== 0 && !lost
+  const mode = useStadium((s) => s.mode)
 
   return (
-    <main data-stadiview data-theme="stadiview" data-tier={tier}>
+    <main data-stadiview data-theme="stadiview" data-tier={tier} data-mode={mode}>
       {/* The wrapper takes the keyboard: arrows turn the view, plus and minus zoom, Escape goes back. */}
       <div className="sv-stage" data-stadium-canvas tabIndex={show3d ? 0 : undefined} role={show3d ? 'application' : undefined} aria-label={show3d ? t('sv.canvas.keys') : undefined}>
         {show3d && (
@@ -150,7 +152,8 @@ export default function StadiViewPage() {
         </button>
       </header>
 
-      {show3d && <SeatTooltip />}
+      <SeatTooltip />
+      <SeatMatrix canFly={show3d} />
       {show3d && <PovHint />}
       {show3d && <BackButton />}
 

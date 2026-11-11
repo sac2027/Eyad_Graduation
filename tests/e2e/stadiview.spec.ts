@@ -118,7 +118,9 @@ test.describe('the stadium route', () => {
       await expect(fallback).toBeVisible()
       await expect(fallback.getByRole('link')).toHaveAttribute('href', '/')
       await expect(page.locator('[data-stadium-canvas] canvas')).toHaveCount(0)
-      await expect(page.locator('canvas:not([data-fx])')).toHaveCount(0)
+      // The only canvas left is the 2D seat map, which needs no WebGL.
+      await expect(page.locator('canvas:not([data-fx])')).toHaveCount(1)
+      await expect(page.locator('[data-seat-matrix] canvas')).toBeVisible()
     })
   }
 

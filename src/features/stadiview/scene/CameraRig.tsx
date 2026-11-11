@@ -29,6 +29,7 @@ import type { Look, Orbit } from '@/features/stadiview/engine/cameraMath'
 import { overviewPoints, overviewRadius } from '@/features/stadiview/engine/framing'
 import { seatBack, seatFacing } from '@/features/stadiview/engine/seatFrame'
 import { getVenue } from '@/features/stadiview/layout/venueLayout'
+import { setCameraOnPlan } from '@/features/stadiview/state/cameraOnPlan'
 import { useStadium } from '@/features/stadiview/state/stadiumStore'
 
 gsap.registerPlugin(CustomEase)
@@ -508,6 +509,16 @@ export function CameraRig({ still }: { still: boolean }) {
       stage?.removeAttribute('data-dragging')
     }
   }, [camera, gl, invalidate])
+
+  // Tell the 2D matrix where the camera is, about ten times a second.
+  const sinceReport = useRef(1)
+  useFrame((_, delta) => {
+    sinceReport.current += delta
+    if (sinceReport.current < 0.1) return
+    sinceReport.current = 0
+    // The camera looks along (-sin yaw, -cos yaw) on the plan; a compass heading turns the other way round.
+    setCameraOnPlan({ x: camera.position.x, z: camera.position.z, heading: -camera.rotation.y, mode: useStadium.getState().mode })
+  })
 
   useFrame((_, delta) => {
     const s = rig.current!

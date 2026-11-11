@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { COLLEGE_COLORS, COLLEGE_NAMES } from '@/domain/types'
 import { celebrate } from '@/features/celebrate/celebrate'
 import { COLLEGE_ID } from '@/features/stadiview/config/venue'
@@ -8,11 +8,14 @@ import { pitchSeats, usePitchSeats } from '@/features/stadiview/data/pitchSeatSe
 import type { BookError } from '@/features/stadiview/data/pitchSeatService'
 import { seatFacts } from '@/features/stadiview/hud/seatFacts'
 import { SeatPreview } from '@/features/stadiview/hud/SeatPreview'
+import { SeatSketch } from '@/features/stadiview/hud/SeatSketch'
+import { useSheet } from '@/features/stadiview/hud/Sheet'
 import { seatWords } from '@/features/stadiview/hud/SeatTooltip'
 import { NO_ZONE, SeatKind } from '@/features/stadiview/layout/types'
 import { getVenue } from '@/features/stadiview/layout/venueLayout'
 import { useHud } from '@/features/stadiview/state/hudStore'
 import { useStadium } from '@/features/stadiview/state/stadiumStore'
+import { usePhone } from '@/features/stadiview/state/usePhone'
 import { useViewer } from '@/features/stadiview/state/useViewer'
 import { formatDate, formatNumber, useLocale, useT } from '@/i18n'
 import { getNow, useClock } from '@/time/clockStore'
@@ -41,8 +44,13 @@ export function Inspector({ canFly, livePreview }: { canFly: boolean; livePrevie
   // A message about one seat must not linger over the next.
   useEffect(() => setError(null), [seat, viewer.graduate])
 
-  // "My seat" and the guest tools use the same place on the screen; while one is open the inspector waits.
-  if (seat < 0 || panel === 'mine' || panel === 'guest') return null
+  // "My seat" and the guest tools use the same place on the screen; while one is open the inspector
+  // waits. On a phone it is a sheet, and shows only when it is the sheet that is open.
+  const phone = usePhone()
+  const shown = seat >= 0 && (phone ? panel === 'inspector' : panel !== 'mine' && panel !== 'guest')
+  const sheet = useRef<HTMLElement>(null)
+  useSheet(sheet, () => useHud.getState().setPanel('none'), shown)
+  if (!shown) return null
   const v = getVenue()
   const service = pitchSeats()
   const now = viewer.now
@@ -83,7 +91,7 @@ export function Inspector({ canFly, livePreview }: { canFly: boolean; livePrevie
       : t(`sv.fact.stage.${facts.side}`, { m: n(facts.toStage), deg: n(facts.stageAngle) })
 
   return (
-    <aside className="sv-card sv-insp" data-sv-inspector data-seat={v.idOf(seat)} data-status={status} aria-label={t('sv.insp.title')}>
+    <aside ref={sheet} className="sv-card sv-insp" data-sv-inspector data-seat={v.idOf(seat)} data-status={status} aria-label={t('sv.insp.title')}>
       <div className="sv-matrix" aria-hidden />
       <header className="sv-insp__head">
         <div>
@@ -95,7 +103,7 @@ export function Inspector({ canFly, livePreview }: { canFly: boolean; livePrevie
             </p>
           )}
         </div>
-        <button type="button" className="sv-icon" aria-label={t('sv.insp.close')} onClick={() => useHud.getState().inspect(-1)} data-sv-inspector-close>
+        <button type="button" className="sv-icon" aria-label={t('sv.insp.close')} onClick={() => (phone ? useHud.getState().setPanel('none') : useHud.getState().inspect(-1))} data-sv-inspector-close>
           <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="square">
             <path d="M6 6l12 12M18 6L6 18" />
           </svg>
@@ -109,7 +117,9 @@ export function Inspector({ canFly, livePreview }: { canFly: boolean; livePrevie
         </p>
       )}
 
-      {canFly && <SeatPreview seat={seat} live={livePreview} />}
+      {/* Sitting in the seat already, the picture would only repeat the screen behind it. */}
+      {canFly && !seatedHere && <SeatPreview seat={seat} live={livePreview} />}
+      {!canFly && <SeatSketch seat={seat} />}
 
       <ul className="sv-insp__facts">
         <li>{stageLine}</li>

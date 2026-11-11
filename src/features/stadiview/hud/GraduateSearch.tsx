@@ -87,7 +87,8 @@ export function GraduateSearch({ canFly }: { canFly: boolean }) {
       const zone = v.zones[g.zone]
       hud.inspect(-1)
       hud.setFilters({ college: zone.college, degree: zone.degree })
-      hud.fitMatrix({ zone: g.zone })
+      // The map closes in on the zone; on a phone this panel stays in front, since it holds the explanation.
+      hud.fitMatrix({ zone: g.zone }, false)
     } else {
       hud.inspect(-1)
       setCodeOpen(true)

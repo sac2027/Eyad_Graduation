@@ -3,11 +3,16 @@ import type { CollegeCode, Degree } from '@/features/stadiview/config/venue'
 import type { SeatStatus } from '@/features/stadiview/data/pitchSeatService'
 import { SeatKind } from '@/features/stadiview/layout/types'
 import type { VenueLayout } from '@/features/stadiview/layout/types'
+import { isPhone } from '@/features/stadiview/state/usePhone'
 
 /** Who is looking: a signed-in graduate who may book, or a family member or guest who may only look. */
 export type Role = 'graduate' | 'guest'
 
-/** The panel open on a phone, where only one fits at a time. On a wide screen the panels sit side by side and this is ignored. */
+/**
+ * The panel that is open. On a phone only one fits at a time, and this names it. On a wide screen the
+ * seat map and the inspector sit side by side whatever this says, and only 'mine' and 'guest' matter:
+ * they take the inspector's place while open.
+ */
 export type Panel = 'none' | 'matrix' | 'inspector' | 'mine' | 'guest'
 
 /** What the 2D matrix can be asked to show. */
@@ -39,7 +44,8 @@ export interface HudState {
   setCardOpen(open: boolean, fresh?: boolean): void
   /** A request to the 2D matrix to show a part of the venue; `token` changes with every request. */
   matrixFit: { what: MatrixFit; token: number }
-  fitMatrix(what: MatrixFit): void
+  /** Asks the matrix to show a place. On a phone that also brings the map forward, unless `bringForward` is false. */
+  fitMatrix(what: MatrixFit, bringForward?: boolean): void
   setRole(role: Role): void
   /** Shows a seat in the inspector. A side panel that is open gives way to it, unless that panel asked to stay. */
   inspect(seat: number, keepPanel?: boolean): void
@@ -65,13 +71,18 @@ export const useHud = create<HudState>((set) => ({
   cardFresh: false,
   setCardOpen: (cardOpen, fresh = false) => set({ cardOpen, cardFresh: cardOpen && fresh }),
   matrixFit: { what: 'pitch', token: 0 },
-  fitMatrix: (what) => set((s) => ({ matrixFit: { what, token: s.matrixFit.token + 1 } })),
+  fitMatrix: (what, bringForward = true) => set((s) => ({ matrixFit: { what, token: s.matrixFit.token + 1 }, panel: bringForward && isPhone() ? 'matrix' : s.panel })),
   // Someone who chooses Guest came to look something up: their tools open with the role.
   setRole: (role) => set((s) => (s.role === role ? s : { role, inspected: -1, panel: role === 'guest' ? 'guest' : 'none', cardOpen: false, cardFresh: false })),
   inspect: (seat, keepPanel = false) =>
     set((s) => {
       const inspected = Number.isInteger(seat) && seat >= 0 ? seat : -1
-      const panel = inspected >= 0 && !keepPanel && (s.panel === 'mine' || s.panel === 'guest') ? 'none' : s.panel
+      let panel = s.panel
+      if (inspected >= 0 && !keepPanel) {
+        // On a phone the inspector is a sheet of its own and comes forward; on a wide screen it only needs its place back.
+        if (isPhone()) panel = 'inspector'
+        else if (panel === 'mine' || panel === 'guest') panel = 'none'
+      } else if (inspected < 0 && panel === 'inspector') panel = 'none'
       return inspected === s.inspected && panel === s.panel ? s : { inspected, panel }
     }),
   setPanel: (panel) => set({ panel }),

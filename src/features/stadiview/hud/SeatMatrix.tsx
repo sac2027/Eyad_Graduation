@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import type { ReactNode } from 'react'
 import { extendDebugHook } from '@/features/stadiview/debugHook'
 import { parseSeatQuery, planBounds, seatAtPlan } from '@/features/stadiview/engine/planIndex'
 import { fitView, panBy, toPlan, toScreen, zoomAt } from '@/features/stadiview/engine/planView'
@@ -9,7 +10,10 @@ import { setPointerAnchor } from '@/features/stadiview/hud/pointerAnchor'
 import { useSeatStyles } from '@/features/stadiview/hud/useSeatStyles'
 import { getVenue } from '@/features/stadiview/layout/venueLayout'
 import { cameraOnPlan, onCameraOnPlan } from '@/features/stadiview/state/cameraOnPlan'
+import { SeatFinder } from '@/features/stadiview/hud/SeatFinder'
+import { useSheet } from '@/features/stadiview/hud/Sheet'
 import { useHud } from '@/features/stadiview/state/hudStore'
+import { usePhone } from '@/features/stadiview/state/usePhone'
 import { useStadium } from '@/features/stadiview/state/stadiumStore'
 import { useViewer } from '@/features/stadiview/state/useViewer'
 import { formatNumber, useLocale, useT } from '@/i18n'
@@ -26,7 +30,7 @@ const REACH_PIXELS = 7
  * It is drawn from the same layout as the 3D scene and shares its hover, its inspected seat and
  * its filters, so the two always agree. A click inspects a seat; a double click flies into it.
  */
-export function SeatMatrix({ canFly }: { canFly: boolean }) {
+export function SeatMatrix({ canFly, flat = false, notice }: { canFly: boolean; flat?: boolean; notice?: ReactNode }) {
   const t = useT()
   const locale = useLocale((s) => s.locale)
   const viewer = useViewer()
@@ -38,10 +42,19 @@ export function SeatMatrix({ canFly }: { canFly: boolean }) {
   const view = useRef<PlanView | null>(null)
   const size = useRef({ w: 0, h: 0 })
   const frame = useRef(0)
+  const flatRef = useRef(flat)
+  flatRef.current = flat
   const scene = useRef({ styles, inspected, labels: { stage: '', north: '', gate: (n: number) => String(n) } })
   scene.current = { styles, inspected, labels: { stage: t('sv.mx.stage'), north: t('sv.mx.north'), gate: (n) => formatNumber(n, locale) } }
 
-  const [open, setOpen] = useState(() => typeof window === 'undefined' || window.innerWidth >= 640)
+  // Whether the card is open. On a wide screen that is the card's own choice. On a phone the card is a
+  // sheet, open when the dock says so. Without the 3D picture the map is the page, and always open.
+  const [openWide, setOpen] = useState(true)
+  const phone = usePhone()
+  const panel = useHud((s) => s.panel)
+  const open = flat || (phone ? panel === 'matrix' : openWide)
+  const [tab, setTab] = useState<'map' | 'list'>('map')
+  useSheet(card, () => useHud.getState().setPanel('none'), open && phone && !flat)
   const [query, setQuery] = useState('')
   const [missing, setMissing] = useState(false)
 
@@ -63,7 +76,7 @@ export function SeatMatrix({ canFly }: { canFly: boolean }) {
         ratio,
         hover: useStadium.getState().hover,
         inspected: scene.current.inspected,
-        camera: cameraOnPlan(),
+        camera: flatRef.current ? null : cameraOnPlan(),
         labels: scene.current.labels,
       })
       card.current?.setAttribute('data-scale', view.current.scale.toFixed(3))
@@ -104,14 +117,15 @@ export function SeatMatrix({ canFly }: { canFly: boolean }) {
       el.height = Math.round(h * ratio)
       const first = size.current.w === 0 || !view.current
       size.current = { w, h }
-      if (first) view.current = fitView(planBounds(getVenue(), 'pitch'), w, h, 18)
+      // With the 3D picture beside it the map opens on the pitch; as the whole page it opens on the whole stadium.
+      if (first) view.current = flatRef.current ? fitView(planBounds(getVenue(), 'all'), w, h, 8) : fitView(planBounds(getVenue(), 'pitch'), w, h, 18)
       redraw()
     }
     measure()
     const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(measure)
     observer?.observe(el)
     return () => observer?.disconnect()
-  }, [open, redraw])
+  }, [open, tab, redraw])
 
   // Anything that changes the picture asks for one redraw.
   useEffect(redraw, [styles, inspected, locale, redraw])
@@ -241,7 +255,7 @@ export function SeatMatrix({ canFly }: { canFly: boolean }) {
     }
     // seatAt reads only refs.
      
-  }, [open, canFly, redraw])
+  }, [open, tab, canFly, redraw])
 
   // For tests: where a seat is on the map, in viewport pixels.
   useEffect(() => {
@@ -281,20 +295,64 @@ export function SeatMatrix({ canFly }: { canFly: boolean }) {
 
   const count = { booked: formatNumber(booked, locale), total: formatNumber(total, locale) }
 
+  // A closed sheet is not on the screen at all: the dock is its handle.
+  if (phone && !flat && !open) return null
+
   return (
     <section ref={card} className="sv-card sv-mx" data-seat-matrix data-open={open ? '' : undefined} data-inspected={getVenue().idOf(inspected)} data-hover="" aria-label={t('sv.mx.title')}>
       <div className="sv-matrix" aria-hidden />
       <header className="sv-mx__head">
         <h2>{t('sv.mx.title')}</h2>
         <p data-sv-count>{t('sv.mx.count', count)}</p>
-        <button type="button" className="sv-icon" aria-expanded={open} aria-label={t(open ? 'sv.mx.hide' : 'sv.mx.show')} onClick={() => setOpen((o) => !o)} data-sv-matrix-toggle>
-          <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="square">
-            <path d={open ? 'M5 9l7 7 7-7' : 'M5 15l7-7 7 7'} />
-          </svg>
-        </button>
+        {!flat && (
+          <button
+            type="button"
+            className="sv-icon"
+            aria-expanded={open}
+            aria-label={t(open ? 'sv.mx.hide' : 'sv.mx.show')}
+            onClick={() => (phone ? useHud.getState().setPanel('none') : setOpen((o) => !o))}
+            data-sv-matrix-toggle
+          >
+            <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="square">
+              <path d={phone ? 'M6 6l12 12M18 6L6 18' : open ? 'M5 9l7 7 7-7' : 'M5 15l7-7 7 7'} />
+            </svg>
+          </button>
+        )}
       </header>
+      {notice}
       {open && (
-        <>
+        <div className="sv-mx__tabs" role="tablist" aria-label={t('sv.mx.tabs')}>
+          {(['map', 'list'] as const).map((name) => (
+            <button
+              key={name}
+              type="button"
+              role="tab"
+              id={`sv-tab-${name}`}
+              aria-selected={tab === name}
+              aria-controls="sv-tabpanel"
+              tabIndex={tab === name ? 0 : -1}
+              onClick={() => setTab(name)}
+              onKeyDown={(e) => {
+                if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return
+                e.preventDefault()
+                const other = name === 'map' ? 'list' : 'map'
+                setTab(other)
+                document.getElementById(`sv-tab-${other}`)?.focus()
+              }}
+              data-sv-tab={name}
+            >
+              {t(`sv.mx.tab.${name}`)}
+            </button>
+          ))}
+        </div>
+      )}
+      {open && tab === 'list' && (
+        <div id="sv-tabpanel" role="tabpanel" aria-labelledby="sv-tab-list" className="sv-mx__panel">
+          <SeatFinder />
+        </div>
+      )}
+      {open && tab === 'map' && (
+        <div id="sv-tabpanel" role="tabpanel" aria-labelledby="sv-tab-map" className="sv-mx__panel">
           <div className="sv-mx__tools">
             <form onSubmit={search} role="search">
               <input
@@ -346,7 +404,7 @@ export function SeatMatrix({ canFly }: { canFly: boolean }) {
             <li><i style={{ background: '#1F3F38', outline: '1px solid rgb(232 222 195 / 0.35)' }} />{t('sv.status.taken')}</li>
             <li><i style={{ background: '#E7A614' }} />{t('sv.mx.legend.gold')}</li>
           </ul>
-        </>
+        </div>
       )}
     </section>
   )

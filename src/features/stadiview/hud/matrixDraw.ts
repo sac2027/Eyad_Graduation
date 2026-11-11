@@ -30,7 +30,8 @@ export interface MatrixScene {
   ratio: number
   hover: number
   inspected: number
-  camera: CameraOnPlan
+  /** Where the 3D camera is; null when there is no 3D picture, and then no arrow is drawn. */
+  camera: CameraOnPlan | null
   labels: { stage: string; north: string; gate: (n: number) => string }
 }
 
@@ -143,25 +144,27 @@ export function drawMatrix(ctx: CanvasRenderingContext2D, s: MatrixScene): void 
 
   // Where the 3D camera is: an arrow pointing the way it looks, kept on the edge when it is off the picture.
   const c = s.camera
-  let [cx, cy] = at(c.x, c.z)
-  const edge = 11
-  cx = Math.min(Math.max(cx, edge), width - edge)
-  cy = Math.min(Math.max(cy, edge), height - edge)
-  ctx.save()
-  ctx.translate(cx, cy)
-  ctx.rotate(c.heading)
-  ctx.beginPath()
-  ctx.moveTo(0, -8)
-  ctx.lineTo(5.5, 6)
-  ctx.lineTo(0, 3)
-  ctx.lineTo(-5.5, 6)
-  ctx.closePath()
-  ctx.fillStyle = SV.white
-  ctx.fill()
-  ctx.lineWidth = 1
-  ctx.strokeStyle = SV.night
-  ctx.stroke()
-  ctx.restore()
+  if (c) {
+    let [cx, cy] = at(c.x, c.z)
+    const edge = 11
+    cx = Math.min(Math.max(cx, edge), width - edge)
+    cy = Math.min(Math.max(cy, edge), height - edge)
+    ctx.save()
+    ctx.translate(cx, cy)
+    ctx.rotate(c.heading)
+    ctx.beginPath()
+    ctx.moveTo(0, -8)
+    ctx.lineTo(5.5, 6)
+    ctx.lineTo(0, 3)
+    ctx.lineTo(-5.5, 6)
+    ctx.closePath()
+    ctx.fillStyle = SV.white
+    ctx.fill()
+    ctx.lineWidth = 1
+    ctx.strokeStyle = SV.night
+    ctx.stroke()
+    ctx.restore()
+  }
 
   // North, in the top left corner (the opening camera sits to the north-east, where its arrow would cover it). A map keeps north up in every language.
   ctx.fillStyle = SV.sand

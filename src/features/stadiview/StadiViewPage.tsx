@@ -6,12 +6,14 @@ import { Logo } from '@/brand/logo/Logo'
 import { useDemoFlags } from '@/features/demo-console/flags'
 import { extendDebugHook, installDebugHook, removeDebugHook } from '@/features/stadiview/debugHook'
 import { BackButton } from '@/features/stadiview/hud/BackButton'
+import { Dock } from '@/features/stadiview/hud/Dock'
 import { GuestPanel, GuestToggle } from '@/features/stadiview/hud/GuestPanel'
 import { Inspector } from '@/features/stadiview/hud/Inspector'
 import { MySeatPanel, MySeatToggle } from '@/features/stadiview/hud/MySeatPanel'
 import { PovHint } from '@/features/stadiview/hud/PovHint'
 import { RoleSwitch } from '@/features/stadiview/hud/RoleSwitch'
 import { SeatCardDialog } from '@/features/stadiview/hud/SeatCardDialog'
+import { LiveSeat } from '@/features/stadiview/hud/SeatFinder'
 import { SeatMatrix } from '@/features/stadiview/hud/SeatMatrix'
 import { SeatTooltip } from '@/features/stadiview/hud/SeatTooltip'
 import { pitchSeats } from '@/features/stadiview/data/pitchSeatService'
@@ -151,7 +153,7 @@ export default function StadiViewPage() {
   const mode = useStadium((s) => s.mode)
 
   return (
-    <main data-stadiview data-theme="stadiview" data-tier={tier} data-mode={mode}>
+    <main data-stadiview data-theme="stadiview" data-tier={tier} data-mode={mode} data-flat={show3d ? undefined : ''}>
       {/* The wrapper takes the keyboard: arrows turn the view, plus and minus zoom, Escape goes back. */}
       <div className="sv-stage" data-stadium-canvas tabIndex={show3d ? 0 : undefined} role={show3d ? 'application' : undefined} aria-label={show3d ? t('sv.canvas.keys') : undefined}>
         {show3d && (
@@ -181,11 +183,36 @@ export default function StadiViewPage() {
       </header>
 
       <SeatTooltip />
-      <SeatMatrix canFly={show3d} />
+      <SeatMatrix
+        canFly={show3d}
+        flat={!show3d}
+        notice={
+          // Without the 3D picture the seat map is the page. This strip says why, and what still works.
+          !show3d && (
+            <div className="sv-flatnote" data-stadium-fallback role={lost ? 'alert' : undefined}>
+              <p>
+                <b>{t(lost ? 'sv.lost.title' : 'sv.fallback.title')}</b> {t(lost ? 'sv.lost.body' : 'sv.fallback.body')}
+              </p>
+              <div>
+                {lost && (
+                  <button type="button" className="sv-chip sv-chip--gold" onClick={retry}>
+                    {t('sv.lost.retry')}
+                  </button>
+                )}
+                <Link to="/" className="sv-link">
+                  {t('sv.fallback.home')}
+                </Link>
+              </div>
+            </div>
+          )
+        }
+      />
       <Inspector canFly={show3d} livePreview={TIER_SETTINGS[tier].livePreview} />
       <MySeatPanel canFly={show3d} />
       <GuestPanel canFly={show3d} />
       <SeatCardDialog />
+      <Dock flat={!show3d} />
+      <LiveSeat />
       {show3d && <PovHint />}
       {show3d && <BackButton />}
 
@@ -202,27 +229,6 @@ export default function StadiViewPage() {
         </div>
       )}
 
-      {!show3d && (
-        <div className="sv-centre">
-          <section className="sv-card sv-fallback" data-stadium-fallback role={lost ? 'alert' : undefined}>
-            <div className="sv-matrix" aria-hidden />
-            <div className="sv-fallback__body">
-              <h2>{t(lost ? 'sv.lost.title' : 'sv.fallback.title')}</h2>
-              <p>{t(lost ? 'sv.lost.body' : 'sv.fallback.body')}</p>
-              <div className="sv-fallback__actions">
-                {lost && (
-                  <button type="button" className="sv-plate sv-button sv-button--gold" onClick={retry}>
-                    {t('sv.lost.retry')}
-                  </button>
-                )}
-                <Link to="/" className="sv-plate sv-button">
-                  {t('sv.fallback.home')}
-                </Link>
-              </div>
-            </div>
-          </section>
-        </div>
-      )}
     </main>
   )
 }

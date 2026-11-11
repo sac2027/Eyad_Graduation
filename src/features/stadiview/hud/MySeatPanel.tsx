@@ -1,10 +1,11 @@
-import { useSyncExternalStore } from 'react'
+import { useRef, useSyncExternalStore } from 'react'
 import { COLLEGE_COLORS, COLLEGE_NAMES } from '@/domain/types'
 import { COLLEGE_ID } from '@/features/stadiview/config/venue'
 import { bookingPhase } from '@/features/stadiview/data/bookingWindow'
 import { locatorService } from '@/features/stadiview/data/locatorService'
 import { pitchSeats, usePitchSeats } from '@/features/stadiview/data/pitchSeatService'
 import { seatWords } from '@/features/stadiview/hud/SeatTooltip'
+import { useSheet } from '@/features/stadiview/hud/Sheet'
 import { NO_ZONE } from '@/features/stadiview/layout/types'
 import { getVenue } from '@/features/stadiview/layout/venueLayout'
 import { useHud } from '@/features/stadiview/state/hudStore'
@@ -51,6 +52,8 @@ export function MySeatPanel({ canFly }: { canFly: boolean }) {
   const open = useHud((s) => s.panel === 'mine')
 
   const graduate = viewer.graduate
+  const sheet = useRef<HTMLElement>(null)
+  useSheet(sheet, () => useHud.getState().setPanel('none'), open && graduate !== null)
   if (!open || !graduate || !viewer.name) return null
   const v = getVenue()
   const service = pitchSeats()
@@ -66,8 +69,8 @@ export function MySeatPanel({ canFly }: { canFly: boolean }) {
     if (canFly) useStadium.getState().select(seat)
   }
   const change = () => {
-    hud.fitMatrix({ zone: graduate.zone })
     hud.setPanel('none')
+    hud.fitMatrix({ zone: graduate.zone })
   }
   const release = () => {
     if (service.release(graduate, getNow()).ok) toast.success(t('sv.book.released'))
@@ -83,7 +86,7 @@ export function MySeatPanel({ canFly }: { canFly: boolean }) {
   }
 
   return (
-    <aside className="sv-card sv-insp sv-mine" data-sv-my-seat data-seat={seat >= 0 ? v.idOf(seat) : ''} aria-label={t('sv.mine.title')}>
+    <aside ref={sheet} className="sv-card sv-insp sv-mine" data-sv-my-seat data-seat={seat >= 0 ? v.idOf(seat) : ''} aria-label={t('sv.mine.title')}>
       <div className="sv-matrix" aria-hidden />
       <header className="sv-insp__head">
         <div>

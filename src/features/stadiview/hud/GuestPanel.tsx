@@ -1,6 +1,8 @@
+import { useRef } from 'react'
 import { getDirectory } from '@/features/stadiview/data/graduateDirectory'
 import { locatorService } from '@/features/stadiview/data/locatorService'
 import { GraduateSearch } from '@/features/stadiview/hud/GraduateSearch'
+import { useSheet } from '@/features/stadiview/hud/Sheet'
 import { SightlineReadout } from '@/features/stadiview/hud/SightlineReadout'
 import { TicketLookup } from '@/features/stadiview/hud/TicketLookup'
 import { useHud } from '@/features/stadiview/state/hudStore'
@@ -33,6 +35,8 @@ export function GuestPanel({ canFly }: { canFly: boolean }) {
   const t = useT()
   const viewer = useViewer()
   const open = useHud((s) => s.panel === 'guest')
+  const sheet = useRef<HTMLElement>(null)
+  useSheet(sheet, () => useHud.getState().setPanel('none'), open && viewer.role === 'guest')
   if (!open || viewer.role !== 'guest') return null
 
   /** From a ticket to the graduate it was issued for: the same as finding them by name. */
@@ -45,7 +49,7 @@ export function GuestPanel({ canFly }: { canFly: boolean }) {
   }
 
   return (
-    <aside className="sv-card sv-insp sv-guest" data-sv-guest aria-label={t('sv.guest.title')}>
+    <aside ref={sheet} className="sv-card sv-insp sv-guest" data-sv-guest aria-label={t('sv.guest.title')}>
       <div className="sv-matrix" aria-hidden />
       <header className="sv-insp__head">
         <div>

@@ -43,6 +43,8 @@ export interface StadiViewDebug {
   occupancy?(): { reserved: number; byKind: Record<string, number> }
   /** Demo: draw every seat filled (or not). */
   setFull?(on: boolean): void
+  /** The figures drawn: in all, near and far, those cleared round a seated viewer's eyes, and the gold-highlighted seats. */
+  avatars?(): { drawn: number; near: number; far: number; hiddenNear: string[]; highlight: string[] }
   /** For tests: the signed-in graduate's place in the directory. */
   me?(): { index: number; studentId: string; shareCode: string } | null
   /** For tests: the first seat of the signed-in graduate's own zone, to pass to `freeSeat`. */

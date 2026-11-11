@@ -5,6 +5,7 @@ import { POV_FOV, lookAngles, seatEye, seatLook } from '@/features/stadiview/eng
 import { onPreviewRequest, PREVIEW_SIZE, publishPreview } from '@/features/stadiview/hud/previewChannel'
 import type { PreviewRequest } from '@/features/stadiview/hud/previewChannel'
 import { getVenue } from '@/features/stadiview/layout/venueLayout'
+import { avatarClear, CLEAR_RADIUS } from '@/features/stadiview/scene/Avatars'
 
 /** Linear light to the sRGB bytes a 2D canvas wants, for each of the 256 values a pixel can hold. */
 const TO_SRGB = new Uint8ClampedArray(256)
@@ -61,12 +62,20 @@ export function PreviewCamera() {
     const marker = scene.getObjectByName('seat-marker')
     const wasVisible = marker?.visible
     if (marker) marker.visible = false
+    // The figures round this seat are cleared, as for someone sitting in it (decision B).
+    const clear = avatarClear.value.clone()
+    avatarClear.value.set(eye[0], eye[1], eye[2], CLEAR_RADIUS)
+    const gold = scene.getObjectByName('figures-highlight')
+    const goldWas = gold?.visible
+    if (gold) gold.visible = false
     const previous = gl.getRenderTarget()
     gl.setRenderTarget(kit.target)
     gl.render(scene, kit.camera)
     gl.readRenderTargetPixels(kit.target, 0, 0, PREVIEW_SIZE.width, PREVIEW_SIZE.height, kit.pixels)
     gl.setRenderTarget(previous)
     if (marker && wasVisible !== undefined) marker.visible = wasVisible
+    avatarClear.value.copy(clear)
+    if (gold && goldWas !== undefined) gold.visible = goldWas
 
     // The graphics card hands the rows back bottom first and in linear light; a canvas wants them top first in sRGB.
     const { width, height } = PREVIEW_SIZE

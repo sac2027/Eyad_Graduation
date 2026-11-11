@@ -27,6 +27,9 @@ export interface Hook {
   takenSeat(zoneOf: string): string | null
   me(): { index: number; studentId: string; shareCode: string } | null
   myZone(): string | null
+  occupancy(): { reserved: number; byKind: Record<string, number> }
+  setFull(on: boolean): void
+  avatars(): { drawn: number; near: number; far: number; hiddenNear: string[]; highlight: string[] }
   sampleGraduate(booked: boolean, skip?: number): { index: number; name: { ar: string; en: string }; studentId: string; shareCode: string; seat: string | null; tickets: string[] } | null
   mySeat(): string | null
 }

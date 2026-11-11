@@ -34,6 +34,9 @@ import './stadiview.css'
 
 // The 3D code is a separate download, so a device that cannot draw it never pays for it.
 const StadiumCanvas = lazy(() => import('./scene/StadiumCanvas'))
+const AvatarGallery = lazy(() => import('./scene/AvatarGallery'))
+/** For review: `?svavatars=1` shows the seated figures on their own. */
+const GALLERY = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('svavatars') === '1'
 
 /** The stadium page: a full-screen 3D stadium with the HUD floating over it. */
 export default function StadiViewPage() {
@@ -165,6 +168,13 @@ export default function StadiViewPage() {
 
   const show3d = tier !== 0 && !lost
   const mode = useStadium((s) => s.mode)
+
+  if (GALLERY)
+    return (
+      <Suspense fallback={null}>
+        <AvatarGallery />
+      </Suspense>
+    )
 
   return (
     <main data-stadiview data-theme="stadiview" data-tier={tier} data-mode={mode} data-flat={show3d ? undefined : ''}>

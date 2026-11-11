@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { SLOW_BENCH_MS, detectCapability } from '@/features/honors/capability'
 import type { CapabilityEnv } from '@/features/honors/capability'
-import { TIER_SETTINGS, detectTier, resolveTier, tierFromSearch } from '@/features/stadiview/engine/tiers'
+import { TIER_SETTINGS, detectTier, resolveTier, tierFromSearch, bloomTooSlow, BLOOM_SLOW_MS } from '@/features/stadiview/engine/tiers'
 import type { Tier } from '@/features/stadiview/engine/tiers'
 
 type Env = CapabilityEnv & { coarsePointer: boolean }
@@ -276,5 +276,20 @@ describe('tiers.ts is pure logic', () => {
     expect(specifiers('src/features/stadiview/engine/tiers.ts')).toContain('@/features/honors/capability')
     expect(src).toContain('SLOW_BENCH_MS')
     expect(src).not.toMatch(/\b22\b/)
+  })
+})
+
+describe('bloom', () => {
+  it('is on tier 3 only', () => {
+    expect([0, 1, 2, 3].map((t) => TIER_SETTINGS[t as 0 | 1 | 2 | 3].bloom)).toEqual([false, false, false, true])
+  })
+
+  it('gives up only when 90 frames have been measured and their median is slower than 25 ms', () => {
+    expect(bloomTooSlow(Array(89).fill(100))).toBe(false)
+    expect(bloomTooSlow(Array(90).fill(16.7))).toBe(false)
+    expect(bloomTooSlow(Array(90).fill(30))).toBe(true)
+    // A few slow frames among fast ones are not enough.
+    expect(bloomTooSlow([...Array(60).fill(16), ...Array(30).fill(200)])).toBe(false)
+    expect(BLOOM_SLOW_MS).toBe(25)
   })
 })

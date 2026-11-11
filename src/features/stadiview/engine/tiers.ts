@@ -87,3 +87,15 @@ export function resolveTier(env: TierEnv, search: string): Tier {
   if (!env.hasWebGL) return 0
   return tierFromSearch(search) ?? detectTier(env)
 }
+
+/** Bloom's settings: how strongly, how widely, and from how bright a surface it glows. */
+export const BLOOM = { strength: 0.55, radius: 0.35, threshold: 0.82 } as const
+/** Bloom switches itself off when the median of the last 90 frames is slower than this (40 frames a second). */
+export const BLOOM_SLOW_MS = 25
+
+/** Whether frames are slow enough that bloom should give up: 90 frames measured, and their median over the limit. */
+export function bloomTooSlow(frameMs: number[]): boolean {
+  if (frameMs.length < 90) return false
+  const sorted = [...frameMs].sort((a, b) => a - b)
+  return sorted[sorted.length >> 1] > BLOOM_SLOW_MS
+}

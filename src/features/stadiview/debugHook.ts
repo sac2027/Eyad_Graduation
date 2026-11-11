@@ -53,6 +53,8 @@ export interface StadiViewDebug {
   arc?(): { from: string; to: string; points: [number, number, number][] } | null
   /** The beacon over a located graduate's seat. */
   beacon?(): { seat: string; height: number } | null
+  /** What draws the frame after the scene: 'bloom' on tier 3 (until frames turn slow), else 'none'. */
+  postprocessing?(): 'bloom' | 'none'
   /** The walking route shown, if any. */
   route?(): { seat: string; gate: number; length: number; points: number } | null
   /** For tests: the signed-in graduate's place in the directory. */

@@ -12,6 +12,7 @@ import { Ground } from '@/features/stadiview/scene/Ground'
 import { PreviewCamera } from '@/features/stadiview/scene/PreviewCamera'
 import { Avatars } from '@/features/stadiview/scene/Avatars'
 import { Bowl } from '@/features/stadiview/scene/Bowl'
+import { Bloom, NoPostprocessing } from '@/features/stadiview/scene/Bloom'
 import { GraduateBeacon } from '@/features/stadiview/scene/GraduateBeacon'
 import { SightlineArc } from '@/features/stadiview/scene/SightlineArc'
 import { WalkRoute } from '@/features/stadiview/scene/WalkRoute'
@@ -155,6 +156,7 @@ function Scene({ tier, still, onReady, onLost }: Omit<StadiumCanvasProps, 'label
       <CameraRig still={still} />
       <Lifecycle onReady={onReady} onLost={onLost} />
       <SceneDebug />
+      {settings.bloom ? <Bloom /> : <NoPostprocessing />}
     </SceneKitContext.Provider>
   )
 }

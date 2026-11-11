@@ -30,6 +30,7 @@ export interface Hook {
   occupancy(): { reserved: number; byKind: Record<string, number> }
   setFull(on: boolean): void
   archOpacity(): number
+  postprocessing(): 'bloom' | 'none'
   route(): { seat: string; gate: number; length: number; points: number } | null
   arc(): { from: string; to: string; points: V3[] } | null
   beacon(): { seat: string; height: number } | null

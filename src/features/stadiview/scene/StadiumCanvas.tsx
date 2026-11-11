@@ -11,6 +11,7 @@ import { Floodlights } from '@/features/stadiview/scene/Floodlights'
 import { Ground } from '@/features/stadiview/scene/Ground'
 import { PreviewCamera } from '@/features/stadiview/scene/PreviewCamera'
 import { Avatars } from '@/features/stadiview/scene/Avatars'
+import { Bowl } from '@/features/stadiview/scene/Bowl'
 import { MarchCarpet } from '@/features/stadiview/scene/MarchCarpet'
 import { ProcessionGate } from '@/features/stadiview/scene/ProcessionGate'
 import { SV } from '@/features/stadiview/scene/palette'
@@ -135,6 +136,7 @@ function Scene({ tier, still, onReady, onLost }: Omit<StadiumCanvasProps, 'label
       <Sky />
       <Ground />
       <Stands animate={!still} />
+      <Bowl />
       <Stage animate={!still} />
       <Floodlights cones={tier >= 2} />
       <MarchCarpet still={still} />

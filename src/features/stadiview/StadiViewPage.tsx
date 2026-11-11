@@ -89,11 +89,6 @@ export default function StadiViewPage() {
     useHud.setState({ role: persona.role === 'graduate' ? 'graduate' : 'guest' })
   }, [persona.id, persona.role])
 
-  // The demo can open on a full house: ?full=1.
-  useEffect(() => {
-    if (new URLSearchParams(window.location.search).get('full') === '1') useHud.getState().setFullHouse(true)
-  }, [])
-
   useEffect(() => {
     const v = getVenue()
     const viewerNow = () => {
@@ -140,7 +135,7 @@ export default function StadiViewPage() {
         for (let i = 0; i < v.count; i++) if (o.occupant[i]) byKind[avatarKindOf(i)] = (byKind[avatarKindOf(i)] ?? 0) + 1
         return { reserved: o.reserved, byKind }
       },
-      setFull: (on) => useHud.getState().setFullHouse(on),
+      setFull: (on) => useDemoFlags.getState().setFullHouse(on),
       myZone: () => {
         const g = viewerNow()
         return g ? v.idOf(v.zones[g.zone].start) : null

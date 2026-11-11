@@ -38,9 +38,6 @@ export interface HudState {
    * located (-1 for none), and whether that graduate was reached with their Family Share Code.
    */
   guest: { ticketSeat: number; graduate: number; byCode: boolean }
-  /** Demo: every seat drawn filled, as on ceremony night. Only the picture changes. */
-  fullHouse: boolean
-  setFullHouse(on: boolean): void
   /** Whether the graduate's seat card is open, and whether it opened because a seat was booked a moment ago. */
   cardOpen: boolean
   cardFresh: boolean
@@ -70,8 +67,6 @@ export const useHud = create<HudState>((set) => ({
   panel: 'none',
   filters: NO_FILTERS,
   guest: { ticketSeat: -1, graduate: -1, byCode: false },
-  fullHouse: false,
-  setFullHouse: (fullHouse) => set({ fullHouse }),
   cardOpen: false,
   cardFresh: false,
   setCardOpen: (cardOpen, fresh = false) => set({ cardOpen, cardFresh: cardOpen && fresh }),
@@ -93,7 +88,7 @@ export const useHud = create<HudState>((set) => ({
   setPanel: (panel) => set({ panel }),
   setFilters: (part) => set((s) => ({ filters: { ...s.filters, ...part } })),
   setGuest: (part) => set((s) => ({ guest: { ...s.guest, ...part } })),
-  reset: () => set({ role: 'guest', inspected: -1, panel: 'none', filters: NO_FILTERS, guest: { ticketSeat: -1, graduate: -1, byCode: false }, cardOpen: false, cardFresh: false, fullHouse: false }),
+  reset: () => set({ role: 'guest', inspected: -1, panel: 'none', filters: NO_FILTERS, guest: { ticketSeat: -1, graduate: -1, byCode: false }, cardOpen: false, cardFresh: false }),
 }))
 
 /** True when no filter is set. */

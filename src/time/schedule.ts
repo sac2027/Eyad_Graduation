@@ -99,3 +99,8 @@ export const SCHEDULE: Schedule = {
   gownReturnOpens: at('2027-04-11T00:00:00'),
   gownReturnDue: at('2027-04-15T23:59:59'),
 }
+
+/** Ceremony night: from when everyone is seated (18:45) to the end of the photos (21:30) on the ceremony day. */
+export function isCeremonyNight(now: number): boolean {
+  return now >= SCHEDULE.ceremonyDay.seated.start && now < SCHEDULE.ceremonyDay.photos.end
+}

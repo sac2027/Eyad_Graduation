@@ -92,3 +92,59 @@ test.describe('figures on reserved seats', () => {
   })
 })
 
+test.describe('Fill the stadium (ceremony night)', () => {
+  test('the demo switch fills every seat, and only the picture changes', async ({ page }) => {
+    await open(page, stadiumUrl())
+    const real = await reserved(page)
+    const counted = await page.locator('[data-sv-count]').innerText()
+    await page.getByRole('button', { name: 'Demo', exact: true }).click()
+    const chip = page.locator('[data-sv-full]')
+    await expect(chip).toHaveAttribute('aria-pressed', 'false')
+    await chip.click()
+    await expect(chip).toHaveAttribute('aria-pressed', 'true')
+    await expect.poll(async () => (await figures(page)).drawn).toBe(7998)
+    // The URL keeps it, like the other demo switches.
+    await expect(page).toHaveURL(/full=1/)
+    // Bookings, the seat map's count and the tooltips keep the real data.
+    await expect(page.locator('[data-sv-count]')).toHaveText(counted)
+    const free = (await call(page, (h) => h.freeSeat('P3-12-07')))!
+    expect(await call(page, (h, id) => h.status(id), free)).toBe('available')
+    await call(page, (h, id) => h.inspect(id), free)
+    await expect(page.locator('[data-sv-filled-note]')).toContainText('Ceremony-night preview')
+    await chip.click()
+    await expect.poll(async () => (await figures(page)).drawn).toBe(real)
+    await expect(page.locator('[data-sv-filled-note]')).toHaveCount(0)
+  })
+
+  test('?full=1 opens on a full house, and first person still clears round the eyes', async ({ page }) => {
+    await open(page, stadiumUrl({ extra: 'full=1&reduced=1' }))
+    expect((await figures(page)).drawn).toBe(7998)
+    await call(page, (h) => h.select('P3-12-07'))
+    await waitForMode(page, 'pov')
+    const f = await figures(page)
+    expect(f.hiddenNear).toContain('P3-12-07')
+    expect(f.drawn).toBe(7998 - f.hiddenNear.length)
+  })
+
+  test('on ceremony night the house is full by itself, and the switch says why', async ({ page }) => {
+    await open(page, stadiumUrl({ t: '2027-04-07T19:30' }))
+    expect((await figures(page)).drawn).toBe(7998)
+    await page.getByRole('button', { name: 'Demo', exact: true }).click()
+    await expect(page.locator('[data-sv-full]')).toHaveAttribute('aria-pressed', 'true')
+    await expect(page.locator('[data-sv-full]')).toBeDisabled()
+    await expect(page.locator('[data-sv-full-note]')).toContainText('ceremony night')
+  })
+
+  test('a full house on tier 1 stays within the drawing budget', async ({ page }) => {
+    await open(page, stadiumUrl({ extra: 'full=1' }))
+    const info = await call(page, (h) => h.info())
+    expect(info.triangles).toBeLessThanOrEqual(450_000)
+    expect(info.calls).toBeLessThanOrEqual(55)
+  })
+
+  test('the switch is offered only on the stadium page', async ({ page }) => {
+    await page.goto('/?t=2027-03-20T10:00&lang=en')
+    await page.getByRole('button', { name: 'Demo', exact: true }).click()
+    await expect(page.locator('[data-sv-full]')).toHaveCount(0)
+  })
+})

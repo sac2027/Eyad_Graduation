@@ -203,4 +203,5 @@ export const en: Record<string, string> = {
   'sv.sketch.label': 'A plan of the line of sight from this seat to the stage',
   'sv.sketch.caption': 'The line of sight from this seat to the stage, seen from above.',
   'sv.insp.familyTickets': 'Family tickets',
+  'sv.insp.filled': 'Ceremony-night preview: every seat is shown filled. Bookings are as shown below.',
 }

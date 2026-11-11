@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { COLLEGE_COLORS, COLLEGE_NAMES } from '@/domain/types'
 import { celebrate } from '@/features/celebrate/celebrate'
+import { useDemoFlags } from '@/features/demo-console/flags'
 import { COLLEGE_ID } from '@/features/stadiview/config/venue'
 import { bookingPhase, bookingWindow } from '@/features/stadiview/data/bookingWindow'
 import { guestTicketService } from '@/features/stadiview/data/guestTicketService'
@@ -16,6 +17,7 @@ import { NO_ZONE, SeatKind } from '@/features/stadiview/layout/types'
 import { getVenue } from '@/features/stadiview/layout/venueLayout'
 import { useHud } from '@/features/stadiview/state/hudStore'
 import { useStadium } from '@/features/stadiview/state/stadiumStore'
+import { fullHouseAt } from '@/features/stadiview/state/useOccupancy'
 import { usePhone } from '@/features/stadiview/state/usePhone'
 import { useViewer } from '@/features/stadiview/state/useViewer'
 import { formatDate, formatNumber, useLocale, useT } from '@/i18n'
@@ -41,6 +43,7 @@ export function Inspector({ canFly, livePreview }: { canFly: boolean; livePrevie
   const mode = useStadium((s) => s.mode)
   const seatedHere = useStadium((s) => s.mode === 'pov' && s.selected === seat)
   const [error, setError] = useState<BookError | null>(null)
+  const filled = fullHouseAt(viewer.now, useDemoFlags((s) => s.fullHouse)).full
 
   // A message about one seat must not linger over the next.
   useEffect(() => setError(null), [seat, viewer.graduate])
@@ -119,6 +122,12 @@ export function Inspector({ canFly, livePreview }: { canFly: boolean; livePrevie
       )}
 
       {/* Sitting in the seat already, the picture would only repeat the screen behind it. */}
+      {filled && (
+        <p className="sv-insp__filled" data-sv-filled-note>
+          {t('sv.insp.filled')}
+        </p>
+      )}
+
       {canFly && !seatedHere && <SeatPreview seat={seat} live={livePreview} />}
       {!canFly && <SeatSketch seat={seat} />}
 

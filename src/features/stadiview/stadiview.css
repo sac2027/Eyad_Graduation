@@ -726,3 +726,6 @@ html[data-motion='reduced'] .sv-dialog, html[data-motion='reduced'] .sv-dialog__
   to { transform: translateY(0); opacity: 1; }
 }
 html[data-motion='reduced'] .sv-mx, html[data-motion='reduced'] .sv-insp { animation: none; }
+
+/* While every seat is drawn filled, the inspector says the picture is a preview. */
+.sv-insp__filled { margin: 8px 16px 0; padding: 6px 10px; font-size: 0.8125rem; line-height: 1.45; color: var(--sv-night); background: var(--sv-sand); }

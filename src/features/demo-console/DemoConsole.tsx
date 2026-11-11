@@ -1,10 +1,12 @@
 import { useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { PERSONAS } from '@/data/fixtures/graduates'
 import { honorTier } from '@/domain/honorTier'
 import { useLocale } from '@/i18n'
 import { useSession } from '@/session/sessionStore'
 import { useClock, useNow } from '@/time/clockStore'
 import { PRESETS } from '@/time/presets'
+import { isCeremonyNight } from '@/time/schedule'
 import { formatTimeParam, parseTimeParam } from '@/time/urlState'
 import { formatDate } from '@/i18n/format'
 import { useMotionOverride } from '@/ui/motionPrefs'
@@ -39,6 +41,8 @@ export function DemoConsole() {
   const reduced = useMotionOverride((s) => s.reduced)
   const setReduced = useMotionOverride((s) => s.setReduced)
   const tier = persona.role === 'graduate' ? honorTier(persona.gpa) : null
+  const onStadium = useLocation().pathname === '/stadium'
+  const night = isCeremonyNight(now)
 
   return (
     <div dir="ltr" lang="en" className="fixed bottom-3 left-3 z-50 font-body text-sm" data-demo-console>
@@ -131,6 +135,17 @@ export function DemoConsole() {
               <Chip selected={flags.dateStatus === 'tbc'} onToggle={(v) => flags.setDateStatus(v ? 'tbc' : 'confirmed')}>Date TBC</Chip>
             </div>
           </Row>
+
+          {onStadium && (
+            <Row label="Stadium">
+              <Chip selected={flags.fullHouse || night} disabled={night} onToggle={flags.setFullHouse} data-sv-full>
+                Fill the stadium (ceremony night)
+              </Chip>
+              <p className="mt-1 text-xs" data-sv-full-note>
+                {night ? 'On by itself: it is ceremony night, and every seat is taken.' : 'Shows every seat filled. Bookings and the seat map keep the real data.'}
+              </p>
+            </Row>
+          )}
 
           <Row label="Data">
             <Button variant="ghost" onClick={() => { resetDemoData(); toast.success('Demo data reset') }}>Reset demo data</Button>

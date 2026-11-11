@@ -6,10 +6,13 @@ interface DemoFlags {
   worstCase: boolean
   dateStatus: 'confirmed' | 'tbc'
   gpaOverride: number | null
+  /** The stadium draws every seat filled, as on ceremony night. Only the picture changes. */
+  fullHouse: boolean
   setLowEnd(v: boolean): void
   setWorstCase(v: boolean): void
   setDateStatus(v: 'confirmed' | 'tbc'): void
   setGpaOverride(v: number | null): void
+  setFullHouse(v: boolean): void
 }
 
 function readFlag(name: string): boolean {
@@ -42,8 +45,10 @@ export const useDemoFlags = create<DemoFlags>((set) => ({
   worstCase: readFlag('worst'),
   dateStatus: initialDateStatus(),
   gpaOverride: readGpa(),
+  fullHouse: readFlag('full'),
   setLowEnd: (lowEnd) => set({ lowEnd }),
   setWorstCase: (worstCase) => set({ worstCase }),
+  setFullHouse: (fullHouse) => set({ fullHouse }),
   setDateStatus(dateStatus) {
     SCHEDULE.ceremonyDateStatus = dateStatus
     set({ dateStatus })

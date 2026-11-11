@@ -6,7 +6,7 @@ import { familyGraduateOf } from '@/features/stadiview/data/guestTicketService'
 import { pitchSeats } from '@/features/stadiview/data/pitchSeatService'
 import { SeatKind } from '@/features/stadiview/layout/types'
 import { getVenue } from '@/features/stadiview/layout/venueLayout'
-import { SCHEDULE } from '@/time/schedule'
+import { isCeremonyNight } from '@/time/schedule'
 
 /**
  * Who is sitting in each seat at a moment of the simulated clock: the one question the figures in
@@ -48,7 +48,7 @@ export function seatHash(seat: number, salt: number): number {
 
 /** Ceremony night: from when everyone is seated (18:45) to the end of the photos (21:30) on 7 April 2027. */
 export function ceremonyNight(now: number): boolean {
-  return now >= SCHEDULE.ceremonyDay.seated.start && now < SCHEDULE.ceremonyDay.photos.end
+  return isCeremonyNight(now)
 }
 
 /** When a VIP or accessibility seat is given out; Infinity for the few that never are. */

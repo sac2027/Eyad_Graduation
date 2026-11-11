@@ -203,4 +203,5 @@ export const ar: Record<string, string> = {
   'sv.sketch.label': 'مخطط لخط النظر من هذا المقعد إلى المنصة',
   'sv.sketch.caption': 'خط النظر من هذا المقعد إلى المنصة، من الأعلى.',
   'sv.insp.familyTickets': 'تذاكر العائلة',
+  'sv.insp.filled': 'معاينة ليلة الحفل: تظهر المقاعد كلها مشغولة. الحجوزات الفعلية كما هي أدناه.',
 }

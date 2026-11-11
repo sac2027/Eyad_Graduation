@@ -1,4 +1,6 @@
 import { lazy, Suspense, useCallback, useEffect, useState } from 'react'
+// First, so the page's words are registered before any component asks for them.
+import '@/features/stadiview/i18n'
 import { Link } from 'react-router-dom'
 import { Logo } from '@/brand/logo/Logo'
 import { useDemoFlags } from '@/features/demo-console/flags'

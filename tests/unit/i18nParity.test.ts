@@ -1,6 +1,21 @@
 import { describe, expect, it } from 'vitest'
-import { ar } from '@/i18n/ar'
-import { en } from '@/i18n/en'
+import { ar as siteAr } from '@/i18n/ar'
+import { en as siteEn } from '@/i18n/en'
+import { ar as stadiumAr } from '@/features/stadiview/i18n/ar'
+import { en as stadiumEn } from '@/features/stadiview/i18n/en'
+
+// The same rules hold for the site's dictionaries and for the stadium's own.
+const ar: Record<string, string> = { ...siteAr, ...stadiumAr }
+const en: Record<string, string> = { ...siteEn, ...stadiumEn }
+
+describe('where strings live', () => {
+  it("keeps the stadium's strings out of the dictionaries the landing page downloads", () => {
+    expect(Object.keys(siteEn).filter((k) => k.startsWith('sv.'))).toEqual([])
+    expect(Object.keys(siteAr).filter((k) => k.startsWith('sv.'))).toEqual([])
+    expect(Object.keys(stadiumEn).every((k) => k.startsWith('sv.'))).toBe(true)
+    expect(Object.keys(stadiumEn).filter((k) => k in siteEn)).toEqual([])
+  })
+})
 
 describe('i18n parity', () => {
   it('has the same keys in Arabic and English', () => {

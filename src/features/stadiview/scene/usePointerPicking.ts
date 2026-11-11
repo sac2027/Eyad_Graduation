@@ -129,8 +129,10 @@ export function usePointerPicking(): void {
     if (!s.over) return
     const store = useStadium.getState()
     if (store.mode !== 'orbit' || s.down > 0) {
-      // Dragging the view, flying, or sitting in a seat: nothing is under the pointer.
+      // Dragging the view, flying, or sitting in a seat: nothing is under the pointer, and the
+      // cursor goes back to the hand the stylesheet gives the canvas.
       if (store.hover !== -1) store.setHover(-1)
+      if (gl.domElement.style.cursor) gl.domElement.style.cursor = ''
       return
     }
     // Search again when the pointer moved, or when the camera moved under a still pointer.

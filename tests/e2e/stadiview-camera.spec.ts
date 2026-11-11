@@ -159,15 +159,27 @@ test.describe('flying into a seat', () => {
 
   test('with reduced motion the flight is a short cut, not a ride', async ({ page }) => {
     await open(page, `${STADIUM}&reduced=1`)
-    const t0 = Date.now()
-    await select(page, 'P3-12-07')
-    await waitForMode(page, 'pov', 3000)
-    expect(Date.now() - t0).toBeLessThan(900)
+    // Timed inside the page, so the test runner's own delays are not counted.
+    const timeTo = (wanted: string, act: 'select' | 'back') =>
+      page.evaluate(
+        ([m, a]) =>
+          new Promise<number>((resolve) => {
+            const h = (window as unknown as { __stadiview: Hook }).__stadiview
+            const t0 = performance.now()
+            if (a === 'select') h.select('P3-12-07')
+            else h.back()
+            const timer = setInterval(() => {
+              if (h.state().mode !== m) return
+              clearInterval(timer)
+              resolve(performance.now() - t0)
+            }, 10)
+          }),
+        [wanted, act] as const,
+      )
+    expect(await timeTo('pov', 'select')).toBeLessThan(900)
     expect(distance((await camera(page)).position, EYE_P3_12_07)).toBeLessThan(0.05)
-    const t1 = Date.now()
-    await page.keyboard.press('Escape')
-    await waitForMode(page, 'orbit', 3000)
-    expect(Date.now() - t1).toBeLessThan(900)
+    expect(await timeTo('orbit', 'back')).toBeLessThan(900)
+    expect(distance((await camera(page)).position, [72, 64, -88])).toBeLessThan(0.5)
   })
 })
 

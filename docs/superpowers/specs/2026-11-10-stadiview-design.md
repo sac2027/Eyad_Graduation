@@ -1,6 +1,6 @@
 # KFUPM StadiView: design
 
-Date: 2026-11-10. Status: draft for approval (Phase 1 output). Reviewed once by an independent builder check; its corrections are included.
+Date: 2026-11-10. Status: approved by the requester on 10 Nov 2026. Reviewed once by an independent builder check; its corrections are included. Phase 2 (scene, seats, camera) was built on 11 Nov 2026; the few points it refined are marked "Phase 2" below, and the full list is in the Phase 2 plan's implementation notes.
 
 ## Intent and the why
 
@@ -70,13 +70,15 @@ All code is original. The reference is licensed PolyForm Noncommercial; nothing 
 
 - Text on gold or green fills is `--sv-night` (white on #009C5A is 3.6:1, below the 4.5:1 minimum for small text).
 - Fonts are unchanged: KFUPM Display and IBM Plex Sans Arabic.
-- HUD panels: `--sv-night` at 72% opacity with a backdrop blur, sharp corners with one 5° cut corner (the brand's skew), 1 px borders in gold or green at 35% opacity.
+- HUD panels are `--sv-night` at 72% opacity with a backdrop blur and 1 px borders in gold or green at 35% opacity. They come in two shapes (revised during Phase 2, because a single 5° cut corner comes out as a sliver):
+  - a **plate**: a small strip whose two ends lean 5°, like one Matrix bar. Titles, buttons, tooltips and hints are plates.
+  - a **card**: a larger rectangle with sharp corners and a strip of Matrix bars along its top. The fallback message and the Phase 3 panels are cards.
 - FAST Matrix bars in two pairings: "Prestige & Honor" (#005A50 + #E7A614) and "Stadium & Journey" (#005A50 + #009C5A). They are used on the stage backdrop (animated shader) and as thin headers on HUD cards.
 
 ## Approaches considered
 
 ### Rendering all seats
-- **A. Two instanced meshes, per-instance colour (chosen).** One mesh for pitch seats and bays (2,998), one for stand seats (5,000). About 8,000 instances of a 24-triangle chair is under 200,000 triangles and two draw calls.
+- **A. Two instanced meshes, per-instance colour (chosen).** One mesh for pitch seats and bays (2,998), one for stand seats (5,000). About 8,000 instances of a 20-triangle chair is 160,000 triangles and two draw calls. The chairs are unlit, with their shading painted on (decided in Phase 2: cheaper, and exact palette colours).
 - B. One mesh per section. More draw calls for no gain.
 - C. Representative 3D with fewer seats plus the full 2D grid. Not needed at this scale; kept only as the lowest tier.
 
@@ -259,6 +261,7 @@ One rig with three modes: `orbit`, `fly`, `pov`.
 | POV | Eye at seat origin + (0, 1.15, 0). Drag looks around: yaw 360°, pitch −35° to +50°, with inertia. Wheel or pinch changes field of view 40°–75° |
 
 - **Default look target:** pitch seats look at the podium (−42, 3.2, 0); stand seats look at (−20, 1.5, 0).
+- **Seats under the VIP canopy** are closed in behind and above, so flights reach and leave them through the open front, under the roof's edge (added in Phase 2).
 - **Interruptible:** picking another seat mid-flight starts a new flight from the current pose. Escape or the bottom-centre "Back to stadium overview" button flies back to the last orbit pose in 1.8 s.
 - **Landmark chips in POV** (Stage, LED screens, VIP box, Family stands) turn the camera to that landmark in 0.6 s.
 - **Reduced motion:** flights become a 0.4 s cross-fade cut; no idle rotation; no inertia.

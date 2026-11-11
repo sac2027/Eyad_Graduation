@@ -167,6 +167,17 @@ test.describe('the stadium route', () => {
     expect(info.triangles).toBeLessThanOrEqual(450_000)
   })
 
+  test('first person has no serious accessibility problems either', async ({ page }) => {
+    await page.goto(STADIUM)
+    await ready(page)
+    await (await hook(page)).evaluate((h) => h.select('P3-12-07'))
+    await page.waitForFunction(() => (window as unknown as { __stadiview: Hook }).__stadiview.state().mode === 'pov', undefined, { timeout: 12_000 })
+    await expect(page.locator('[data-sv-back]')).toBeVisible()
+    const results = await new AxeBuilder({ page }).exclude('[data-demo-console]').exclude('canvas').analyze()
+    const bad = results.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical')
+    expect(bad.map((v) => `${v.id}: ${v.nodes.slice(0, 3).map((n) => n.target.join(' ')).join(' | ')}`)).toEqual([])
+  })
+
   test('the top bar has no serious accessibility problems', async ({ page }) => {
     await page.goto(STADIUM)
     await ready(page)

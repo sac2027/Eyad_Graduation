@@ -15,7 +15,7 @@ npm run build      # type-check and production build
 
 ## The demo console (time travel)
 
-Click **Demo** (bottom corner). It lets you:
+Click **Demo** (bottom corner; on the stadium page it sits under the top row). It lets you:
 
 - jump to any date and time (datetime box, a scrubber with deadline ticks, or one-click presets such as *Sizes due*, *Honors day*, *Ceremony live*, *After*);
 - run a time lapse (1 day per second, or 1 hour per second on 6 and 7 April);
@@ -47,6 +47,33 @@ Also in the console: **Reset demo data** (scrubbing time backwards cannot undo e
   - nothing is drawn under reduced motion or on a low-end device
   - automated browsers skip the welcome moment unless the URL has `?welcome=1`
 
+## The 3D stadium (StadiView)
+
+`/stadium` is a full-screen 3D model of the stadium on graduation night, built in code (no model files). It is being delivered in phases; this is what works after **Phase 2 (scene, seats and camera)**:
+
+- **The stadium**: the pitch with six blocks of graduate chairs facing the stage at the west end, the running track, the south family stand with **KFUPM** spelled in sand-coloured seats, the east curve with the procession entrance, the north stands with the VIP box under its canopy, the accessibility platform, five gates, four floodlight masts, and the stage with its animated FAST Matrix backdrop and two LED screens.
+- **Every seat is real**: 2,986 graduate seats, 12 wheelchair bays and 5,000 stand seats, each one hoverable and clickable. Hover shows a tooltip (block, row, seat, college and degree, status). The whole stadium is about 166,000 triangles in 22 to 25 draw calls.
+- **Click a seat** and the camera flies into it for the view from that seat. **Back to stadium overview** (or Escape) flies back.
+
+| | Overview | In a seat |
+|---|---|---|
+| Drag | turn the stadium | look around |
+| Wheel or pinch | zoom | narrow or widen the view |
+| Arrow keys, `+`, `-` | the same, once the picture has focus | the same |
+| Escape | | back to the overview |
+
+What is not there yet: the booking and guest panels, the 2D seat matrix, the avatars, the sightline arc and the walking route (Phases 3 and 4).
+
+**Changing the venue.** Every number about the stadium (head counts per college and degree, block sizes, stands, gates, camera) is in `src/features/stadiview/config/venue.ts`. The layout, the picking, the drawing and the camera all read from it.
+
+**Devices.** The page picks one of four tiers: 0 (no WebGL: a message and a way back), 1 (low-end), 2 (default), 3 (desktop). Add `?tier=0` to `?tier=3` to force one. Reduced motion and the console's low-end switch turn flights into a short cut and stop the idle turn.
+
+**For testing and review.**
+- `?idle=1` turns the idle rotation on under automation; `?svslow=8` slows flights eight times; `?svdebug=1` exposes `window.__stadiview` on a production build.
+- `node scripts/stadiview-stills.cjs` (dev server running) regenerates `docs/review/stadiview/`.
+- `node scripts/stadiview-frames.cjs` (after `npm run build` and `npx vite preview --port 4173`) measures frame times.
+- `node scripts/landing-weight.cjs` (after `npm run build`) reports how much the landing page downloads.
+
 ## What is in it
 
 | Area | Where |
@@ -55,14 +82,15 @@ Also in the console: **Reset demo data** (scrubbing time backwards cannot undo e
 | Stadium scene, graduate silhouette, certificate, stage screens | `src/features/stadium/` |
 | Scroll rail, step sections, celebrations, certificate moment | `src/features/rail/`, `src/features/steps/`, `src/features/celebrate/`, `src/features/moment/` |
 | Honor award (3D tower in gold, silver, bronze; 2D fallback) and its lighting script | `src/features/honors/` |
+| The 3D stadium: venue config, seat layout, picking and camera maths, scene, HUD | `src/features/stadiview/` |
 | Guest guide, gate map, accessibility routing | `src/features/guest/` |
 | Graduate dashboard, attire, tickets, seat map, QR tickets | `src/features/graduate/` |
 | Admin (capacity and exceptional cases) | `src/features/admin/` |
 | Mock services and personas | `src/data/` |
 | Brand tokens, Matrix, loops | `src/brand/`, `public/matrix/` |
 
-Design: `docs/phase2/architecture.md` and `docs/superpowers/specs/2026-11-06-journey-redesign-design.md`. Plans: `docs/superpowers/plans/`.
-Review screenshots: `docs/review/` (regenerate with `node scripts/scene-stills.cjs` while the dev server runs).
+Design: `docs/phase2/architecture.md`, `docs/superpowers/specs/2026-11-06-journey-redesign-design.md` and `docs/superpowers/specs/2026-11-10-stadiview-design.md`. Plans: `docs/superpowers/plans/`.
+Review screenshots: `docs/review/` (regenerate with `node scripts/scene-stills.cjs` and `node scripts/stadiview-stills.cjs` while the dev server runs).
 
 ## Deploying (Cloudflare Pages)
 

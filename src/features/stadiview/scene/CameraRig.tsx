@@ -32,7 +32,11 @@ import { getVenue } from '@/features/stadiview/layout/venueLayout'
 import { useStadium } from '@/features/stadiview/state/stadiumStore'
 
 gsap.registerPlugin(CustomEase)
-/** The project's strong ease-in-out: a slow start, a quick middle, a soft landing. */
+/**
+ * The project's strong ease-in-out: a slow start, a quick middle, a soft landing. GSAP supplies
+ * the curve; the rig keeps the time itself (see MAX_FLIGHT_STEP), so a flight is tied to the
+ * frames that are really drawn.
+ */
 const FLIGHT_EASE = CustomEase.create('sv-flight', '0.77,0,0.175,1')
 
 const rad = (deg: number) => (deg * Math.PI) / 180
@@ -82,8 +86,11 @@ const NEAR_SEAT = 0.12
 const GAZE = 30
 
 interface Flight {
-  /** 0 at the start, 1 at the end; a GSAP tween drives it through the flight ease. */
+  /** How far along the flight is, 0 to 1, after easing. */
   t: number
+  /** Seconds flown so far, and seconds the whole flight takes. A cut has no duration. */
+  elapsed: number
+  duration: number
   /** The path, or null when only the view turns. */
   curve: CatmullRomCurve3 | null
   fromLook: Vector3
@@ -94,8 +101,13 @@ interface Flight {
   toNear: number
   /** The seat being flown to, or -1 for the flight back to the overview. */
   seat: number
-  tween: gsap.core.Tween | null
 }
+
+/**
+ * The longest step a flight may take in one frame, in seconds of flight time. A slow frame then
+ * makes the flight last a little longer instead of making the camera jump.
+ */
+const MAX_FLIGHT_STEP = 0.25
 
 /**
  * The one camera of the stadium, in three modes that share a single state machine:
@@ -176,8 +188,8 @@ export function CameraRig({ still }: { still: boolean }) {
     camera.updateProjectionMatrix()
   }
 
-  /** Set by the flight effect below: puts the camera where a flight is at its current progress. */
-  const flyPose = useRef<((f: Flight) => void) | null>(null)
+  /** Set by the flight effect below: how to put the camera where a flight is, and what to do when it lands. */
+  const flying = useRef<{ pose(f: Flight): void; land(seat: number): void } | null>(null)
 
   // The screen's shape decides how far back the overview sits (see engine/framing).
   useEffect(() => {
@@ -204,7 +216,6 @@ export function CameraRig({ still }: { still: boolean }) {
     const roofed = (i: number) => i >= 0 && v.sections[v.section[i]].id === VENUE.canopy.over
 
     const stopFlight = () => {
-      s.flight?.tween?.kill()
       s.flight = null
       window.clearTimeout(s.cut)
       s.cut = undefined
@@ -293,7 +304,8 @@ export function CameraRig({ still }: { still: boolean }) {
         fromNear: camera.near,
         toNear,
         seat,
-        tween: null,
+        elapsed: 0,
+        duration: s.still ? 0 : duration * stretch,
       }
       s.flight = flight
 
@@ -307,9 +319,8 @@ export function CameraRig({ still }: { still: boolean }) {
           stage?.removeAttribute('data-cut')
           land(seat)
         }, CUT_HALF_MS)
-      } else {
-        flight.tween = gsap.to(flight, { t: 1, duration: duration * stretch, ease: FLIGHT_EASE, onComplete: () => land(seat) })
       }
+      // Otherwise the frame loop below flies it.
       invalidate()
     }
 
@@ -321,7 +332,7 @@ export function CameraRig({ still }: { still: boolean }) {
       camera.rotation.set(angles.pitch, angles.yaw, 0, 'YXZ')
       setLens(f.fromFov + (f.toFov - f.fromFov) * f.t, f.fromNear * Math.pow(f.toNear / f.fromNear, f.t))
     }
-    flyPose.current = pose
+    flying.current = { pose, land }
 
     const unsubscribe = useStadium.subscribe((now, before) => {
       if (now.mode === 'fly' && (before.mode !== 'fly' || now.selected !== before.selected)) start(now.selected, before.mode)
@@ -505,8 +516,15 @@ export function CameraRig({ still }: { still: boolean }) {
     const mode = useStadium.getState().mode
 
     if (s.flight) {
-      // During a cut the camera waits where it is until the picture has faded out.
-      if (s.flight.tween) flyPose.current?.(s.flight)
+      const f = s.flight
+      // A cut has no duration: the camera waits where it is until the picture has faded out.
+      if (f.duration > 0 && flying.current) {
+        // Flight time follows the frames actually drawn, a step at a time, through the flight ease.
+        f.elapsed += Math.min(delta, MAX_FLIGHT_STEP)
+        f.t = FLIGHT_EASE(Math.min(f.elapsed / f.duration, 1))
+        flying.current.pose(f)
+        if (f.elapsed >= f.duration) flying.current.land(f.seat)
+      }
       return
     }
 

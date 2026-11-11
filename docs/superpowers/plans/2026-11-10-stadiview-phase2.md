@@ -69,7 +69,7 @@ These refine the approved plan without changing its scope.
   - `blockZ(block: number, seat: number, cfg?: VenueConfig): number`: z of the centre of seat 1..14 in block 1..6 (seat 1 north-most; block 1 starts at z = −31.2; seat pitch 0.6; block period 10.8).
   - `buildPitch(cfg?: VenueConfig): PitchSeats` where `PitchSeats = { count: number; rows: number; position: Float32Array; block: Uint8Array; row: Uint16Array; number: Uint16Array; zone: Uint8Array; lineup: Uint16Array; zones: ZoneInfo[]; bays: { position: Float32Array; block: Uint8Array } }`. `rows` is the largest row number in any block (45 at the baseline).
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```ts
 const p = buildPitch()
@@ -118,9 +118,9 @@ it('lets the female order be flipped by reordering the zone list', () => {
 })
 ```
 
-- [ ] **Step 2: Run them and confirm they fail.** `npx vitest run tests/unit/stadiview/pitchLayout.test.ts` should fail on the missing module.
+- [x] **Step 2: Run them and confirm they fail.** `npx vitest run tests/unit/stadiview/pitchLayout.test.ts` should fail on the missing module.
 
-- [ ] **Step 3: Implement the config, the types and `buildPitch`**
+- [x] **Step 3: Implement the config, the types and `buildPitch`**
 
 - Fill order: Block 1 row by row (seat 1 to 14), then male rows across blocks 2 to 6 (block 2 seat 1 … block 6 seat 14), front to back. Zones consume that order in `VENUE.zones` order.
 - A seat's `position` is the centre of its footprint on its floor.
@@ -128,9 +128,9 @@ it('lets the female order be flipped by reordering the zone list', () => {
 - Bays sit at x = −31.5 at each block's seat 1 and seat 14, in block order.
 - `SectionInfo.start` for a pitch block is the index of its first seat; the male blocks' seats are interleaved in line-up order, so consumers enumerate a block through the `section` array, not `start` and `count`.
 
-- [ ] **Step 4: Run the tests and confirm they pass.**
+- [x] **Step 4: Run the tests and confirm they pass.**
 
-- [ ] **Step 5: Commit** (`feat(stadiview): venue config and pitch layout`)
+- [x] **Step 5: Commit** (`feat(stadiview): venue config and pitch layout`)
 
 ### Task 2: Stands and the assembled venue
 
@@ -149,7 +149,7 @@ it('lets the female order be flipped by reordering the zone list', () => {
   - `buildVenue(cfg?: VenueConfig): VenueLayout` (memoised for the default config) and `getVenue(): VenueLayout`. The layout carries `pitchRows`, `pitchCell` and `standRows`.
   - `southLetterMask(row: number, seat: number): boolean`: true where a south-stand seat is part of the "KFUPM" lettering (rows 4–16).
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```ts
 const v = buildVenue()
@@ -221,8 +221,8 @@ it('spells KFUPM only inside rows 4 to 16 of the south stand', () => {
 })
 ```
 
-- [ ] **Step 2: Run them and confirm they fail.**
-- [ ] **Step 3: Implement.**
+- [x] **Step 2: Run them and confirm they fail.**
+- [x] **Step 3: Implement.**
   - Index order: pitch seats, then the 12 bays, then stands in the order VIP, NW, NE, S, E, ACC.
   - Seat centres (n is the seat number, r the row):
     - **S:** x = 36 − (n − 0.5) × 0.6; z = 53 + (r − 1) × 0.85; y = 1.2 + (r − 1) × 0.42; yaw 0 (faces −Z).
@@ -235,8 +235,8 @@ it('spells KFUPM only inside rows 4 to 16 of the south stand', () => {
   - Ids follow the spec's section 4.
   - The lettering: five letters, each 16 seats wide with 6-seat gaps (104 seats, centred on the 120), 13 rows tall (rows 4–16, the top of each letter at row 16). K starts at seat 1's end, so the word reads left to right from the pitch. Print the mask as text once and check it reads clearly.
   - `ranges`, `pitchRows` and `pitchCell` are computed from the config, never literal.
-- [ ] **Step 4: Run the tests and confirm they pass.**
-- [ ] **Step 5: Commit** (`feat(stadiview): stands and the assembled venue layout`)
+- [x] **Step 4: Run the tests and confirm they pass.**
+- [x] **Step 5: Commit** (`feat(stadiview): stands and the assembled venue layout`)
 
 ### Task 3: Picking maths
 
@@ -278,7 +278,7 @@ it('spells KFUPM only inside rows 4 to 16 of the south stand', () => {
 
 "Half a tread" is 0.425 for S, NW, NE and E, and 0.55 for VIP.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```ts
 const v = buildVenue()
@@ -318,15 +318,15 @@ it('agrees with a brute-force test of every chair box', () => {
 })
 ```
 
-- [ ] **Step 2: Run them and confirm they fail.**
-- [ ] **Step 3: Implement.**
+- [x] **Step 2: Run them and confirm they fail.**
+- [x] **Step 3: Implement.**
   - A chair-box test turns the ray into the seat's frame by its yaw and does a slab test against `CHAIR_BOX`.
   - **Pitch (grid arithmetic):** clip the ray to the slab y from 0 to `CHAIR_BOX.height`. Walk that segment in steps of 0.25 m (at most 600 steps). At each step convert (x, z) to block, row and column by division, inverting `rowX` and `blockZ`. Test the chair boxes of that cell and its 8 neighbours, skipping cells already tested, and keep the nearest hit. Stop once the walk has passed the best hit by 0.5 m.
   - **Stands:** for each `standRows` entry, clip the ray to the row's slab (y from `row.y` to `row.y + CHAIR_BOX.height`). Skip the row when that segment misses the row's footprint. Otherwise find the seat numbers the segment passes (by division along x for line rows, by angle for arc rows), test those boxes plus one neighbour on each side, and keep the nearest hit.
   - **Bays:** test the 12 boxes directly.
   - `pickHit` takes the nearest of the three and returns no hit when `occluderDistance` is smaller.
-- [ ] **Step 4: Run the tests and confirm they pass.**
-- [ ] **Step 5: Commit** (`feat(stadiview): exact grid-accelerated seat picking with occluders`)
+- [x] **Step 4: Run the tests and confirm they pass.**
+- [x] **Step 5: Commit** (`feat(stadiview): exact grid-accelerated seat picking with occluders`)
 
 ### Task 4: Camera maths
 
@@ -348,7 +348,7 @@ it('agrees with a brute-force test of every chair box', () => {
   - `lookAngles(eye: Vec3, target: Vec3): { yaw: number; pitch: number }`: yaw 0 looks toward −Z and grows toward −X (the same convention as a seat's yaw); pitch is positive looking up. A three.js camera with rotation order `YXZ`, `rotation.y = yaw` and `rotation.x = pitch` looks along this direction.
   - `overviewFov(aspect: number): number`: the overview's vertical field of view in degrees, `clamp(2 × atan(tan(26.5°) / aspect), 42, 72)`. It is 42 on landscape screens and widens on portrait ones.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```ts
 it('puts the eye 1.15 above the seat floor', () => {
@@ -393,10 +393,10 @@ it('widens the overview on portrait screens', () => {
 })
 ```
 
-- [ ] **Step 2: Run them and confirm they fail.**
-- [ ] **Step 3: Implement.**
-- [ ] **Step 4: Run the tests and confirm they pass.**
-- [ ] **Step 5: Commit** (`feat(stadiview): camera maths`)
+- [x] **Step 2: Run them and confirm they fail.**
+- [x] **Step 3: Implement.**
+- [x] **Step 4: Run the tests and confirm they pass.**
+- [x] **Step 5: Commit** (`feat(stadiview): camera maths`)
 
 ### Task 5: Store and device tiers
 
@@ -427,11 +427,11 @@ it('widens the overview on portrait screens', () => {
     | 2 | 1.5 | true | true | false | 400 | false |
     | 3 | 2 | true | true | true | 900 | true |
 
-- [ ] **Step 1: Write the failing tests** for each rule above: one assertion per store rule (including hover ignored in `pov` and `fly`, `back()` from each mode, `select(-1)`); `detectTier` for the four tiers and their boundary values (2 and 3 cores, 7 and 8 cores, device memory 2 and 8, a benchmark of exactly `SLOW_BENCH_MS` and just above); `tierFromSearch` for `?tier=1`, `?tier=9`, `?tier=x` and no parameter; `resolveTier` keeping tier 0 without WebGL even with `?tier=3`; the settings table.
-- [ ] **Step 2: Run them and confirm they fail.**
-- [ ] **Step 3: Implement.**
-- [ ] **Step 4: Run the tests and confirm they pass.**
-- [ ] **Step 5: Commit** (`feat(stadiview): stadium store and device tiers`)
+- [x] **Step 1: Write the failing tests** for each rule above: one assertion per store rule (including hover ignored in `pov` and `fly`, `back()` from each mode, `select(-1)`); `detectTier` for the four tiers and their boundary values (2 and 3 cores, 7 and 8 cores, device memory 2 and 8, a benchmark of exactly `SLOW_BENCH_MS` and just above); `tierFromSearch` for `?tier=1`, `?tier=9`, `?tier=x` and no parameter; `resolveTier` keeping tier 0 without WebGL even with `?tier=3`; the settings table.
+- [x] **Step 2: Run them and confirm they fail.**
+- [x] **Step 3: Implement.**
+- [x] **Step 4: Run the tests and confirm they pass.**
+- [x] **Step 5: Commit** (`feat(stadiview): stadium store and device tiers`)
 
 ### Task 6: The route and the static stadium
 
@@ -461,7 +461,7 @@ it('widens the overview on portrait screens', () => {
   - `window.__stadiview`, created by `debugHook.ts` only in development, under automation (`navigator.webdriver`) or with `?svdebug=1`. In this task it has `ready: boolean` (true once the first frame has rendered), `tier: Tier` and `info(): { calls: number; triangles: number }` (from the renderer). Later tasks add to it through `extendDebugHook(partial)`.
   - `matrixBarsMaterial(colors: [string, string], skewDeg: number): ShaderMaterial` with a `uTime` uniform
 
-- [ ] **Step 1: Write failing end-to-end tests**
+- [x] **Step 1: Write failing end-to-end tests**
   - `/stadium?lang=en&tier=1`: `[data-stadiview]` has `data-theme="stadiview"` and `data-tier="1"`; `[data-stadium-canvas] canvas` is visible and fills the viewport; `window.__stadiview.ready` becomes true; the page does not scroll (`document.documentElement.scrollHeight <= innerHeight`).
   - On `/`, the site header shows a "Stadium" link that goes to `/stadium`; on `/stadium` a KFUPM logo link returns to `/`.
   - With WebGL unavailable (`page.addInitScript` replaces `HTMLCanvasElement.prototype.getContext` so that it returns null for `webgl`, `webgl2` and `experimental-webgl`): `[data-stadium-fallback]` is visible, it has a link to `/`, and no canvas is attached. The same holds with `?tier=3` in the URL.
@@ -469,8 +469,8 @@ it('widens the overview on portrait screens', () => {
   - `/` does not request any URL containing `stadiview` or `three` (case-insensitive), as the honors spec checks for its own chunk.
   - No horizontal scroll at 390 px, in Arabic and in English.
   - `info()` reports at most 80 draw calls and at most 450,000 triangles in the overview.
-- [ ] **Step 2: Run them and confirm they fail.**
-- [ ] **Step 3: Implement.**
+- [x] **Step 2: Run them and confirm they fail.**
+- [x] **Step 3: Implement.**
   - **Route.** `/stadium` is an immersive route outside the header `Layout`, inside a small shell that still mounts `RootPhase`, `DemoConsole`, `CertificateMomentHost`, `Fireworks` and `Toaster`. The site header gets a "Stadium" link. The header must not import anything from `src/features/stadiview`.
   - **Page shell.** Full viewport (`100dvh`), page scroll locked while mounted, a slim top bar (white KFUPM logo linking to `/`, the title, the language button) in the HUD style. The canvas has `touch-action: none`, `role="img"` and the `sv.canvas.label` text as its accessible name.
   - **Canvas.** `dpr={[1, settings.maxDpr]}`, `gl={{ antialias: settings.antialias, powerPreference: 'high-performance' }}`, ACES filmic tone mapping, background #061A17, fog toward the same colour. Camera at `ORBIT_HOME` with `overviewFov(aspect)`.
@@ -489,8 +489,8 @@ it('widens the overview on portrait screens', () => {
     - four floodlight masts with lamp banks, an additive glow sprite each, and a faint light cone toward the pitch
   - **Materials** are cheap: Lambert or unlit for large surfaces; the backdrop uses `matrixBarsMaterial(['#005A50', '#E7A614'], 5)`, whose `uTime` advances only when motion is allowed.
   - **Disposal.** Geometries, materials and textures created by hand are disposed on unmount.
-- [ ] **Step 4: Run the tests and confirm they pass,** then look at screenshots at 1440×900 and 390×844 (default tier and tier 1) and fix what looks wrong.
-- [ ] **Step 5: Commit** (`feat(stadiview): the stadium route and static scene`)
+- [x] **Step 4: Run the tests and confirm they pass,** then look at screenshots at 1440×900 and 390×844 (default tier and tier 1) and fix what looks wrong.
+- [x] **Step 5: Commit** (`feat(stadiview): the stadium route and static scene`)
 
 ### Task 7: Instanced seats, hover and selection
 
@@ -517,7 +517,7 @@ it('widens the overview on portrait screens', () => {
     - `select(seatId: string): void` and `back(): void` (they call the store)
   - The tooltip: `[data-seat-tooltip]` with the block, college and degree, row, seat and status for pitch seats; the section, row and seat for stand seats
 
-- [ ] **Step 1: Write failing tests**
+- [x] **Step 1: Write failing tests**
   - Unit: `baseColor` for a pitch seat, a bay, a south-stand letter seat and a plain stand seat; `colorFor` returns gold for hover and for selection.
   - Unit: `chairGeometry()` has 24 triangles and its bounding box fits inside `CHAIR_BOX` with its floor at y = 0.
   - e2e: hovering at `project('P3-12-07')` shows a tooltip containing "Block 3", "Row 12", "Seat 7" and "Available", and `state().hover` is `'P3-12-07'`.
@@ -527,15 +527,15 @@ it('widens the overview on portrait screens', () => {
   - e2e: pressing, dragging 40 px and releasing over a seat does not select it.
   - e2e (`lang=ar`): the tooltip reads in Arabic and stays inside the viewport when the hovered seat is near the right edge and near the bottom edge.
   - e2e: `info()` still reports at most 80 draw calls and 450,000 triangles with the seats in.
-- [ ] **Step 2: Run them and confirm they fail.**
-- [ ] **Step 3: Implement.**
+- [x] **Step 2: Run them and confirm they fail.**
+- [x] **Step 3: Implement.**
   - Two `InstancedMesh` objects (pitch seats and bays; stand seats) sharing `chairGeometry()`, with `instanceColor`. Matrices are set once from the layout. A cheap material (Lambert).
   - Pointer handling on the canvas element: build the ray from the camera and call `pickSeat`, at most one pick per frame. Hover is live only in `orbit`; a click selects in `orbit` and `fly`; nothing is picked in `pov`. A press that moves more than 5 px before release is a drag, not a click.
   - Colour updates are imperative (a store subscription), rewriting only the instances whose colour changed. Hover must not re-render React components other than the tooltip.
   - The tooltip is a DOM element moved with a transform on pointer move (no React state per move). It sits 12 px from the pointer, flips to stay inside the viewport, uses logical properties for RTL, is `aria-hidden`, fades in over 125 ms on first appearance and swaps content instantly between seats.
   - Before writing the tooltip, read and apply `emil-design-eng`, `animate` and the `impeccable` craft floor (paths in the task prompt). The look is the brief's dark glass: `--sv-night` at 72% with a backdrop blur, sharp corners with one cut corner, a 1 px gold or green border at 35%.
-- [ ] **Step 4: Run the tests and confirm they pass,** then look at screenshots (overview, a hover, Arabic) and fix what looks wrong.
-- [ ] **Step 5: Commit** (`feat(stadiview): 7,998 instanced seats with hover and selection`)
+- [x] **Step 4: Run the tests and confirm they pass,** then look at screenshots (overview, a hover, Arabic) and fix what looks wrong.
+- [x] **Step 5: Commit** (`feat(stadiview): 7,998 instanced seats with hover and selection`)
 
 ### Task 8: The camera rig
 
@@ -553,7 +553,7 @@ it('widens the overview on portrait screens', () => {
   - Debug hook additions: `camera(): { position: Vec3; fov: number }` and `lastFlightStart(): Vec3 | null` (the camera position at the moment the most recent flight began)
   - The back button: `[data-sv-back]`, bottom-centre, shown only in `pov`, with the text of `sv.back` ("Back to stadium overview")
 
-- [ ] **Step 1: Write failing end-to-end tests**
+- [x] **Step 1: Write failing end-to-end tests**
   - Clicking `P3-12-07` changes `state().mode` to `'fly'` and then `'pov'` within 6 s; the camera ends within 0.05 of `seatEye` for that seat and its field of view is 62.
   - Record `camera().position` before selecting. In `pov`, `[data-sv-back]` is visible; clicking it returns `mode` to `'orbit'` and the camera to within 0.5 of the recorded position (the last orbit pose). Pressing Escape does the same.
   - Idle rotation: without `?idle=1` the camera position is unchanged after 1 s; with `?idle=1` it changes, and stops changing after a pointer press.
@@ -564,16 +564,16 @@ it('widens the overview on portrait screens', () => {
   - Resizing the viewport from 1280×800 to 800×1100 in `pov` leaves `mode` as `'pov'` and the camera position unchanged.
   - At 390×844 in the overview, `project('P1-01-01')`, `project('P6-33-14')` and `projectPoint([-46, 1.6, 0])` (the stage) are all on screen.
   - Keyboard: with the canvas focused, the arrow keys move the orbit; in `pov` they turn the view; Escape goes back.
-- [ ] **Step 2: Run them and confirm they fail.**
-- [ ] **Step 3: Implement.**
+- [x] **Step 2: Run them and confirm they fail.**
+- [x] **Step 3: Implement.**
   - **Orbit.** Pointer drag changes theta and phi; wheel and pinch change the radius; limits through `clampOrbit`. An idle rotation of 2° per second runs until the first pointer press, wheel or key, and is skipped under `navigator.webdriver` unless the URL has `?idle=1`. The field of view is `overviewFov(aspect)`; on portrait screens the opening radius grows (up to the 220 limit) until the six blocks and the stage fit.
   - **Fly.** A GSAP tween of one progress value read with the curve's arc-length lookup (`getPointAt`) along a Catmull-Rom curve through `flightPath` (in) or `returnPath` (out): 2.6 s in, 1.8 s out, with the project's strong ease-in-out `cubic-bezier(0.77, 0, 0.175, 1)` through GSAP's `CustomEase`. The look target and field of view blend along the way. A new selection kills the tween and starts from the current pose. Back returns to the orbit pose saved when the first flight began.
   - **Reduced motion or the low-end flag.** A 0.4 s cut: the canvas fades out, the camera is placed, the canvas fades in.
   - **POV.** Yaw and pitch from drag through `clampLook`, with inertia that decays with frame time (none under reduced motion); wheel and pinch change the field of view between 40° and 75°. The opening direction comes from `lookAngles(seatEye, seatLook)`.
   - **Keyboard.** The canvas wrapper is focusable with a visible focus ring. Arrows, plus, minus and Escape.
   - **Back button and hint.** Read and apply `emil-design-eng`, `animate` and the `impeccable` craft floor first. The button is at least 44 px tall, in the HUD glass style, with an arrow icon that flips in RTL; it enters with opacity and a short rise, and scales to 0.97 on press. A hint (`sv.pov.hint`) shows for 4 s on entering `pov`.
-- [ ] **Step 4: Run the tests and confirm they pass,** then look at first-person screenshots from a pitch seat and a south-stand seat, and the phone overview, and fix what looks wrong.
-- [ ] **Step 5: Commit** (`feat(stadiview): orbit, fly-to and first-person camera`)
+- [x] **Step 4: Run the tests and confirm they pass,** then look at first-person screenshots from a pitch seat and a south-stand seat, and the phone overview, and fix what looks wrong.
+- [x] **Step 5: Commit** (`feat(stadiview): orbit, fly-to and first-person camera`)
 
 ### Task 9: Checks, screenshots and notes
 
@@ -583,10 +583,87 @@ it('widens the overview on portrait screens', () => {
 - Modify: `README.md` (a StadiView section: what works after Phase 2, controls, the config file)
 - Modify: `docs/superpowers/plans/2026-11-10-stadiview-phase2.md` (implementation notes)
 
-- [ ] **Step 1: Type check and lint.** `npx tsc --noEmit && npm run lint` should be clean.
-- [ ] **Step 2: Unit tests.** `npx vitest run` should all pass.
-- [ ] **Step 3: Browser tests.** `npx playwright test` should all pass.
-- [ ] **Step 4: Build.** `npm run build` should succeed; the landing chunk must not grow by more than 2 KB gzipped; three, R3F and drei sit in a chunk shared with the honor page; the StadiView code outside that chunk must be at most 120 KB gzipped.
-- [ ] **Step 5: Frame-time measurement** on the production build at 1440×900 and at 390×844 with the CPU slowed 4×: record the median and the share of frames over 50 ms in the overview and in first person, for tiers 1 and 2. Report the numbers; software rendering in the test browser understates a real GPU, so also note that a check on a real phone is still needed.
-- [ ] **Step 6: Screenshots** for the requester in `docs/review/stadiview/`: overview, a hover with the tooltip, first person from a pitch seat, first person from the south stand, and the phone overview.
-- [ ] **Step 7: Commit and push** (`chore(stadiview): Phase 2 checks, screenshots and notes`)
+- [x] **Step 1: Type check and lint.** `npx tsc --noEmit && npm run lint` should be clean.
+- [x] **Step 2: Unit tests.** `npx vitest run` should all pass.
+- [x] **Step 3: Browser tests.** `npx playwright test` should all pass.
+- [x] **Step 4: Build.** `npm run build` should succeed; the landing chunk must not grow by more than 2 KB gzipped; three, R3F and drei sit in a chunk shared with the honor page; the StadiView code outside that chunk must be at most 120 KB gzipped.
+- [x] **Step 5: Frame-time measurement** on the production build at 1440×900 and at 390×844 with the CPU slowed 4×: record the median and the share of frames over 50 ms in the overview and in first person, for tiers 1 and 2. Report the numbers; software rendering in the test browser understates a real GPU, so also note that a check on a real phone is still needed.
+- [x] **Step 6: Screenshots** for the requester in `docs/review/stadiview/`: overview, a hover with the tooltip, first person from a pitch seat, first person from the south stand, and the phone overview.
+- [x] **Step 7: Commit and push** (`chore(stadiview): Phase 2 checks, screenshots and notes`)
+
+---
+
+## Implementation notes (11 Nov 2026)
+
+All nine tasks are done and pushed to `claude/friendly-hopper-2kwm8r`.
+
+| Task | Commit |
+|---|---|
+| 1. Venue config and pitch layout | `50274b2` |
+| 2. Stands and the assembled venue | `e750620` |
+| 3. Picking maths | `5b1302b` |
+| 4. Camera maths | `94f3850` |
+| 5. Store and device tiers | `8ac1142` |
+| 6. Route and static stadium | `c23c4d1` |
+| 7. Instanced seats, hover, selection | `feat(stadiview): 7,998 instanced seats with hover and selection` |
+| 8. Camera rig | `feat(stadiview): orbit, fly-to and first-person camera` |
+| 9. Checks, screenshots, notes | this commit |
+
+### How it was checked
+
+- **Unit tests:** 581 pass (was 219 before StadiView). 362 of them are StadiView's.
+- **Browser tests:** 205 pass (160 before). 45 are StadiView's: 25 for the route, the fallbacks, hover and the tooltip; 20 for the camera.
+- **Independent review of Tasks 1 to 5** (the layout and the maths everything else stands on):
+  - A separate reference written in Python recomputed all 7,998 seats from the design's numbers. It matches the layout seat for seat (worst difference 3.8 millionths of a metre, which is 32-bit rounding), for the baseline and for 21 changed configs (more rows, fewer seats per row, flipped zone order, a block with no seats, a reshaped east curve, and so on).
+  - 49,000 pointer rays of seven kinds (orbit, first person, level, grazing a chair's corner, straight down, the east curve from every side, reshaped venues) were compared with a brute-force test of every chair box. There was no disagreement.
+  - The "KFUPM" lettering was printed seat by seat and reads left to right and upright from the pitch and from the opening camera.
+- **Scene geometry tests:** every stand seat has a level tread under it at its own height; every wall that blocks the pointer is drawn; every pitch seat and bay stands on a pad.
+
+### Numbers
+
+| What | Result | Budget |
+|---|---|---|
+| Draw calls in the overview | 22 on tier 1, 23 to 25 on tiers 2 and 3 | 80 |
+| Triangles in the overview | about 166,000 | 450,000 |
+| Landing page download (gzipped) | 178.3 KB before, 179.4 KB after: **+1.15 KB** | +2 KB |
+| StadiView's own code (gzipped) | 35.3 KB (page 7.0, scene 25.9, styles 2.4) | 120 KB |
+| three.js, R3F and drei | one 242 KB chunk shared with the honor page | shared |
+
+**Frame times** (production build, `scripts/stadiview-frames.cjs`, processor slowed 4 times):
+
+| Screen | Tier | The page's own work per frame, median / worst | Between frames, median |
+|---|---|---|---|
+| Desktop 1440×900 | 1 | 3.5 ms / 7.9 ms | 283 ms |
+| Desktop 1440×900 | 2 | 3.2 ms / 5.7 ms | 417 ms |
+| Phone 390×844 | 1 | 2.9 ms / 8.2 ms | 167 ms |
+| Phone 390×844 | 2 | 3.6 ms / 6.2 ms | 233 ms |
+
+- "The page's own work" is the camera, the seat search, React and sending the draw commands. At under 4 ms on a processor slowed four times, it leaves nearly the whole 16.7 ms frame to the graphics chip.
+- "Between frames" is not a real result. This container has no graphics card, so the browser draws 166,000 triangles in software. On a device with any graphics chip of the last several years this scene is light.
+- **Still needed: a check on a real mid-range phone.** Nothing here can stand in for it.
+
+### What changed from the plan, and why
+
+1. **Neutral tone mapping, not ACES filmic.** ACES darkens and greys the brand greens. Neutral shows a colour as painted until it nears white.
+2. **HUD shapes.** One 5° cut corner cannot be drawn at a true 5° on a panel of any size: it comes out as a sliver. Instead there are two shapes. A *plate* is a small glass strip whose ends lean 5°, like one Matrix bar (title, buttons, tooltip, hint). A *card* is a larger glass rectangle with sharp corners and a strip of Matrix bars along its top (the fallback; Phase 3's panels).
+3. **The chair has 20 triangles, not 24,** and seats use an unlit material with painted shading instead of Lambert. That is cheaper 7,998 times over and gives exact palette colours. Chairs read the same floodlight function as the concrete, so they are lit alike.
+4. **The seating floor is dark and the track is sand-coloured.** Sand under green chairs looked washed out; a dark floor makes the seat blocks and the lettering stand out, and the warm track frames the pitch.
+5. **Light shafts from the masts are drawn on tiers 2 and 3 only.** Tier 1 keeps the halos. Large see-through surfaces are the costliest thing for a weak graphics chip.
+6. **Flights keep their own time.** The plan had a GSAP tween drive the flight. GSAP stretches time after a slow frame, and on a device that draws slowly a 2.6 s flight could then last a minute. The rig now advances the flight by at most a quarter of a second per drawn frame and uses GSAP only for the easing curve.
+7. **Seats under the VIP canopy are reached from the front.** Task 4 found that the usual approach (from behind and above) passes through the roof for all 300 of them. `frontFlightPath` and `frontReturnPath` bring the camera in and out under the roof's edge; all 300 are tested against chairs, walls and the roof.
+8. **On an upright phone the overview backs away** along its own line of sight until the six blocks and the stage fit (`engine/framing.ts`). On landscape screens the opening pose is exactly the configured (72, 64, −88).
+9. **The demo console sits under the top row on this page,** so the bottom of the screen is free for the back button now and the seat matrix in Phase 3.
+10. **Lint:** the rule against changing values handed out by hooks is off for `src/features/stadiview/scene/` only. three.js objects are changed in place by design.
+
+Extras the plan left to the builder: the crest panel on the backdrop, the "Stadium & Journey" pattern on the back of the VIP box, gate portals, the campus skyline with the university tower, the ceremonial runner down the central aisle, the entrance mat in the east gap, the ramp to the accessibility platform.
+
+Files added beyond the plan's list: `scene/meshBuilder.ts`, `scene/sceneKit.ts`, `scene/palette.ts`, `scene/stageArt.ts`, `scene/SceneDebug.tsx`, `hud/pointerAnchor.ts`, `engine/framing.ts`, `scripts/stadiview-frames.cjs`, `scripts/landing-weight.cjs`.
+
+### For Phase 3
+
+- **Translations.** The stadium's strings are in the main dictionaries, which the landing page downloads (+1.15 KB so far). Phase 3 adds many more. Move StadiView's strings to a dictionary loaded with the stadium page, or the landing budget will be passed.
+- **No WebGL.** Tier 0 shows a message and a way back. The spec's full-screen 2D matrix for these devices belongs to Phase 3.
+- **Seat state.** `colorFor` knows only hover and selection. Booked, held and blocked colours, and filters, extend it there; `Seats.tsx` already repaints only the seats that change.
+- **Reuse.** `seatWords` (in `hud/SeatTooltip.tsx`) gives the words for any seat and is what the inspector needs. `window.__stadiview` can project any seat to the screen for tests.
+- **Selecting the seat one is sitting in** only turns the view back to the stage. The 2D matrix can rely on that.
+- **The first-person view of a pitch seat** is rows of chair backs until the avatars arrive in Phase 4.

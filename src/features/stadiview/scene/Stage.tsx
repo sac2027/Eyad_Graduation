@@ -22,7 +22,7 @@ const CREST = { width: 14.4, height: 4.5, above: 5.6 }
 
 /** How long each LED slide stays, and how long the change between two takes, in seconds. */
 const SLIDE_HOLD = 7
-const SLIDE_FADE = 1.2
+const SLIDE_FADE = 0.6
 
 interface StageParts {
   lit: BufferGeometry

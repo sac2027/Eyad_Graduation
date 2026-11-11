@@ -30,7 +30,7 @@ export const CHAIR_PROFILE: [number, number][] = [
  * the scene's lamps (that would cost a phone too much for 7,998 chairs), so the shading a lamp
  * would give is painted on instead: tops full, upright faces dimmer, the rear dimmest.
  */
-const SHADE = { seat: 1, backFront: 0.9, backTop: 1, front: 0.76, side: 0.7, rear: 0.7 }
+const SHADE = { seat: 1, backFront: 0.9, backTop: 1, front: 0.76, side: 0.7, rear: 0.72 }
 
 /**
  * Upright faces also darken toward the floor, as they would in the shadow between rows: this much
@@ -40,6 +40,13 @@ const SHADE = { seat: 1, backFront: 0.9, backTop: 1, front: 0.76, side: 0.7, rea
  */
 const FLOOR_SHADE = 0.42
 const TOP = Math.max(...CHAIR_PROFILE.map((p) => p[1]))
+/**
+ * The rear of the back rest is drawn in two parts: a band along its top at nearly full strength,
+ * like a top rail catching the light, and the rest fading to the floor. Seen from the row behind,
+ * the bands are what make a block of chairs read as rows. This is the height where they meet.
+ */
+const RAIL = 0.8
+const RAIL_SHADE = 0.94
 
 /** The outline cut into triangles. The corner where the seat meets the back rest points inward, so a simple fan would spill outside it. */
 const SIDE_TRIANGLES = [
@@ -49,8 +56,8 @@ const SIDE_TRIANGLES = [
   [2, 4, 5],
 ]
 
-/** Triangles in one chair. */
-export const CHAIR_TRIANGLES = 5 * 2 + SIDE_TRIANGLES.length * 2
+/** Triangles in one chair: five strips across it, the rear one in two parts, and the two sides. */
+export const CHAIR_TRIANGLES = 6 * 2 + SIDE_TRIANGLES.length * 2
 
 export function chairGeometry(): BufferGeometry {
   const positions: number[] = []
@@ -59,7 +66,8 @@ export function chairGeometry(): BufferGeometry {
   const P = CHAIR_PROFILE
 
   // One triangle, wound so that its lit side looks along `out` (a rough direction is enough).
-  const tri = (a: number[], b: number[], c: number[], out: [number, number, number], shade: number) => {
+  // `flat` keeps one shade over the whole face; otherwise it fades toward the floor.
+  const tri = (a: number[], b: number[], c: number[], out: [number, number, number], shade: number, flat = shade === 1) => {
     const ux = b[0] - a[0]
     const uy = b[1] - a[1]
     const uz = b[2] - a[2]
@@ -67,11 +75,10 @@ export function chairGeometry(): BufferGeometry {
     const vy = c[1] - a[1]
     const vz = c[2] - a[2]
     const facing = (uy * vz - uz * vy) * out[0] + (uz * vx - ux * vz) * out[1] + (ux * vy - uy * vx) * out[2]
-    // Faces that look up keep one shade; the others fade toward the floor.
-    const upward = shade === 1
+    // Faces that look up keep one shade; upright ones fade toward the floor.
     for (const p of facing >= 0 ? [a, b, c] : [a, c, b]) {
       positions.push(p[0], p[1], p[2])
-      const k = upward ? shade : shade * (FLOOR_SHADE + (1 - FLOOR_SHADE) * (p[1] / TOP))
+      const k = flat ? shade : shade * (FLOOR_SHADE + (1 - FLOOR_SHADE) * (p[1] / TOP))
       colors.push(k, k, k)
     }
   }
@@ -89,8 +96,16 @@ export function chairGeometry(): BufferGeometry {
     const [z1, y1] = P[k + 1]
     // Outward from the outline: a quarter turn from its direction of travel, on the side away from the chair's inside.
     const out: [number, number, number] = [0, z1 - z0, -(y1 - y0)]
-    tri([-w, y0, z0], [w, y0, z0], [w, y1, z1], out, shade)
-    tri([-w, y0, z0], [w, y1, z1], [-w, y1, z1], out, shade)
+    const strip = (za: number, ya: number, zb: number, yb: number, tone: number, flat?: boolean) => {
+      tri([-w, ya, za], [w, ya, za], [w, yb, zb], out, tone, flat)
+      tri([-w, ya, za], [w, yb, zb], [-w, yb, zb], out, tone, flat)
+    }
+    if (shade === SHADE.rear) {
+      // The rear runs from the top of the back rest down to the floor: the rail first, then the rest.
+      const zRail = z0 + ((z1 - z0) * (y0 - RAIL)) / (y0 - y1)
+      strip(z0, y0, zRail, RAIL, RAIL_SHADE, true)
+      strip(zRail, RAIL, z1, y1, shade)
+    } else strip(z0, y0, z1, y1, shade)
   }
 
   // The two sides.

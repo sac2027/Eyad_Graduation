@@ -11,6 +11,7 @@ import { Floodlights } from '@/features/stadiview/scene/Floodlights'
 import { Ground } from '@/features/stadiview/scene/Ground'
 import { SV } from '@/features/stadiview/scene/palette'
 import { SceneDebug } from '@/features/stadiview/scene/SceneDebug'
+import { SeatMarker } from '@/features/stadiview/scene/SeatMarker'
 import { createSceneKit, disposeSceneKit, SceneKitContext } from '@/features/stadiview/scene/sceneKit'
 import { Seats } from '@/features/stadiview/scene/Seats'
 import { Sky, SKY_RADIUS } from '@/features/stadiview/scene/Sky'
@@ -133,6 +134,7 @@ function Scene({ tier, still, onReady, onLost }: Omit<StadiumCanvasProps, 'label
       <Stage animate={!still} />
       <Floodlights cones={tier >= 2} />
       <Seats />
+      <SeatMarker still={still} />
       <Pointer />
       <CameraRig still={still} />
       <Lifecycle onReady={onReady} onLost={onLost} />

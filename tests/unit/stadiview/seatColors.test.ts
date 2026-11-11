@@ -8,7 +8,7 @@ const idle = { hover: -1, selected: -1 }
 
 describe('seat colours', () => {
   it('uses the palette: green on the pitch, deep green in the stands, sand for the lettering, gold for the chosen seat', () => {
-    expect(SEAT_COLORS).toEqual({ pitch: '#009C5A', stand: '#005A50', letter: '#E8DEC3', active: '#E7A614' })
+    expect(SEAT_COLORS).toEqual({ pitch: '#009C5A', stand: '#005A50', letter: '#E8DEC3', active: '#E7A614', taken: '#1F3F38', mine: '#E7A614' })
   })
 
   it('paints graduate seats and wheelchair bays green', () => {
@@ -55,6 +55,24 @@ describe('seat colours', () => {
     expect(colorFor(pitch, v, idle)).toBe('#009C5A')
     expect(colorFor(pitch, v, { hover: pitch + 1, selected: pitch - 1 })).toBe('#009C5A')
     expect(colorFor(v.indexOf('S-10-009'), v, { hover: pitch, selected: pitch })).toBe('#E8DEC3')
+  })
+
+  it('shows who holds a graduate seat: dark for someone else, gold for the viewer', () => {
+    const pitch = v.indexOf('P3-12-07')
+    expect(colorFor(pitch, v, { ...idle, status: 'taken' })).toBe('#1F3F38')
+    expect(colorFor(pitch, v, { ...idle, status: 'mine' })).toBe('#E7A614')
+    expect(colorFor(pitch, v, { ...idle, status: 'available' })).toBe('#009C5A')
+    expect(colorFor(v.indexOf('P3-A1'), v, { ...idle, status: 'taken' })).toBe('#1F3F38')
+    // A stand seat is never "taken" in this sense; a guest's own ticket seat is gold.
+    expect(colorFor(v.indexOf('S-01-001'), v, { ...idle, status: 'taken' })).toBe('#005A50')
+    expect(colorFor(v.indexOf('S-01-001'), v, { ...idle, status: 'mine' })).toBe('#E7A614')
+  })
+
+  it('turns the inspected seat gold, and gold wins over taken', () => {
+    const pitch = v.indexOf('P3-12-07')
+    expect(colorFor(pitch, v, { ...idle, inspected: pitch, status: 'taken' })).toBe('#E7A614')
+    expect(colorFor(pitch, v, { hover: pitch, selected: -1, status: 'taken' })).toBe('#E7A614')
+    expect(colorFor(pitch + 1, v, { ...idle, inspected: pitch, status: 'available' })).toBe('#009C5A')
   })
 
   it('reads the lettering from the config the layout was built from', () => {

@@ -28,4 +28,9 @@ export const ar: Record<string, string> = {
   'sv.back': 'العودة إلى مشهد الملعب',
   'sv.pov.from': 'أنت الآن في مقعدك. المشهد من:',
   'sv.pov.hint': 'اسحب لتنظر حولك',
+  'sv.role.label': 'عرض الملعب بصفة',
+  'sv.role.graduate': 'خريج',
+  'sv.role.guest': 'ضيف',
+  'sv.status.taken': 'محجوز',
+  'sv.status.mine': 'مقعدك',
 }

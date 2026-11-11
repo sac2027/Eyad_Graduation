@@ -7,10 +7,17 @@ import { useDemoFlags } from '@/features/demo-console/flags'
 import { extendDebugHook, installDebugHook, removeDebugHook } from '@/features/stadiview/debugHook'
 import { BackButton } from '@/features/stadiview/hud/BackButton'
 import { PovHint } from '@/features/stadiview/hud/PovHint'
+import { RoleSwitch } from '@/features/stadiview/hud/RoleSwitch'
 import { SeatTooltip } from '@/features/stadiview/hud/SeatTooltip'
+import { pitchSeats } from '@/features/stadiview/data/pitchSeatService'
+import { getDirectory } from '@/features/stadiview/data/graduateDirectory'
+import { getVenue } from '@/features/stadiview/layout/venueLayout'
+import { useHud } from '@/features/stadiview/state/hudStore'
 import { useStadium } from '@/features/stadiview/state/stadiumStore'
 import { useTier } from '@/features/stadiview/useTier'
 import { useLocale, useT } from '@/i18n'
+import { useSession } from '@/session/sessionStore'
+import { getNow } from '@/time/clockStore'
 import { useReducedMotion } from '@/ui/motionPrefs'
 import './stadiview.css'
 
@@ -47,8 +54,57 @@ export default function StadiViewPage() {
     return () => document.documentElement.classList.remove('sv-locked')
   }, [])
 
-  // The store outlives the page; leave it as a new visitor should find it.
-  useEffect(() => () => useStadium.setState(useStadium.getInitialState(), true), [])
+  // The stores outlive the page; leave them as a new visitor should find them.
+  useEffect(
+    () => () => {
+      useStadium.setState(useStadium.getInitialState(), true)
+      useHud.getState().reset()
+    },
+    [],
+  )
+
+  // The role follows the persona: a graduate opens in graduate mode, anyone else as a guest. A
+  // change of persona also drops the inspected seat, so nobody is shown the previous person's seat as theirs.
+  const { persona } = useSession()
+  useEffect(() => {
+    const hud = useHud.getState()
+    hud.inspect(-1)
+    hud.setPanel('none')
+    hud.setGuest({ ticketSeat: -1, graduate: -1 })
+    useHud.setState({ role: persona.role === 'graduate' ? 'graduate' : 'guest' })
+  }, [persona.id, persona.role])
+
+  useEffect(() => {
+    const v = getVenue()
+    const viewerNow = () => {
+      const hud = useHud.getState()
+      return hud.role === 'graduate' && persona.role === 'graduate' ? getDirectory().byPersona(persona.id) : null
+    }
+    const seatInZone = (like: number, wanted: 'available' | 'taken', skip: number): string | null => {
+      const zone = like >= 0 ? v.zones[v.zone[like]] : undefined
+      if (!zone) return null
+      let seen = 0
+      for (let k = zone.start; k < zone.start + zone.count; k++) {
+        if (pitchSeats().statusOf(k, viewerNow(), getNow()) === wanted && seen++ === skip) return v.idOf(k)
+      }
+      return null
+    }
+    extendDebugHook({
+      inspect: (seatId) => useHud.getState().inspect(v.indexOf(seatId)),
+      hud: () => {
+        const h = useHud.getState()
+        return { role: h.role, inspected: v.idOf(h.inspected) || null, panel: h.panel }
+      },
+      status: (seatId) => pitchSeats().statusOf(v.indexOf(seatId), viewerNow(), getNow()),
+      // For tests: a free or a taken seat in the same zone as the seat named, and the viewer's own seat.
+      freeSeat: (zoneOf, skip = 0) => seatInZone(v.indexOf(zoneOf), 'available', skip),
+      takenSeat: (zoneOf) => seatInZone(v.indexOf(zoneOf), 'taken', 0),
+      mySeat: () => {
+        const g = viewerNow()
+        return g ? v.idOf(pitchSeats().seatOf(g, getNow())) || null : null
+      },
+    })
+  }, [persona])
 
   const onReady = useCallback(() => {
     setReady(true)
@@ -88,7 +144,8 @@ export default function StadiViewPage() {
             <p>{t('sv.tagline')}</p>
           </div>
         </div>
-        <button type="button" className="sv-plate sv-button" onClick={() => setLocale(locale === 'ar' ? 'en' : 'ar')} lang={locale === 'ar' ? 'en' : 'ar'} data-sv-language>
+        <RoleSwitch />
+        <button type="button" className="sv-plate sv-button sv-top__language" onClick={() => setLocale(locale === 'ar' ? 'en' : 'ar')} lang={locale === 'ar' ? 'en' : 'ar'} data-sv-language>
           {t('nav.language')}
         </button>
       </header>

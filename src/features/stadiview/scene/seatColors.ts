@@ -13,9 +13,26 @@ export const SEAT_COLORS = {
   stand: SV.deep,
   /** The seats that spell the university's name across the lettered stand. */
   letter: SV.sand,
-  /** The seat under the pointer, and the seat that was picked. */
+  /** The seat under the pointer, and the seat that was picked or is being inspected. */
   active: SV.gold,
+  /** A graduate seat someone else has booked: dark, so the free seats stand out. */
+  taken: '#1F3F38',
+  /** The viewer's own seat. */
+  mine: SV.gold,
 } as const
+
+/** How strongly a seat outside the graduate's own zone is drawn, and one the filters leave out. */
+export const ZONE_DIM = 0.6
+export const FILTER_DIM = 0.25
+
+export interface SeatLook {
+  hover: number
+  selected: number
+  /** The seat the inspector shows; -1 or left out for none. */
+  inspected?: number
+  /** Whether the seat is free, someone else's, or the viewer's. Left out, a seat is free. */
+  status?: 'available' | 'taken' | 'mine'
+}
 
 /**
  * A seat's own colour, before any highlight. `cfg` is the config the layout was built from; it
@@ -28,7 +45,13 @@ export function baseColor(i: number, v: VenueLayout, cfg: VenueConfig = VENUE): 
   return lettered && southLetterMask(v.row[i], v.number[i], cfg) ? SEAT_COLORS.letter : SEAT_COLORS.stand
 }
 
-/** The colour a seat is drawn in right now: gold when it is hovered or selected, otherwise its own. */
-export function colorFor(i: number, v: VenueLayout, s: { hover: number; selected: number }, cfg: VenueConfig = VENUE): string {
-  return i === s.hover || i === s.selected ? SEAT_COLORS.active : baseColor(i, v, cfg)
+/**
+ * The colour a seat is drawn in right now. Gold for the seat that is hovered, picked or inspected
+ * and for the viewer's own; dark for a graduate seat someone else holds; otherwise its own colour.
+ */
+export function colorFor(i: number, v: VenueLayout, s: SeatLook, cfg: VenueConfig = VENUE): string {
+  if (i === s.hover || i === s.selected || i === s.inspected) return SEAT_COLORS.active
+  if (s.status === 'mine') return SEAT_COLORS.mine
+  if (s.status === 'taken' && v.kind[i] !== SeatKind.Stand) return SEAT_COLORS.taken
+  return baseColor(i, v, cfg)
 }

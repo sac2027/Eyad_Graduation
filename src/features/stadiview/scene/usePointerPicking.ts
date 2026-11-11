@@ -5,6 +5,7 @@ import { pickSeat } from '@/features/stadiview/engine/picking'
 import type { Ray } from '@/features/stadiview/engine/picking'
 import { setPointerAnchor } from '@/features/stadiview/hud/pointerAnchor'
 import { getVenue } from '@/features/stadiview/layout/venueLayout'
+import { useHud } from '@/features/stadiview/state/hudStore'
 import { useStadium } from '@/features/stadiview/state/stadiumStore'
 
 /** A press that travels further than this before it is released is a drag, not a click. In CSS pixels. */
@@ -94,7 +95,10 @@ export function usePointerPicking(): void {
       const store = useStadium.getState()
       if (store.mode === 'pov') return
       const i = seatAt(e.clientX, e.clientY)
-      if (i >= 0) store.select(i)
+      if (i < 0) return
+      // A click on a seat in 3D shows it in the inspector and flies in.
+      useHud.getState().inspect(i)
+      store.select(i)
     }
     const cancel = () => {
       s.down = 0

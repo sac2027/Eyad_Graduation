@@ -290,3 +290,36 @@ html[data-motion='reduced'] .sv-tip__plate, html[data-motion='reduced'] .sv-tip[
   .sv-dock > *, .sv-hint > *, .sv-dock[data-open] > *, .sv-hint[data-open] > * { transform: none; }
 }
 html[data-motion='reduced'] .sv-dock > *, html[data-motion='reduced'] .sv-hint > * { transform: none !important; }
+
+/* ---- The role switch ---- */
+
+.sv-role { display: inline-flex; align-items: center; gap: 2px; margin-inline-start: auto; }
+.sv-role__option { min-width: 0; padding-inline: 16px; }
+/* The chosen role is the filled plate: gold, with night-coloured type. */
+.sv-role__option[aria-pressed='true'] { color: var(--sv-night); }
+.sv-role__option[aria-pressed='true']::before { background: var(--sv-gold); border-color: var(--sv-gold); -webkit-backdrop-filter: none; backdrop-filter: none; }
+.sv-role__name {
+  max-width: 14rem;
+  margin-inline-start: 10px;
+  overflow: hidden;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--sv-sand);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-shadow: 0 1px 6px rgb(6 26 23 / 0.9);
+}
+@media (max-width: 899px) {
+  .sv-role__name { display: none; }
+}
+/* On a phone the top row holds the title and the language; the role switch drops to a row of its own on the right. */
+@media (max-width: 639px) {
+  .sv-top { flex-wrap: wrap; }
+  .sv-top__language { margin-inline-start: auto; }
+  .sv-role { order: 3; width: 100%; justify-content: flex-end; margin: 0; }
+  [dir='rtl'] .sv-role { justify-content: flex-start; }
+  .sv-title h1 { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .sv-title__rule { display: none; }
+}
+.sv-tip__status[data-status='taken'] i { background: #6f8a83; }
+.sv-tip__status[data-status='mine'] i { background: var(--sv-gold); }

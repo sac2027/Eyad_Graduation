@@ -1,14 +1,19 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { Color, InstancedBufferAttribute, InstancedMesh, MeshBasicMaterial } from 'three'
 import { useThree } from '@react-three/fiber'
+import { pitchSeats, usePitchSeats } from '@/features/stadiview/data/pitchSeatService'
+import type { SeatStatus } from '@/features/stadiview/data/pitchSeatService'
+import { SeatKind } from '@/features/stadiview/layout/types'
 import { getVenue } from '@/features/stadiview/layout/venueLayout'
-import { colorFor, SEAT_COLORS } from '@/features/stadiview/scene/seatColors'
+import { colorFor, FILTER_DIM, SEAT_COLORS, ZONE_DIM } from '@/features/stadiview/scene/seatColors'
 import { chairGeometry, seatMatrix } from '@/features/stadiview/scene/seatGeometry'
 import { poolAt } from '@/features/stadiview/scene/sceneKit'
+import { filtersOff, seatMatches, useHud } from '@/features/stadiview/state/hudStore'
+import type { SeatFilters } from '@/features/stadiview/state/hudStore'
 import { useStadium } from '@/features/stadiview/state/stadiumStore'
-import type { CameraMode } from '@/features/stadiview/state/stadiumStore'
+import { useViewer } from '@/features/stadiview/state/useViewer'
 
-/** A hovered or selected chair is drawn this much larger, so one gold seat can be found among thousands. */
+/** A highlighted chair is drawn this much larger, so one gold seat can be found among thousands. */
 const ACTIVE_SCALE = 1.3
 
 /**
@@ -20,15 +25,34 @@ function seatLight(x: number, z: number): number {
   return 0.6 + 0.4 * poolAt(x, z)
 }
 
+/** Everything outside the camera store that decides how a seat looks. */
+interface View {
+  /** The viewer's directory entry and zone, when a graduate is signed in. */
+  graduate: ReturnType<typeof useViewer>['graduate']
+  now: number
+  filters: SeatFilters
+  /** A guest's own stand seat, from their ticket; -1 for none. */
+  ticketSeat: number
+  inspected: number
+}
+
 /**
  * All 7,998 seats, drawn as two instanced meshes: the pitch chairs with the wheelchair bays, and
  * the stand seats. Each mesh is one draw call however many chairs it holds.
  *
- * Nothing here re-renders when the pointer moves. Hover and selection arrive through a store
- * subscription and repaint only the seats that changed.
+ * Hover and selection arrive through a store subscription and repaint only the seats that
+ * changed. A change of time, of bookings, of viewer or of filters repaints them all, which is a
+ * few milliseconds and happens at most once a minute unless someone acts.
  */
 export function Seats() {
   const invalidate = useThree((s) => s.invalidate)
+  const viewer = useViewer()
+  const bookings = usePitchSeats()
+  const filters = useHud((s) => s.filters)
+  const ticketSeat = useHud((s) => s.guest.ticketSeat)
+  const inspected = useHud((s) => s.inspected)
+
+  const view = useRef<View>({ graduate: null, now: 0, filters, ticketSeat: -1, inspected: -1 })
 
   const built = useMemo(() => {
     const v = getVenue()
@@ -45,61 +69,99 @@ export function Seats() {
     const linear = new Map<string, Color>()
     for (const hex of Object.values(SEAT_COLORS)) linear.set(hex, new Color(hex))
 
-    /** Writes seat i's colour and size for the given hover and selection. Returns the mesh it lives in. */
-    const paint = (i: number, state: { hover: number; selected: number; mode: CameraMode }): 0 | 1 => {
+    /** Writes seat i's colour and size. Returns the mesh it lives in. */
+    const paint = (i: number, camera: { hover: number; selected: number; mode: string }): 0 | 1 => {
       const which = i < split ? 0 : 1
       const slot = which === 0 ? i : i - split
       const mesh = meshes[which]
-      const active = i === state.hover || i === state.selected
+      const w = view.current
+      const stand = v.kind[i] === SeatKind.Stand
+      const status: SeatStatus = stand ? (i === w.ticketSeat ? 'mine' : 'available') : pitchSeats().statusOf(i, w.graduate, w.now)
+      const active = i === camera.hover || i === camera.selected || i === w.inspected
       const x = v.position[i * 3]
       const y = v.position[i * 3 + 1]
       const z = v.position[i * 3 + 2]
-      const c = linear.get(colorFor(i, v, state))!
-      // A highlighted seat is shown at full strength wherever it is.
-      const light = active ? 1 : seatLight(x, z)
+      const c = linear.get(colorFor(i, v, { hover: camera.hover, selected: camera.selected, inspected: w.inspected, status }))!
+
+      // A highlighted seat and the viewer's own are shown at full strength wherever they are.
+      // Seats the filters leave out, and graduate seats outside the viewer's own zone, are drawn faint.
+      let light = active || status === 'mine' ? 1 : seatLight(x, z)
+      if (!active && status !== 'mine') {
+        if (!filtersOff(w.filters) && !seatMatches(i, v, w.filters, status)) light *= FILTER_DIM
+        else if (w.graduate && v.kind[i] === SeatKind.Pitch && v.zone[i] !== w.graduate.zone) light *= ZONE_DIM
+      }
       const colors = mesh.instanceColor!.array as Float32Array
       colors[slot * 3] = c.r * light
       colors[slot * 3 + 1] = c.g * light
       colors[slot * 3 + 2] = c.b * light
       // The larger size helps find a seat from far away. Up close, flying in or sitting in it, a swollen chair would only look wrong.
-      const large = active && state.mode === 'orbit'
+      const large = (active || status === 'mine') && camera.mode === 'orbit'
       seatMatrix(mesh.instanceMatrix.array as Float32Array, slot, x, y, z, v.yaw[i], large ? ACTIVE_SCALE : 1)
       return which
     }
 
-    const start = useStadium.getState()
-    for (let i = 0; i < v.count; i++) paint(i, start)
     for (const mesh of meshes) {
-      mesh.instanceMatrix.needsUpdate = true
-      mesh.instanceColor!.needsUpdate = true
-      // The chairs never move as a whole, and their bounds are worked out once from the matrices just written.
+      // The chairs never move as a whole; their matrices are written by `paint`.
       mesh.matrixAutoUpdate = false
-      mesh.computeBoundingSphere()
     }
     return { v, split, geometry, material, meshes, paint }
   }, [])
 
+  // Everything: on the first frame, and whenever time, bookings, the viewer or the filters change.
+  const graduateIndex = viewer.graduate?.index ?? -1
+  const minute = Math.floor(viewer.now / 60_000)
+  useEffect(() => {
+    const { v, meshes, paint } = built
+    view.current = { graduate: viewer.graduate, now: viewer.now, filters, ticketSeat, inspected: useHud.getState().inspected }
+    const camera = useStadium.getState()
+    for (let i = 0; i < v.count; i++) paint(i, camera)
+    for (const mesh of meshes) {
+      mesh.instanceMatrix.needsUpdate = true
+      mesh.instanceColor!.needsUpdate = true
+      if (!mesh.boundingSphere) mesh.computeBoundingSphere()
+    }
+    invalidate()
+    // viewer.graduate and viewer.now are covered by graduateIndex and minute.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [built, graduateIndex, minute, bookings, filters, ticketSeat, invalidate])
+
+  // A few seats: when the pointer, the selection, the camera mode or the inspected seat changes.
   useEffect(() => {
     const { split, meshes, paint } = built
-    // Repaint the seats whose state changed, and send only those to the graphics card.
-    const repaint = (state: { hover: number; selected: number; mode: CameraMode }, previous: { hover: number; selected: number }) => {
-      const touched = new Set<number>()
-      for (const i of [previous.hover, previous.selected, state.hover, state.selected]) if (i >= 0) touched.add(i)
-      for (const i of touched) {
-        const which = paint(i, state)
+    const repaint = (seats: number[]) => {
+      const camera = useStadium.getState()
+      let any = false
+      for (const i of new Set(seats)) {
+        if (i < 0) continue
+        const which = paint(i, camera)
         const slot = which === 0 ? i : i - split
         const mesh = meshes[which]
         mesh.instanceColor!.addUpdateRange(slot * 3, 3)
         mesh.instanceColor!.needsUpdate = true
         mesh.instanceMatrix.addUpdateRange(slot * 16, 16)
         mesh.instanceMatrix.needsUpdate = true
+        any = true
       }
-      if (touched.size > 0) invalidate()
+      if (any) invalidate()
     }
-    // The store may have changed between building the meshes and this effect.
-    repaint(useStadium.getState(), { hover: -1, selected: -1 })
-    return useStadium.subscribe(repaint)
+    const stopCamera = useStadium.subscribe((now, before) => {
+      const mine = view.current.graduate ? pitchSeats().seatOf(view.current.graduate, view.current.now) : -1
+      // The viewer's own seat changes size with the camera mode, like a highlighted one.
+      repaint([before.hover, before.selected, now.hover, now.selected, view.current.inspected, now.mode !== before.mode ? mine : -1, now.mode !== before.mode ? view.current.ticketSeat : -1])
+    })
+    const stopHud = useHud.subscribe((now, before) => {
+      if (now.inspected === before.inspected) return
+      view.current.inspected = now.inspected
+      repaint([before.inspected, now.inspected])
+    })
+    return () => {
+      stopCamera()
+      stopHud()
+    }
   }, [built, invalidate])
+
+  // `inspected` is read by the subscription above; naming it here keeps this component in step if it ever renders first.
+  view.current.inspected = inspected
 
   useEffect(
     () => () => {

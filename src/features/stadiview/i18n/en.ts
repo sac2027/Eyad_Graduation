@@ -28,4 +28,9 @@ export const en: Record<string, string> = {
   'sv.back': 'Back to stadium overview',
   'sv.pov.from': 'You are now seated. The view from:',
   'sv.pov.hint': 'Drag to look around',
+  'sv.role.label': 'View the stadium as',
+  'sv.role.graduate': 'Graduate',
+  'sv.role.guest': 'Guest',
+  'sv.status.taken': 'Taken',
+  'sv.status.mine': 'Your seat',
 }

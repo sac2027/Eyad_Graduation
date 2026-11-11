@@ -2,9 +2,12 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react
 import { COLLEGE_NAMES } from '@/domain/types'
 import { COLLEGE_ID } from '@/features/stadiview/config/venue'
 import { onPointerAnchor, pointerAnchor } from '@/features/stadiview/hud/pointerAnchor'
+import { pitchSeats, usePitchSeats } from '@/features/stadiview/data/pitchSeatService'
+import type { SeatStatus } from '@/features/stadiview/data/pitchSeatService'
 import { NO_ZONE, SeatKind } from '@/features/stadiview/layout/types'
 import { getVenue } from '@/features/stadiview/layout/venueLayout'
 import { useStadium } from '@/features/stadiview/state/stadiumStore'
+import { useViewer } from '@/features/stadiview/state/useViewer'
 import { formatNumber, useLocale, useT } from '@/i18n'
 import type { Locale, TFn } from '@/i18n'
 
@@ -22,7 +25,7 @@ interface SeatWords {
 }
 
 /** The words for one seat, in the brief's order: block, college, row, seat, status. */
-export function seatWords(i: number, t: TFn, locale: Locale): SeatWords {
+export function seatWords(i: number, t: TFn, locale: Locale, status: SeatStatus = 'available'): SeatWords {
   const v = getVenue()
   const n = (value: number) => formatNumber(value, locale)
   const section = v.sections[v.section[i]]
@@ -35,11 +38,11 @@ export function seatWords(i: number, t: TFn, locale: Locale): SeatWords {
   // A pitch block's id is "P" and its number.
   const block = t('sv.tip.block', { n: n(Number(section.id.slice(1))) })
   if (v.kind[i] === SeatKind.AccessBay) {
-    return { place: block, detail: t('sv.tip.bay', { n: n(v.number[i]) }), status: t('sv.status.available') }
+    return { place: block, detail: t('sv.tip.bay', { n: n(v.number[i]) }), status: t(`sv.status.${status}`) }
   }
   const zone = v.zone[i] === NO_ZONE ? null : v.zones[v.zone[i]]
   const college = zone ? `${COLLEGE_NAMES[COLLEGE_ID[zone.college]][locale]} · ${t(`sv.degree.${zone.degree}`)}` : ''
-  return { place: `${block} · ${row} · ${seat}`, detail: college, status: t('sv.status.available') }
+  return { place: `${block} · ${row} · ${seat}`, detail: college, status: t(`sv.status.${status}`) }
 }
 
 /**
@@ -100,7 +103,10 @@ export function SeatTooltip() {
     place(at.x, at.y)
   }, [shown, locale, place])
 
-  const words = shown >= 0 ? seatWords(shown, t, locale) : null
+  const viewer = useViewer()
+  usePitchSeats()
+  const status = shown >= 0 ? pitchSeats().statusOf(shown, viewer.graduate, viewer.now) : 'available'
+  const words = shown >= 0 ? seatWords(shown, t, locale, status) : null
 
   return (
     <div ref={outer} className="sv-tip" data-seat-tooltip data-open={hover >= 0 ? '' : undefined} aria-hidden="true">
@@ -112,7 +118,7 @@ export function SeatTooltip() {
               {words.detail && <span>{words.detail}</span>}
             </div>
             {words.status && (
-              <span className="sv-tip__status">
+              <span className="sv-tip__status" data-status={status}>
                 <i />
                 {words.status}
               </span>

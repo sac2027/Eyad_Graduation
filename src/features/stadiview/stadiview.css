@@ -1,0 +1,178 @@
+/*
+ * KFUPM StadiView: the "Prestige Graduation Night" theme.
+ *
+ * Everything here is scoped to the stadium page's root, so the rest of the site keeps the
+ * university's brand colours. Two shapes carry the look:
+ * - a plate: a small glass strip whose ends lean 5 degrees, like one bar of the FAST Matrix.
+ *   Titles, buttons and tooltips are plates.
+ * - a card: a larger glass rectangle with sharp corners and a strip of Matrix bars along its top.
+ */
+
+[data-theme='stadiview'] {
+  --sv-night: #061a17;
+  --sv-deep: #005a50;
+  --sv-green: #009c5a;
+  --sv-gold: #e7a614;
+  --sv-sand: #e8dec3;
+  --sv-white: #ffffff;
+
+  --sv-glass: rgb(6 26 23 / 0.72);
+  --sv-glass-solid: rgb(6 26 23 / 0.9);
+  --sv-line-gold: rgb(231 166 20 / 0.35);
+  --sv-line-gold-strong: rgb(231 166 20 / 0.8);
+  --sv-line-green: rgb(0 156 90 / 0.35);
+  /* Sand at full strength is for headings; body copy on glass uses it a step softer. */
+  --sv-text-soft: rgb(232 222 195 / 0.88);
+  --sv-blur: blur(14px) saturate(1.25);
+  /* The brand's lean. It is the same in Arabic and English: the Matrix is never mirrored. */
+  --sv-lean: skewX(-5deg);
+  --sv-edge: 16px;
+
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: var(--sv-night);
+  color: var(--sv-white);
+  font-family: var(--font-body);
+  color-scheme: dark;
+  -webkit-tap-highlight-color: transparent;
+}
+
+[data-theme='stadiview'] ::selection { background: var(--sv-gold); color: var(--sv-night); }
+[data-theme='stadiview'] :focus-visible { outline: 2px solid var(--sv-gold); outline-offset: 3px; }
+
+/* While the stadium is open the page itself must not scroll: the wheel and the finger belong to the camera. */
+html.sv-locked, html.sv-locked body { overflow: hidden; overscroll-behavior: none; }
+
+/* The 3D picture fills the whole screen; every HUD element floats over it. */
+.sv-stage { position: absolute; inset: 0; }
+.sv-stage canvas { display: block; }
+
+/* ---- Plates ---- */
+
+.sv-plate {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  padding: 6px 18px;
+  color: var(--sv-white);
+  text-decoration: none;
+}
+.sv-plate::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  transform: var(--sv-lean);
+  background: var(--sv-glass);
+  border: 1px solid var(--sv-line-gold);
+  -webkit-backdrop-filter: var(--sv-blur);
+  backdrop-filter: var(--sv-blur);
+  transition: border-color 160ms ease, background-color 160ms ease;
+}
+
+/* A plate that can be pressed. */
+.sv-button {
+  font: 700 0.9375rem/1 var(--font-display);
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  background: none;
+  border: 0;
+  transition: transform 160ms var(--ease-out-strong), color 160ms ease;
+}
+.sv-button:active { transform: scale(0.97); }
+@media (hover: hover) and (pointer: fine) {
+  .sv-button:hover { color: var(--sv-gold); }
+  .sv-button:hover::before { border-color: var(--sv-line-gold-strong); }
+}
+/* The one filled button of a group: gold, with night-coloured type (white on gold is too faint to read). */
+.sv-button--gold { color: var(--sv-night); }
+.sv-button--gold::before { background: var(--sv-gold); border-color: var(--sv-gold); -webkit-backdrop-filter: none; backdrop-filter: none; }
+@media (hover: hover) and (pointer: fine) {
+  .sv-button--gold:hover { color: var(--sv-night); }
+  .sv-button--gold:hover::before { background: #f3b824; }
+}
+
+/* ---- The top of the screen ---- */
+
+.sv-top {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: 0;
+  z-index: 10;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: max(12px, env(safe-area-inset-top)) max(var(--sv-edge), env(safe-area-inset-right)) 0 max(var(--sv-edge), env(safe-area-inset-left));
+  /* The bar itself is empty air: only the plates on it take the pointer. */
+  pointer-events: none;
+}
+.sv-top > * { pointer-events: auto; }
+
+.sv-title { min-width: 0; padding-inline: 14px 20px; gap: 14px; }
+.sv-title__home { display: inline-flex; align-items: center; min-height: 44px; --logo-h: 22px; }
+.sv-title__rule { align-self: stretch; width: 1px; margin-block: 8px; background: var(--sv-line-gold); transform: var(--sv-lean); }
+.sv-title__words { display: flex; min-width: 0; flex-direction: column; gap: 3px; }
+.sv-title h1 { margin: 0; font: 700 1.0625rem/1.1 var(--font-display); letter-spacing: 0.01em; white-space: nowrap; }
+.sv-title p { margin: 0; font-size: 0.8125rem; line-height: 1.2; color: var(--sv-text-soft); white-space: nowrap; }
+@media (max-width: 639px) {
+  .sv-title p { display: none; }
+  .sv-title { padding-inline: 10px 14px; gap: 10px; }
+  .sv-title__home { --logo-h: 18px; }
+}
+
+/* ---- Cards ---- */
+
+.sv-card {
+  position: relative;
+  background: var(--sv-glass-solid);
+  border: 1px solid var(--sv-line-gold);
+  -webkit-backdrop-filter: var(--sv-blur);
+  backdrop-filter: var(--sv-blur);
+  box-shadow: 0 18px 48px rgb(0 0 0 / 0.45);
+}
+/* A strip of Matrix bars: three weights, leaning 5 degrees. */
+.sv-matrix {
+  height: 10px;
+  background-color: var(--sv-deep);
+  background-image: repeating-linear-gradient(
+    95deg,
+    transparent 0 5px, var(--sv-gold) 5px 12px, transparent 12px 17px, var(--sv-gold) 17px 24px, transparent 24px 29px, var(--sv-gold) 29px 36px,
+    transparent 36px 46px, var(--sv-gold) 46px 48px, transparent 48px 58px, var(--sv-gold) 58px 60px, transparent 60px 70px, var(--sv-gold) 70px 72px,
+    transparent 72px 80px, var(--sv-gold) 80px 84px, transparent 84px 92px, var(--sv-gold) 92px 96px, transparent 96px 104px, var(--sv-gold) 104px 108px,
+    transparent 108px 144px
+  );
+}
+
+/* ---- Loading and fallback ---- */
+
+.sv-centre {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  padding: 88px var(--sv-edge) 96px;
+  pointer-events: none;
+}
+.sv-centre > * { pointer-events: auto; }
+
+.sv-loading { gap: 14px; padding-inline: 22px; font: 700 0.9375rem/1 var(--font-display); color: var(--sv-sand); }
+.sv-loading__bars { display: inline-flex; gap: 4px; height: 18px; transform: var(--sv-lean); }
+.sv-loading__bars i { width: 4px; background: var(--sv-gold); transform-origin: bottom; animation: sv-bar 900ms var(--ease-in-out-strong) infinite alternate; }
+.sv-loading__bars i:nth-child(1) { width: 2px; }
+.sv-loading__bars i:nth-child(2) { animation-delay: 150ms; }
+.sv-loading__bars i:nth-child(3) { width: 7px; animation-delay: 300ms; }
+@keyframes sv-bar { from { transform: scaleY(0.35); } to { transform: scaleY(1); } }
+html[data-motion='reduced'] .sv-loading__bars i { animation: none; }
+@media (prefers-reduced-motion: reduce) { .sv-loading__bars i { animation: none; } }
+
+.sv-fallback { width: min(100%, 30rem); }
+.sv-fallback__body { padding: 22px 24px 24px; }
+.sv-fallback h2 { margin: 0 0 10px; font: 700 1.375rem/1.2 var(--font-display); text-wrap: balance; }
+.sv-fallback p { margin: 0 0 22px; max-width: 46ch; font-size: 1rem; line-height: 1.6; color: var(--sv-text-soft); text-wrap: pretty; }
+.sv-fallback__actions { display: flex; flex-wrap: wrap; gap: 14px; }

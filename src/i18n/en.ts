@@ -413,4 +413,18 @@ export const en: Record<string, string> = {
   'admin.err.duplicate': 'That ID is already added.',
   'admin.added': 'Added',
   'admin.empty': 'No exceptional cases yet.',
+
+  // StadiView: the 3D stadium page.
+  'nav.stadium': 'Stadium',
+  'sv.title': 'StadiView',
+  'sv.tagline': 'Find your seat. See your moment.',
+  'sv.home': 'Back to the graduation site',
+  'sv.canvas.label': 'A 3D view of the KFUPM stadium on graduation night: the stage at the west end, six blocks of graduate seats on the pitch, and the family stands around them.',
+  'sv.loading': 'Lighting the stadium…',
+  'sv.fallback.title': 'The 3D stadium cannot run on this device',
+  'sv.fallback.body': 'This browser has 3D graphics switched off, or does not support them. Open this page on another device or browser to see the stadium.',
+  'sv.fallback.home': 'Back to the graduation site',
+  'sv.lost.title': 'The 3D view stopped',
+  'sv.lost.body': 'Your device took back the graphics memory the stadium was using. Reload the view to carry on.',
+  'sv.lost.retry': 'Reload the 3D view',
 }

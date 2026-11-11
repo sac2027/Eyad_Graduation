@@ -79,6 +79,18 @@ export function SeatMatrix({ canFly }: { canFly: boolean }) {
     [redraw],
   )
 
+  // Other panels can ask the matrix to show a part of the venue ("Change seat" shows the graduate's zone).
+  const fitRequest = useHud((s) => s.matrixFit)
+  const answered = useRef(fitRequest.token)
+  useEffect(() => {
+    if (fitRequest.token === answered.current) return
+    answered.current = fitRequest.token
+    setOpen(true)
+    // The card may have been closed: its canvas gets a size one frame after it opens.
+    const frame = requestAnimationFrame(() => fit(fitRequest.what))
+    return () => cancelAnimationFrame(frame)
+  }, [fitRequest, fit])
+
   // The canvas follows the size of its box, at the screen's own sharpness.
   useEffect(() => {
     const el = canvas.current

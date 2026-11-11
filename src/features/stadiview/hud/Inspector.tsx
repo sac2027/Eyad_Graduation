@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { COLLEGE_COLORS, COLLEGE_NAMES } from '@/domain/types'
+import { celebrate } from '@/features/celebrate/celebrate'
 import { COLLEGE_ID } from '@/features/stadiview/config/venue'
 import { bookingPhase, bookingWindow } from '@/features/stadiview/data/bookingWindow'
 import { guestTicketService } from '@/features/stadiview/data/guestTicketService'
@@ -32,6 +33,7 @@ export function Inspector({ canFly, livePreview }: { canFly: boolean; livePrevie
   const viewer = useViewer()
   usePitchSeats()
   const seat = useHud((s) => s.inspected)
+  const panel = useHud((s) => s.panel)
   const mode = useStadium((s) => s.mode)
   const seatedHere = useStadium((s) => s.mode === 'pov' && s.selected === seat)
   const [error, setError] = useState<BookError | null>(null)
@@ -39,7 +41,8 @@ export function Inspector({ canFly, livePreview }: { canFly: boolean; livePrevie
   // A message about one seat must not linger over the next.
   useEffect(() => setError(null), [seat, viewer.graduate])
 
-  if (seat < 0) return null
+  // "My seat" and the guest tools use the same place on the screen; while one is open the inspector waits.
+  if (seat < 0 || panel === 'mine' || panel === 'guest') return null
   const v = getVenue()
   const service = pitchSeats()
   const now = viewer.now
@@ -66,7 +69,8 @@ export function Inspector({ canFly, livePreview }: { canFly: boolean; livePrevie
     }
     setError(null)
     toast.success(t(result.value.released >= 0 ? 'sv.book.moved' : 'sv.book.done', { seat: words.place }))
-    useHud.getState().setCardOpen(true)
+    celebrate('task', 'sv-seat-booked')
+    useHud.getState().setCardOpen(true, true)
   }
   const release = () => {
     if (!graduate) return

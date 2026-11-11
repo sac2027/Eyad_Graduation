@@ -10,6 +10,9 @@ export type Role = 'graduate' | 'guest'
 /** The panel open on a phone, where only one fits at a time. On a wide screen the panels sit side by side and this is ignored. */
 export type Panel = 'none' | 'matrix' | 'inspector' | 'mine' | 'guest'
 
+/** What the 2D matrix can be asked to show. */
+export type MatrixFit = 'all' | 'pitch' | { zone: number }
+
 export interface SeatFilters {
   college: CollegeCode | null
   degree: Degree | null
@@ -27,11 +30,16 @@ export interface HudState {
   filters: SeatFilters
   /** Guest tools: the seat of the ticket that was looked up, and the directory index of the graduate being located. -1 for none. */
   guest: { ticketSeat: number; graduate: number }
-  /** Whether the graduate's seat card is open. */
+  /** Whether the graduate's seat card is open, and whether it opened because a seat was booked a moment ago. */
   cardOpen: boolean
-  setCardOpen(open: boolean): void
+  cardFresh: boolean
+  setCardOpen(open: boolean, fresh?: boolean): void
+  /** A request to the 2D matrix to show a part of the venue; `token` changes with every request. */
+  matrixFit: { what: MatrixFit; token: number }
+  fitMatrix(what: MatrixFit): void
   setRole(role: Role): void
-  inspect(seat: number): void
+  /** Shows a seat in the inspector. A side panel that is open gives way to it, unless that panel asked to stay. */
+  inspect(seat: number, keepPanel?: boolean): void
   setPanel(panel: Panel): void
   setFilters(part: Partial<SeatFilters>): void
   setGuest(part: Partial<HudState['guest']>): void
@@ -51,13 +59,21 @@ export const useHud = create<HudState>((set) => ({
   filters: NO_FILTERS,
   guest: { ticketSeat: -1, graduate: -1 },
   cardOpen: false,
-  setCardOpen: (cardOpen) => set({ cardOpen }),
-  setRole: (role) => set((s) => (s.role === role ? s : { role, inspected: -1, panel: 'none', cardOpen: false })),
-  inspect: (seat) => set((s) => (s.inspected === seat ? s : { inspected: Number.isInteger(seat) && seat >= 0 ? seat : -1 })),
+  cardFresh: false,
+  setCardOpen: (cardOpen, fresh = false) => set({ cardOpen, cardFresh: cardOpen && fresh }),
+  matrixFit: { what: 'pitch', token: 0 },
+  fitMatrix: (what) => set((s) => ({ matrixFit: { what, token: s.matrixFit.token + 1 } })),
+  setRole: (role) => set((s) => (s.role === role ? s : { role, inspected: -1, panel: 'none', cardOpen: false, cardFresh: false })),
+  inspect: (seat, keepPanel = false) =>
+    set((s) => {
+      const inspected = Number.isInteger(seat) && seat >= 0 ? seat : -1
+      const panel = inspected >= 0 && !keepPanel && (s.panel === 'mine' || s.panel === 'guest') ? 'none' : s.panel
+      return inspected === s.inspected && panel === s.panel ? s : { inspected, panel }
+    }),
   setPanel: (panel) => set({ panel }),
   setFilters: (part) => set((s) => ({ filters: { ...s.filters, ...part } })),
   setGuest: (part) => set((s) => ({ guest: { ...s.guest, ...part } })),
-  reset: () => set({ role: 'guest', inspected: -1, panel: 'none', filters: NO_FILTERS, guest: { ticketSeat: -1, graduate: -1 }, cardOpen: false }),
+  reset: () => set({ role: 'guest', inspected: -1, panel: 'none', filters: NO_FILTERS, guest: { ticketSeat: -1, graduate: -1 }, cardOpen: false, cardFresh: false }),
 }))
 
 /** True when no filter is set. */

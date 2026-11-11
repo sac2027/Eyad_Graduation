@@ -8,6 +8,9 @@ const FILES = {
   stacked: { positive: stacked, negative: stackedNegative, ratio: 188.25 / 31.54 },
 }
 
+/** The white horizontal logo as a file, for code that draws it itself (a canvas cannot use the component). */
+export const LOGO_NEGATIVE_FILE = { src: horizontalNegative, ratio: FILES.horizontal.ratio }
+
 interface Props {
   variant?: 'horizontal' | 'stacked'
   /** "auto" follows the page header: colour logo on light, white logo on turquoise. */

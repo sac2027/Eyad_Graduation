@@ -49,6 +49,8 @@ test.describe('booking a seat', () => {
     const first = await freeInMyZone(page)
     await inspect(page, first)
     await page.locator('[data-sv-book]').click()
+    // Booking shows the seat card; it is put away before going on.
+    await page.locator('[data-sv-card-close]').click()
     const second = await freeInMyZone(page, 3)
     await inspect(page, second)
     const move = page.locator('[data-sv-book]')
@@ -63,6 +65,7 @@ test.describe('booking a seat', () => {
     const first = await freeInMyZone(page)
     await inspect(page, first)
     await page.locator('[data-sv-book]').click()
+    await page.locator('[data-sv-card-close]').click()
     const second = await freeInMyZone(page, 3)
     await inspect(page, second)
     // Another student gets there between looking and confirming.

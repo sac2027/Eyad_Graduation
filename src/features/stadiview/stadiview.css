@@ -50,6 +50,8 @@ html.sv-locked, html.sv-locked body { overflow: hidden; overscroll-behavior: non
 html.sv-locked [data-demo-console] { inset-block: 76px auto; display: flex; flex-direction: column-reverse; align-items: flex-start; gap: 8px; }
 /* It stays on the side the brand is on, clear of the inspector across the page. */
 html.sv-locked[dir='rtl'] [data-demo-console] { left: auto; right: 0.75rem; align-items: flex-end; }
+/* A dialog owns the screen while it is open. */
+html.sv-locked:has(.sv-dialog) [data-demo-console] { display: none; }
 html.sv-locked [data-demo-console] > section { margin: 0; max-height: calc(100dvh - 150px); }
 
 /* The 3D picture fills the whole screen; every HUD element floats over it. */
@@ -467,3 +469,113 @@ select.sv-field option { color: #061a17; background: #fff; }
 .sv-insp__demo span { padding: 1px 6px; font-weight: 700; color: var(--sv-night); background: var(--sv-sand); }
 .sv-link { padding: 6px 0; font: 600 0.8125rem/1.2 var(--font-body); color: var(--sv-sand); text-decoration: underline; text-underline-offset: 3px; background: none; border: 0; cursor: pointer; }
 @media (hover: hover) and (pointer: fine) { .sv-link:hover { color: var(--sv-gold); } }
+
+/* ---- "My seat" ---- */
+
+/* The button in the top row. Its small square turns gold once a seat is booked. */
+.sv-top__mine { gap: 9px; padding-inline: 14px 18px; }
+.sv-top__mine i { width: 9px; height: 9px; border: 1.5px solid var(--sv-sand); transform: var(--sv-lean); }
+.sv-top__mine[data-booked] i { background: var(--sv-gold); border-color: var(--sv-gold); }
+.sv-top__mine[aria-expanded='true']::before { border-color: var(--sv-line-gold-strong); }
+@media (max-width: 639px) {
+  .sv-role { width: auto; flex: 1; }
+  .sv-top__mine { order: 4; }
+}
+
+.sv-mine__name { font-weight: 600; color: var(--sv-white) !important; overflow-wrap: anywhere; }
+.sv-mine__seat { display: grid; gap: 2px; margin: 12px 16px 0; padding: 10px 12px; background: rgb(0 90 80 / 0.35); border-inline-start: 3px solid var(--sv-gold); }
+.sv-mine__seat b { font: 700 1.0625rem/1.3 var(--font-display); font-variant-numeric: tabular-nums; }
+.sv-mine__seat span { font-size: 0.875rem; line-height: 1.45; color: var(--sv-text-soft); }
+.sv-mine__seat bdi { font: 600 0.8125rem/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--sv-sand); }
+.sv-mine__actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 12px 16px 0; }
+.sv-mine__actions .sv-button { justify-content: center; min-width: 0; padding-inline: 10px; text-align: center; }
+.sv-mine__actions .sv-button:only-child { grid-column: 1 / -1; }
+.sv-mine__promise { margin: 14px 16px 0; }
+
+.sv-mine__share { margin: 14px 16px 0; padding-block-start: 12px; border-block-start: 1px solid var(--sv-line-green); }
+.sv-mine__share h3 { margin: 0; font: 600 0.8125rem/1.3 var(--font-body); color: var(--sv-sand); }
+.sv-mine__share p { margin: 6px 0 0; font-size: 0.8125rem; line-height: 1.45; color: var(--sv-text-soft); }
+.sv-mine__code { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-block-start: 6px; }
+/* The badge: the code in gold on night, large enough to read out over the phone. */
+.sv-mine__code bdi { padding: 6px 12px; font: 700 1.125rem/1.3 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing: 0.06em; color: var(--sv-gold); background: var(--sv-night); border: 1px solid var(--sv-line-gold-strong); user-select: all; }
+
+.sv-mine__switches { display: grid; gap: 4px; padding: 10px 16px 16px; }
+.sv-switch { position: relative; display: flex; align-items: flex-start; gap: 12px; padding-block: 8px; cursor: pointer; }
+/* The real checkbox covers the whole row, invisible: the row is the target, and the track shows the state. */
+.sv-switch input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.sv-switch__track { flex: none; position: relative; width: 42px; height: 24px; margin-block-start: 1px; background: rgb(232 222 195 / 0.16); border: 1px solid rgb(232 222 195 / 0.55); transform: var(--sv-lean); transition: background-color 150ms ease-out, border-color 150ms ease-out; }
+.sv-switch__track::after { content: ''; position: absolute; inset-block: 3px; left: 3px; width: 16px; background: var(--sv-sand); transition: transform 150ms cubic-bezier(0.23, 1, 0.32, 1), background-color 150ms ease-out; }
+.sv-switch input:checked + .sv-switch__track { background: var(--sv-green); border-color: var(--sv-green); }
+.sv-switch input:checked + .sv-switch__track::after { transform: translateX(18px); background: var(--sv-white); }
+.sv-switch input:focus-visible + .sv-switch__track { outline: 2px solid var(--sv-gold); outline-offset: 3px; }
+.sv-switch__words { display: grid; gap: 2px; min-width: 0; }
+.sv-switch__words b { font: 600 0.875rem/1.35 var(--font-body); }
+.sv-switch__words small { font-size: 0.8125rem; line-height: 1.4; color: var(--sv-text-soft); }
+html[data-motion='reduced'] .sv-switch__track, html[data-motion='reduced'] .sv-switch__track::after { transition: none; }
+
+/* ---- The seat card dialog ---- */
+
+.sv-dialog__backdrop { position: fixed; inset: 0; z-index: 40; background: rgb(3 14 12 / 0.74); transition: opacity 180ms ease-out; }
+.sv-dialog__backdrop[data-starting-style], .sv-dialog__backdrop[data-ending-style] { opacity: 0; }
+.sv-dialog {
+  position: fixed;
+  inset: 0;
+  z-index: 41;
+  width: min(27rem, calc(100vw - 24px));
+  height: fit-content;
+  max-height: calc(100dvh - 24px);
+  margin: auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  transition: opacity 180ms ease-out, transform 180ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+.sv-dialog[data-starting-style], .sv-dialog[data-ending-style] { opacity: 0; transform: scale(0.96); }
+html[data-motion='reduced'] .sv-dialog, html[data-motion='reduced'] .sv-dialog__backdrop { transition: none; }
+.sv-dialog__body { display: grid; gap: 12px; padding: 14px 16px 16px; }
+.sv-dialog__title { margin: 0; font: 700 1.25rem/1.25 var(--font-display); text-wrap: balance; }
+.sv-dialog__lead { margin: -6px 0 0; font-size: 0.875rem; line-height: 1.5; color: var(--sv-text-soft); text-wrap: pretty; }
+.sv-dialog__actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.sv-dialog__actions .sv-button { flex: 1 1 auto; justify-content: center; }
+.sv-button:disabled { opacity: 0.6; cursor: progress; }
+
+/* The card itself: dark on white whatever surrounds it, because it is read by a steward and a scanner. */
+.sv-pass { overflow: hidden; color: #061a17; background: #fff; border: 1px solid #061a17; color-scheme: light; }
+.sv-pass__head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; color: #fff; background: #005a50; }
+.sv-pass__head p { display: grid; margin: 0; text-align: end; }
+.sv-pass__head b { font: 700 0.875rem/1.3 var(--font-display); }
+.sv-pass__head span { font-size: 0.75rem; line-height: 1.35; color: #e8dec3; }
+.sv-pass__bars { height: 8px; background-color: #061a17; background-image: repeating-linear-gradient(95deg, #e7a614 0 7px, transparent 7px 11px, #e7a614 11px 14px, transparent 14px 18px, #e7a614 18px 23px, transparent 23px 29px); }
+.sv-pass__body { padding: 14px; }
+.sv-pass h3 { margin: 0; font: 700 1.375rem/1.25 var(--font-display); overflow-wrap: anywhere; text-wrap: balance; }
+.sv-pass__zone { margin: 3px 0 0; font-size: 0.875rem; line-height: 1.4; color: #3d5650; }
+.sv-pass__cells { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 8px; margin: 12px 0 0; }
+.sv-pass__cells div { display: grid; justify-items: center; padding: 6px 4px 8px; border: 2px solid #061a17; }
+.sv-pass__cells dt { font-size: 0.75rem; font-weight: 600; color: #3d5650; text-align: center; }
+.sv-pass__cells dd { margin: 0; font: 700 2rem/1.1 var(--font-display); font-variant-numeric: tabular-nums; }
+.sv-pass__lower { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: start; margin-block-start: 12px; }
+.sv-pass__rows { display: grid; gap: 8px; margin: 0; min-width: 0; }
+.sv-pass__rows dt { font-size: 0.75rem; font-weight: 600; color: #3d5650; }
+.sv-pass__rows dd { margin: 0; font-size: 0.875rem; font-weight: 600; line-height: 1.4; overflow-wrap: anywhere; }
+.sv-pass__qr { display: grid; justify-items: center; gap: 2px; }
+.sv-pass__qr svg { border-radius: 0; }
+.sv-pass__qr bdi { font: 700 0.8125rem/1.3 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+.sv-pass__mock { margin: 10px 0 0; font-size: 0.75rem; color: #3d5650; }
+@media (max-width: 359px) {
+  .sv-pass__lower { grid-template-columns: 1fr; justify-items: center; }
+  .sv-pass__rows { justify-self: stretch; }
+}
+
+/*
+ * Printing. Only the seat card goes on paper, on one page, at a size a gate scanner reads easily.
+ * Everything else on the page (the 3D picture, the HUD, the site's own floating parts) is hidden.
+ */
+@media print {
+  html.sv-locked, html.sv-locked body { overflow: visible; background: #fff; }
+  html.sv-locked body * { visibility: hidden !important; }
+  html.sv-locked .sv-pass, html.sv-locked .sv-pass * { visibility: visible !important; }
+  html.sv-locked [data-theme='stadiview'] { position: static; overflow: visible; background: #fff; }
+  html.sv-locked .sv-dialog { position: static; width: auto; max-height: none; margin: 0; overflow: visible; background: none; border: 0; box-shadow: none; backdrop-filter: none; transform: none; }
+  html.sv-locked .sv-dialog__body { padding: 0; }
+  html.sv-locked .sv-pass { width: 105mm; margin: 12mm auto 0; break-inside: avoid; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  html.sv-locked .sv-stage, html.sv-locked .sv-top, html.sv-locked .sv-mx, html.sv-locked .sv-insp, html.sv-locked .sv-dialog__backdrop, html.sv-locked [data-demo-console] { display: none !important; }
+}

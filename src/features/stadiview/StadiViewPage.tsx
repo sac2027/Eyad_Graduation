@@ -7,8 +7,10 @@ import { useDemoFlags } from '@/features/demo-console/flags'
 import { extendDebugHook, installDebugHook, removeDebugHook } from '@/features/stadiview/debugHook'
 import { BackButton } from '@/features/stadiview/hud/BackButton'
 import { Inspector } from '@/features/stadiview/hud/Inspector'
+import { MySeatPanel, MySeatToggle } from '@/features/stadiview/hud/MySeatPanel'
 import { PovHint } from '@/features/stadiview/hud/PovHint'
 import { RoleSwitch } from '@/features/stadiview/hud/RoleSwitch'
+import { SeatCardDialog } from '@/features/stadiview/hud/SeatCardDialog'
 import { SeatMatrix } from '@/features/stadiview/hud/SeatMatrix'
 import { SeatTooltip } from '@/features/stadiview/hud/SeatTooltip'
 import { pitchSeats } from '@/features/stadiview/data/pitchSeatService'
@@ -154,6 +156,7 @@ export default function StadiViewPage() {
           </div>
         </div>
         <RoleSwitch />
+        <MySeatToggle />
         <button type="button" className="sv-plate sv-button sv-top__language" onClick={() => setLocale(locale === 'ar' ? 'en' : 'ar')} lang={locale === 'ar' ? 'en' : 'ar'} data-sv-language>
           {t('nav.language')}
         </button>
@@ -162,6 +165,8 @@ export default function StadiViewPage() {
       <SeatTooltip />
       <SeatMatrix canFly={show3d} />
       <Inspector canFly={show3d} livePreview={TIER_SETTINGS[tier].livePreview} />
+      <MySeatPanel canFly={show3d} />
+      <SeatCardDialog />
       {show3d && <PovHint />}
       {show3d && <BackButton />}
 

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { COLLEGE_COLORS, COLLEGE_NAMES } from '@/domain/types'
 import { celebrate } from '@/features/celebrate/celebrate'
 import { COLLEGE_ID } from '@/features/stadiview/config/venue'
@@ -138,7 +139,14 @@ export function Inspector({ canFly, livePreview }: { canFly: boolean; livePrevie
 
         {viewer.role === 'guest' && <p className="sv-insp__note" data-sv-view-only>{t('sv.insp.viewOnly')}</p>}
 
-        {graduate && stand && <p className="sv-insp__note">{t('sv.insp.standSeat')}</p>}
+        {graduate && stand && (
+          <p className="sv-insp__note">
+            {t('sv.insp.standSeat')}{' '}
+            <Link to="/me/tickets" className="sv-link">
+              {t('sv.insp.familyTickets')}
+            </Link>
+          </p>
+        )}
 
         {graduate && allowed && (
           <>

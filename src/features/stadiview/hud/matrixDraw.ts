@@ -38,7 +38,57 @@ export interface MatrixScene {
 /** A chair is 0.46 m wide; its square is drawn a little smaller so neighbours never touch. */
 const SEAT_SIZE = 0.5
 
-export function drawMatrix(ctx: CanvasRenderingContext2D, s: MatrixScene): void {
+/**
+ * The still part of the picture (ground, stage, seats, gates) kept as an image. The camera marker and
+ * the hover ring move many times a second while the seats stay as they are; with the image they cost
+ * one copy instead of eight thousand squares.
+ */
+export interface MatrixCache {
+  canvas: HTMLCanvasElement | OffscreenCanvas | null
+  key: unknown[]
+}
+
+export function newMatrixCache(): MatrixCache {
+  return { canvas: null, key: [] }
+}
+
+export function drawMatrix(ctx: CanvasRenderingContext2D, s: MatrixScene, cache?: MatrixCache): void {
+  const { view, width, height } = s
+  const pw = Math.round(width * s.ratio)
+  const ph = Math.round(height * s.ratio)
+  const key = [s.styles, view.cx, view.cz, view.scale, pw, ph, s.labels.stage, s.labels.gate(1)]
+  if (cache) {
+    let ready = cache.canvas !== null && cache.key.length === key.length && cache.key.every((k, i) => k === key[i])
+    if (!ready) {
+      if (!cache.canvas || cache.canvas.width !== pw || cache.canvas.height !== ph) {
+        if (typeof OffscreenCanvas !== 'undefined') cache.canvas = new OffscreenCanvas(pw, ph)
+        else {
+          const c = document.createElement('canvas')
+          c.width = pw
+          c.height = ph
+          cache.canvas = c
+        }
+      }
+      const off = cache.canvas.getContext('2d') as CanvasRenderingContext2D | null
+      if (off) {
+        drawStill(off, s)
+        cache.key = key
+        ready = true
+      }
+    }
+    if (ready && cache.canvas) {
+      ctx.setTransform(1, 0, 0, 1, 0, 0)
+      ctx.drawImage(cache.canvas, 0, 0)
+      drawMoving(ctx, s)
+      return
+    }
+  }
+  drawStill(ctx, s)
+  drawMoving(ctx, s)
+}
+
+/** The ground, the stage, every seat and the gates. */
+function drawStill(ctx: CanvasRenderingContext2D, s: MatrixScene): void {
   const { v, view, width, height } = s
   ctx.setTransform(s.ratio, 0, 0, s.ratio, 0, 0)
   ctx.fillStyle = SV.night
@@ -122,6 +172,16 @@ export function drawMatrix(ctx: CanvasRenderingContext2D, s: MatrixScene): void 
     ctx.fillStyle = SV.night
     ctx.fillText(s.labels.gate(g.id), x, y + 0.5)
   }
+
+}
+
+/** What moves: the rings on the hovered and inspected seats, the camera marker, and the north arrow on top. */
+function drawMoving(ctx: CanvasRenderingContext2D, s: MatrixScene): void {
+  const { view, width, height } = s
+  ctx.setTransform(s.ratio, 0, 0, s.ratio, 0, 0)
+  const at = (x: number, z: number) => toScreen(view, x, z, width, height)
+  const size = Math.max(1.5, SEAT_SIZE * view.scale)
+  const P = s.v.position
 
   // The seat under the pointer, and the inspected seat, each in a ring that stays visible at any zoom.
   const ring = (i: number, radius: number, line: number) => {

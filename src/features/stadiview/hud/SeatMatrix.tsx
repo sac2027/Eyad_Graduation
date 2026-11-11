@@ -5,7 +5,7 @@ import { parseSeatQuery, planBounds, seatAtPlan } from '@/features/stadiview/eng
 import { fitView, panBy, toPlan, toScreen, zoomAt } from '@/features/stadiview/engine/planView'
 import type { PlanView } from '@/features/stadiview/engine/planView'
 import { MatrixFilters } from '@/features/stadiview/hud/MatrixFilters'
-import { drawMatrix } from '@/features/stadiview/hud/matrixDraw'
+import { drawMatrix, newMatrixCache } from '@/features/stadiview/hud/matrixDraw'
 import { setPointerAnchor } from '@/features/stadiview/hud/pointerAnchor'
 import { useSeatStyles } from '@/features/stadiview/hud/useSeatStyles'
 import { getVenue } from '@/features/stadiview/layout/venueLayout'
@@ -42,6 +42,7 @@ export function SeatMatrix({ canFly, flat = false, notice }: { canFly: boolean; 
   const view = useRef<PlanView | null>(null)
   const size = useRef({ w: 0, h: 0 })
   const frame = useRef(0)
+  const layer = useRef(newMatrixCache())
   const flatRef = useRef(flat)
   flatRef.current = flat
   const scene = useRef({ styles, inspected, labels: { stage: '', north: '', gate: (n: number) => String(n) } })
@@ -67,7 +68,9 @@ export function SeatMatrix({ canFly, flat = false, notice }: { canFly: boolean; 
       const ctx = el?.getContext('2d')
       if (!el || !ctx || !view.current || size.current.w === 0) return
       const ratio = el.width / size.current.w
-      drawMatrix(ctx, {
+      drawMatrix(
+        ctx,
+        {
         v: getVenue(),
         styles: scene.current.styles,
         view: view.current,
@@ -78,7 +81,9 @@ export function SeatMatrix({ canFly, flat = false, notice }: { canFly: boolean; 
         inspected: scene.current.inspected,
         camera: flatRef.current ? null : cameraOnPlan(),
         labels: scene.current.labels,
-      })
+        },
+        layer.current,
+      )
       card.current?.setAttribute('data-scale', view.current.scale.toFixed(3))
     })
   }, [])

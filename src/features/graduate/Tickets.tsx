@@ -66,6 +66,9 @@ export function Tickets() {
   return (
     <main className="mx-auto max-w-4xl px-4 py-8" data-tickets>
       <h1 className="text-4xl font-black text-turquoise">{t('tickets.title')}</h1>
+      <p className="mt-2">
+        <Link to="/stadium" className="inline-flex min-h-11 items-center font-semibold text-turquoise underline" data-stadium-link>{t('stadium.link.see')}</Link>
+      </p>
       {closedMsg && <p className="mt-3 rounded-xl bg-white p-4 font-semibold" role="status" data-tickets-msg>{closedMsg}</p>}
 
       <section className="mt-6 rounded-2xl bg-white p-5" aria-labelledby="s1">

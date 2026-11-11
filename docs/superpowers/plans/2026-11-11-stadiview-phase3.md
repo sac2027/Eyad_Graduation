@@ -482,3 +482,38 @@ Behaviour:
 | `pitchSeatService`, `graduateDirectory`, `guestTicketService`, `locatorService` | 3, 2, 4, 4 |
 | The demo console's reset clears these too | 3 |
 | Left for Phase 4: the arc, the animated route, landmark chips in first person, avatars | — |
+
+---
+
+## Implementation notes (11 Nov 2026)
+
+All eleven tasks were built in order, one commit each, without background workflows.
+
+**Deviations from the plan**
+- `Graduate` has no `lineup` field: the line-up position is read from the venue layout (`v.lineup[seat]`), so it cannot drift from the seat.
+- The shared service is reached through `pitchSeats()` (created on first use, registered with the demo reset) rather than a module-level instance.
+- "Back to stadium overview" keeps the inspected seat; the plan said it clears it. Keeping it lets the viewer fly back in from the inspector.
+- Zone dimming is 60% (`ZONE_DIM`), not 45%: at 45% the other zones read as taken. The matrix's smallest zoom is 0.8 so the whole venue fits a 160 px-tall card. The matrix always draws squares; there is no shape level-of-detail.
+- `useStadium` gained `facing` (the seat to look toward on arrival), for "View from my seat, facing them". `useHud` gained `cardOpen`/`cardFresh`, `matrixFit` and `guest.byCode`; `inspect(seat, keepPanel)` lets the guest tools mark a seat without giving their place to the inspector.
+- The debug hook gained `myZone()`, `me()` and `sampleGraduate(booked, skip)` for the browser tests.
+- A stand seat's inspector links to the family tickets page (`/me/tickets`), the site's existing ticket flow (decision D).
+- The honors ceremony's arrival sentence was aligned to the same gates (men Gate 2, women Gate 5) along with the gate notes and the arrival step.
+- Choosing "Guest" in the role switch opens the guest tools straight away.
+- On short screens (760 px tall or less) the matrix hides its colour legend to make room for the Map/List tabs.
+
+**Results**
+- Type check and lint clean. 677 unit tests; the whole site's browser suite (298 tests) passes; the stadium's own browser tests grew from 64 to 148 (`stadiview-booking`, `-pass`, `-guest`, `-access`, `-links` are new).
+- Landing download 178,446 B gzipped (+171 B on its pre-StadiView size; budget +2 KB). StadiView's own code about 70 KB gzipped (page 38.6 KB, scene 25.2 KB, styles 6.7 KB; budget 120 KB). three.js and react-three-fiber load only on `/stadium` and only with WebGL.
+- Frame times (production build, `scripts/stadiview-frames.cjs`, processor slowed 4 times, now with a graduate signed in, a seat in the inspector and the seat map redrawing as the view turns):
+
+  | Screen | Tier | Own work per frame, overview (median / worst) | Own work, first person (median / worst) |
+  |---|---|---|---|
+  | Desktop 1440×900 | 1 | 7.5 ms / 43.7 ms | 3.5 ms / 13.8 ms |
+  | Desktop 1440×900 | 2 | 12.4 ms / 579 ms | 4.7 ms / 11.1 ms |
+  | Phone 390×844 | 1 | 3.7 ms / 12 ms | 2.2 ms / 5.7 ms |
+  | Phone 390×844 | 2 | 6.7 ms / 35.2 ms | 2.7 ms / 7.7 ms |
+
+  The 6 ms target is met on phones and in first person, **not on the desktop overview** in this container. A CPU profile of that case puts almost all of it in three.js sending the draw commands, which here waits on software rendering (frames arrive 300 to 800 ms apart, so a 5-second sample is only 6 to 15 frames and the medians are noisy). The HUD's own share is small: the seat map now keeps its still layer (ground, stage, 8,000 seats, gates) as an image and redraws only the camera marker and rings when the view turns. The worst frames (44 to 579 ms) are the one-off capture of the inspector's view picture. All of this needs measuring once on a real device with a graphics chip.
+- Review screenshots 10 to 17 in `docs/review/stadiview/`; 09 now shows the no-WebGL seat map.
+
+**Left for Phase 4**: avatars, the gold sightline arc, the animated gate-to-seat route (also in the booking dialog), bloom, the "fill the stadium" switch, landmark chips in first person.

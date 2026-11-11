@@ -37,7 +37,8 @@ export function SightlineReadout({ canFly }: { canFly: boolean }) {
       <h3 id="sv-sight-title">{t('sv.sight.title')}</h3>
       <p>{t('sv.sight.where', { name, m: n(between.distance), direction })}</p>
       <p>
-        {turn.side === 'ahead' ? t('sv.sight.ahead') : t(`sv.sight.${turn.side}`, { deg: n(turn.degrees) })} {turn.tilt !== 'level' && t(`sv.sight.${turn.tilt}`)}
+        {turn.side === 'ahead' ? t('sv.sight.ahead') : t(`sv.sight.${turn.side}`, { deg: n(turn.degrees) })}
+        {turn.tilt !== 'level' && `${locale === 'ar' ? '، ' : ', '}${t(`sv.sight.${turn.tilt}`)}`}.
       </p>
       {canFly && (
         <button type="button" className="sv-plate sv-button sv-button--gold" onClick={() => useStadium.getState().select(ticketSeat, located.seat)} data-sv-face-them>

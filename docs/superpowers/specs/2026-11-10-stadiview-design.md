@@ -324,6 +324,14 @@ Faceless, low-poly, head-and-shoulders-and-torso figures seated in chairs. No fa
 
 **Locator rules.** A graduate with the locator on can be found by name or ID. With it off, a name or ID search says the graduate has not enabled the locator and asks for their Family Share Code, which always works. Mock graduates start with the locator on so the demo flows. A real system would default it to off; the demo console notes this.
 
+**As built in Phase 3 (refinements, 11 Nov 2026).**
+- A click on the 2D matrix *inspects* a seat (gold beam in 3D, the inspector with its view picture); a double click, "View from this seat", or a click in the 3D scene flies the camera in (decision A).
+- "My seat" (graduates) and "Find a seat" (guests) are plates in the top row that open a panel in the inspector's place; on a phone they are sheets opened from a bottom dock, one at a time.
+- The seat finder is the matrix card's second tab, "List".
+- The animated route in the after-booking dialog is left to Phase 4 with the other route work; the dialog has the seat card, QR, gate, line-up position, print and PNG download.
+- The guest panel has no "sightline and route toggles" yet (Phase 4); it gives the distance, the compass direction and where to look relative to the stage, and "View from my seat, facing them".
+- Tier 0: the seat map takes the page with a short note; the inspector shows a drawn plan of the line of sight in place of the view picture.
+
 ## 10. Device tiers
 
 | Tier | When | What changes |

@@ -49,7 +49,7 @@ Also in the console: **Reset demo data** (scrubbing time backwards cannot undo e
 
 ## The 3D stadium (StadiView)
 
-`/stadium` is a full-screen 3D model of the stadium on graduation night, built in code (no model files). It is being delivered in phases; this is what works after **Phase 2 (scene, seats and camera)**:
+`/stadium` is a full-screen 3D model of the stadium on graduation night, built in code (no model files). It is being delivered in phases; this is what works after **Phase 3 (the interface and the booking flow)**:
 
 - **The stadium**: the pitch with six blocks of graduate chairs facing the stage at the west end, the running track, the south family stand with **KFUPM** spelled in sand-coloured seats, the east curve with the procession entrance, the north stands with the VIP box under its canopy, the accessibility platform, five gates, four floodlight masts, and the stage with its animated FAST Matrix backdrop and two LED screens.
 - **Every seat is real**: 2,986 graduate seats, 12 wheelchair bays and 5,000 stand seats, each one hoverable and clickable. Hover shows a tooltip (block, row, seat, college and degree, status). The whole stadium is about 166,000 triangles in 22 to 25 draw calls.
@@ -62,11 +62,19 @@ Also in the console: **Reset demo data** (scrubbing time backwards cannot undo e
 | Arrow keys, `+`, `-` | the same, once the picture has focus | the same |
 | Escape | | back to the overview |
 
-What is not there yet: the booking and guest panels, the 2D seat matrix, the avatars, the sightline arc and the walking route (Phases 3 and 4).
+**Graduates (Phase 3).** Sign in as a graduate persona (the role switch in the top row) and, during the booking period (14 March to 1 April 2027; the inspector offers a labelled demo jump), pick a free seat in your college-and-degree zone and press **Confirm & book my seat**. The booking opens the Digital Seat Card (name, block, row, seat, gate, line-up position, QR), which prints alone or downloads as a PNG. **My seat** holds the seat, the Family Share Code, the **Allow Family Seat Locator (Privacy Opt-In)** switch and the wheelchair switch.
+
+**Guests.** **Find a seat** looks up a ticket number (`TICKET-G1-204` is south stand row 2 seat 84) and finds a graduate by name, student ID or Family Share Code. With both, it says how far and in which direction the graduate sits, and can seat the guest in their own seat turned toward them. Guests cannot book or change anything.
+
+**The seat map** (bottom left, or the Seats sheet on a phone) shows all 7,998 seats: drag and wheel to pan and zoom, click to inspect (the gold beam marks the seat in 3D), double click to fly in. Its **List** tab reaches any seat by keyboard. Without WebGL the map is the whole page and every flow still works. On phones the panels are bottom sheets opened from a dock.
+
+The data is mock: 2,986 graduates, 5,000 guest tickets and occupancy that grows with the simulated clock, all in memory (the demo console's reset clears it).
+
+What is not there yet: the avatars, the sightline arc, the animated walking route and the final polish (Phase 4).
 
 **Changing the venue.** Every number about the stadium (head counts per college and degree, block sizes, stands, gates, camera) is in `src/features/stadiview/config/venue.ts`. The layout, the picking, the drawing and the camera all read from it.
 
-**Devices.** The page picks one of four tiers: 0 (no WebGL: a message and a way back), 1 (low-end), 2 (default), 3 (desktop). Add `?tier=0` to `?tier=3` to force one. Reduced motion and the console's low-end switch turn flights into a short cut and stop the idle turn.
+**Devices.** The page picks one of four tiers: 0 (no WebGL: the 2D seat map takes the page), 1 (low-end), 2 (default), 3 (desktop). Add `?tier=0` to `?tier=3` to force one. Reduced motion and the console's low-end switch turn flights into a short cut and stop the idle turn.
 
 **For testing and review.**
 - `?idle=1` turns the idle rotation on under automation; `?svslow=8` slows flights eight times; `?svdebug=1` exposes `window.__stadiview` on a production build.

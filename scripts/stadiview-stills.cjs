@@ -6,6 +6,22 @@ const BASE = process.env.BASE_URL || 'http://localhost:5173'
 const CHROME = process.env.PW_CHROMIUM || '/opt/pw-browsers/chromium-1243/chrome-linux64/chrome'
 const OUT = process.env.OUT || 'docs/review/stadiview'
 
+// A graduate in the middle of the booking window, and a few steps the pictures need.
+const T = '2027-03-20T10:00'
+const GRAD = `persona=grad-m-gold&t=${T}`
+const INSPECT_FREE = `const h = window.__stadiview; h.inspect(h.freeSeat(h.myZone(), 5))`
+const GUEST_FLOW = `(async () => {
+  const h = window.__stadiview
+  const g = h.sampleGraduate(true, 5)
+  document.querySelector('[data-sv-guest-toggle]')?.click()
+  await new Promise((r) => setTimeout(r, 200))
+  const set = (el, v) => { Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, v); el.dispatchEvent(new Event('input', { bubbles: true })) }
+  set(document.querySelector('[data-sv-ticket-input]'), g.tickets[0])
+  document.querySelector('[data-sv-ticket-find]').click()
+  await new Promise((r) => setTimeout(r, 200))
+  document.querySelector('[data-sv-ticket-graduate]').click()
+})()`
+
 // [file name, URL, width, height, what to do before the picture]
 const SHOTS = [
   ['01-overview-desktop-en', '/stadium?lang=en&tier=3', 1440, 900, {}],
@@ -16,7 +32,16 @@ const SHOTS = [
   ['06-first-person-vip-box-ar', '/stadium?tier=3', 1440, 900, { sit: 'VIP-03-025' }],
   ['07-overview-phone-ar', '/stadium?tier=2', 390, 844, {}],
   ['08-first-person-phone-ar', '/stadium?tier=2', 390, 844, { sit: 'P1-05-07' }],
-  ['09-no-webgl-fallback-en', '/stadium?lang=en&tier=0', 1440, 900, { fallback: true }],
+  ['09-no-webgl-seat-map-en', `/stadium?lang=en&tier=0&${GRAD}`, 1440, 900, { fallback: true, js: `${INSPECT_FREE}` }],
+  // Phase 3: the interface and the booking flow.
+  ['10-graduate-mid-window-en', `/stadium?lang=en&tier=3&${GRAD}`, 1440, 900, {}],
+  ['11-matrix-zoomed-ar', `/stadium?tier=3&${GRAD}`, 1440, 900, { js: `${INSPECT_FREE}; const zin = document.querySelectorAll('.sv-mx__zoom .sv-icon')[1]; [0, 1, 2].forEach((k) => setTimeout(() => zin.click(), 300 + k * 150))`, wait: 1500 }],
+  ['12-inspector-bookable-en', `/stadium?lang=en&tier=3&${GRAD}`, 1440, 900, { js: INSPECT_FREE, wait: 2500 }],
+  ['13-seat-card-ar', `/stadium?tier=3&${GRAD}`, 1440, 900, { js: `${INSPECT_FREE}; setTimeout(() => document.querySelector('[data-sv-book]').click(), 400)`, wait: 1800 }],
+  ['14-guest-located-en', `/stadium?lang=en&tier=3&persona=guest&t=${T}`, 1440, 900, { js: GUEST_FLOW, wait: 1800 }],
+  ['15-phone-inspector-sheet-ar', `/stadium?tier=2&${GRAD}`, 390, 844, { js: INSPECT_FREE, wait: 2500 }],
+  ['16-phone-seat-list-en', `/stadium?lang=en&tier=2&${GRAD}`, 390, 844, { js: `document.querySelector('[data-sv-dock-button=matrix]').click(); setTimeout(() => document.querySelector('[data-sv-tab=list]').click(), 200)` }],
+  ['17-overview-ar', `/stadium?tier=3&${GRAD}`, 1440, 900, {}],
 ]
 
 ;(async () => {
@@ -26,6 +51,7 @@ const SHOTS = [
     await page.goto(BASE + url)
     if (step.fallback) {
       await page.locator('[data-stadium-fallback]').waitFor()
+      await page.waitForFunction(() => window.__stadiview && typeof window.__stadiview.myZone === 'function')
     } else {
       await page.waitForFunction(() => window.__stadiview && window.__stadiview.ready === true, undefined, { timeout: 60000 })
       await page.waitForTimeout(600)
@@ -40,6 +66,10 @@ const SHOTS = [
       await page.evaluate((id) => window.__stadiview.select(id), step.sit)
       await page.waitForFunction(() => window.__stadiview.state().mode === 'pov', undefined, { timeout: 60000 })
       await page.waitForTimeout(900)
+    }
+    if (step.js) {
+      await page.evaluate(step.js)
+      await page.waitForTimeout(step.wait ?? 1200)
     }
     // JPEG: the seats are fine detail, and a lossless picture of them is four times the size.
     await page.screenshot({ path: `${OUT}/${name}.jpg`, type: 'jpeg', quality: 88 })

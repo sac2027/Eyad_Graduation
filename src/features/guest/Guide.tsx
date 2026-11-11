@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { useLocation } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { useLocale, useT, formatDate } from '@/i18n'
 import { SCHEDULE, SLOT_ORDER } from '@/time/schedule'
 import { AccessibilityFlow } from './AccessibilityFlow'
@@ -28,6 +28,9 @@ export function Guide() {
     <main className="mx-auto max-w-5xl px-4 py-10" data-guide>
       <h1 className="text-5xl font-black text-turquoise">{t('guide.title')}</h1>
       <p className="mt-2 text-lg">{t('guide.sub')}</p>
+      <p className="mt-2">
+        <Link to="/stadium" className="inline-flex min-h-11 items-center font-semibold text-turquoise underline" data-stadium-link>{t('stadium.link.see')}</Link>
+      </p>
       <nav aria-label={t('guide.title')} className="mt-5 flex flex-wrap gap-2">
         {SECTIONS.map((s) => (
           <a key={s} href={`#${s}`} className="inline-flex min-h-11 items-center rounded-full bg-turquoise px-4 font-semibold text-beige">{t(`guide.nav.${s}`)}</a>

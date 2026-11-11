@@ -250,8 +250,8 @@ test.describe('from the ticket seat to the graduate', () => {
     await expect(page.locator('[data-sv-book]')).toHaveCount(0)
   })
 
-  test('the guest tools pass the accessibility checks in both languages', async ({ page }) => {
-    for (const lang of ['en', 'ar'] as const) {
+  for (const lang of ['en', 'ar'] as const) {
+    test(`the guest tools pass the accessibility checks (${lang})`, async ({ page }) => {
       await openGuest(page, { lang })
       const g = await sample(page, true, 5)
       await findTicket(page, g.tickets[0])
@@ -265,6 +265,6 @@ test.describe('from the ticket seat to the graduate', () => {
       await expect(page.locator('[data-sv-graduate-result]').first()).toBeVisible()
       const empty = await new AxeBuilder({ page }).include('[data-sv-guest]').analyze()
       expect(empty.violations, `${lang} search: ${empty.violations.map((v) => `${v.id} ${v.nodes[0]?.html}`).join(', ')}`).toEqual([])
-    }
-  })
+    })
+  }
 })

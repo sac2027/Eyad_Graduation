@@ -63,6 +63,10 @@ export function Dashboard() {
         </div>
       </section></div>
 
+      <div className="mt-6">
+        <ButtonLink to="/stadium" variant="secondary" data-stadium-link>{t('stadium.link.book')}</ButtonLink>
+      </div>
+
       <h2 className="mb-3 mt-8 text-2xl font-black text-turquoise">{t('me.tasks')}</h2>
       <ul className="grid gap-3 sm:grid-cols-2">
         {tasks.map((task) => {

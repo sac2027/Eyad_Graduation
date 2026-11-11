@@ -71,8 +71,11 @@ async function frames(page) {
       const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: 1 })
       const cdp = await page.context().newCDPSession(page)
       await page.addInitScript(TIME_FRAME_CALLBACKS)
-      await page.goto(`${BASE}/stadium?lang=en&tier=${tier}&idle=1`)
+      // With the HUD as people use it: a graduate during the booking period, a seat in the inspector,
+      // and the seat map redrawing its camera marker as the idle turn moves the view.
+      await page.goto(`${BASE}/stadium?lang=en&tier=${tier}&idle=1&persona=grad-m-gold&t=2027-03-20T10:00&svdebug=1`)
       await page.waitForFunction(() => window.__stadiview && window.__stadiview.ready === true, undefined, { timeout: 60000 })
+      await page.evaluate(() => window.__stadiview.inspect('P3-12-07'))
       await cdp.send('Emulation.setCPUThrottlingRate', { rate: THROTTLE })
       await page.waitForTimeout(500)
       const overview = summary(await frames(page))

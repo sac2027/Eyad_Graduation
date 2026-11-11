@@ -39,6 +39,10 @@ export interface StadiViewDebug {
   takenSeat?(zoneOf: string): string | null
   /** For tests: a graduate of the simulated class (not a persona) who has, or has not, booked a seat by now. */
   sampleGraduate?(booked: boolean, skip?: number): SampleGraduate | null
+  /** Who sits where now: how many seats hold someone, and how many of each figure. */
+  occupancy?(): { reserved: number; byKind: Record<string, number> }
+  /** Demo: draw every seat filled (or not). */
+  setFull?(on: boolean): void
   /** For tests: the signed-in graduate's place in the directory. */
   me?(): { index: number; studentId: string; shareCode: string } | null
   /** For tests: the first seat of the signed-in graduate's own zone, to pass to `freeSeat`. */

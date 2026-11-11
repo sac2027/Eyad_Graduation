@@ -53,6 +53,12 @@ function deal(): Dealing {
   return { seats, graduateOf, pairs }
 }
 
+/** The directory index of the graduate whose family holds a stand seat's ticket, or -1 (VIP, accessibility, or not a stand seat). */
+export function familyGraduateOf(seat: number): number {
+  dealing ??= deal()
+  return seat >= 0 && seat < dealing.graduateOf.length ? dealing.graduateOf[seat] : -1
+}
+
 function forSeat(seat: number): GuestTicket | null {
   const ticket = ticketFor(seat)
   if (!ticket) return null

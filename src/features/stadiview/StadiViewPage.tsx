@@ -19,10 +19,12 @@ import { SeatTooltip } from '@/features/stadiview/hud/SeatTooltip'
 import { pitchSeats } from '@/features/stadiview/data/pitchSeatService'
 import { getDirectory } from '@/features/stadiview/data/graduateDirectory'
 import { guestTicketService } from '@/features/stadiview/data/guestTicketService'
+import { avatarKindOf } from '@/features/stadiview/data/occupancy'
 import { getVenue } from '@/features/stadiview/layout/venueLayout'
 import { useHud } from '@/features/stadiview/state/hudStore'
 import { useStadium } from '@/features/stadiview/state/stadiumStore'
 import { TIER_SETTINGS } from '@/features/stadiview/engine/tiers'
+import { occupancyNow } from '@/features/stadiview/state/useOccupancy'
 import { useTier } from '@/features/stadiview/useTier'
 import { useLocale, useT } from '@/i18n'
 import { useSession } from '@/session/sessionStore'
@@ -84,6 +86,11 @@ export default function StadiViewPage() {
     useHud.setState({ role: persona.role === 'graduate' ? 'graduate' : 'guest' })
   }, [persona.id, persona.role])
 
+  // The demo can open on a full house: ?full=1.
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get('full') === '1') useHud.getState().setFullHouse(true)
+  }, [])
+
   useEffect(() => {
     const v = getVenue()
     const viewerNow = () => {
@@ -124,6 +131,13 @@ export default function StadiViewPage() {
         const g = viewerNow()
         return g ? { index: g.index, studentId: g.studentId, shareCode: g.shareCode } : null
       },
+      occupancy: () => {
+        const o = occupancyNow(viewerNow())
+        const byKind: Record<string, number> = {}
+        for (let i = 0; i < v.count; i++) if (o.occupant[i]) byKind[avatarKindOf(i)] = (byKind[avatarKindOf(i)] ?? 0) + 1
+        return { reserved: o.reserved, byKind }
+      },
+      setFull: (on) => useHud.getState().setFullHouse(on),
       myZone: () => {
         const g = viewerNow()
         return g ? v.idOf(v.zones[g.zone].start) : null

@@ -99,7 +99,7 @@ Build command `npm run build`, output directory `dist`. `public/_redirects` send
 ## Brand notes
 
 - Colours, fonts and the Matrix follow the KFUPM Brand Guidelines v1.2 (June 2026).
-- **KFUPM Display** is cleared for this demo by the client. Its files live in `public/fonts/kfupm/` and are git-ignored, so a deploy built from the repository falls back to IBM Plex Sans Arabic unless the files are added.
+- **KFUPM Display** is the university's own typeface, cleared for this demo by the client. Its files are committed in `public/fonts/kfupm/` at the client's request (11 Nov 2026), so a deployed build shows it everywhere, including on the 3D stadium's LED screens. It is not an open font: do not reuse it outside this project.
 - The Matrix loops in `public/matrix/` were exported from the FAST Matrix Generator, recoloured to the exact brand values and encoded to 1080px VP9. Only approved colour pairings are used (`src/brand/matrix/pairs.ts`).
 - The header uses the official KFUPM logo (mark and wordmark, colour and white versions, in `src/brand/logo/`), taken from the supplied files with the "Student Affairs" descriptor removed at the client's request. A ceremony-specific logo may replace it later.
 

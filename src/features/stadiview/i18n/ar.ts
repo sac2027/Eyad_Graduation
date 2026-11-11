@@ -217,4 +217,11 @@ export const ar: Record<string, string> = {
   'sv.route.min.few': '{n} دقائق',
   'sv.route.min.many': '{n} دقيقة',
   'sv.route.min.other': '{n} دقيقة',
+  'sv.look.label': 'انظر نحو',
+  'sv.look.stage': 'المنصة',
+  'sv.look.screens': 'الشاشات',
+  'sv.look.vip': 'منصة كبار الضيوف',
+  'sv.look.family': 'مدرجات العائلات',
+  'sv.look.gate': 'بوابة المسيرة',
+  'sv.look.graduate': 'خريجي',
 }

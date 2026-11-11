@@ -9,6 +9,7 @@ import { BackButton } from '@/features/stadiview/hud/BackButton'
 import { Dock } from '@/features/stadiview/hud/Dock'
 import { GuestPanel, GuestToggle } from '@/features/stadiview/hud/GuestPanel'
 import { Inspector } from '@/features/stadiview/hud/Inspector'
+import { LandmarkChips } from '@/features/stadiview/hud/LandmarkChips'
 import { MySeatPanel, MySeatToggle } from '@/features/stadiview/hud/MySeatPanel'
 import { PovHint } from '@/features/stadiview/hud/PovHint'
 import { RoleSwitch } from '@/features/stadiview/hud/RoleSwitch'
@@ -236,6 +237,7 @@ export default function StadiViewPage() {
       <LiveSeat />
       {show3d && <PovHint />}
       {show3d && <BackButton />}
+      {show3d && <LandmarkChips />}
 
       {show3d && !ready && (
         <div className="sv-centre">

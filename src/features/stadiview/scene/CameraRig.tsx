@@ -31,6 +31,7 @@ import { seatAim, seatBack, seatFacing } from '@/features/stadiview/engine/seatF
 import { getVenue } from '@/features/stadiview/layout/venueLayout'
 import { setCameraOnPlan } from '@/features/stadiview/state/cameraOnPlan'
 import { useStadium } from '@/features/stadiview/state/stadiumStore'
+import { onLookRequest } from '@/features/stadiview/state/lookChannel'
 
 gsap.registerPlugin(CustomEase)
 /**
@@ -52,6 +53,8 @@ const RELOOK = 0.5
 
 /** How fast the overview turns on its own before anyone touches it, in radians per second. */
 const IDLE_SPEED = rad(2)
+/** How long a landmark chip takes to turn the seated view, in seconds. */
+const LOOK_TURN = 0.7
 /** A full drag across the screen's height turns the overview this far. */
 const ORBIT_TURN = Math.PI * 0.7
 /** How quickly a released drag coasts to a stop: its speed falls to about a third in this many seconds. */
@@ -146,6 +149,8 @@ export function CameraRig({ still }: { still: boolean }) {
     /** What the camera is looking at, kept so a new flight can start from the current view. */
     lookPoint: Vector3
     lastFlightStart: Vec3 | null
+    /** A turn of the seated view toward a landmark, under way. */
+    turnTo: { from: Look; to: Look; elapsed: number } | null
     cut: number | undefined
     still: boolean
     aspect: number
@@ -174,6 +179,7 @@ export function CameraRig({ still }: { still: boolean }) {
       flight: null,
       lookPoint: new Vector3(...ORBIT_HOME.target),
       lastFlightStart: null,
+      turnTo: null,
       cut: undefined,
       still,
       aspect: 1,
@@ -362,6 +368,24 @@ export function CameraRig({ still }: { still: boolean }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [camera, gl, invalidate])
 
+  // A landmark chip asks to look toward a point: turn the seated view there (at once when standing still).
+  useEffect(
+    () =>
+      onLookRequest((point) => {
+        const s = rig.current!
+        if (useStadium.getState().mode !== 'pov' || s.seat < 0) return
+        const target = lookAngles(seatEye(s.seat, getVenue()), point)
+        const to = clampLook(target.yaw, target.pitch)
+        s.spin = [0, 0]
+        if (s.still) {
+          s.look = to
+          s.turnTo = null
+        } else s.turnTo = { from: { ...s.look }, to, elapsed: 0 }
+        invalidate()
+      }),
+    [invalidate],
+  )
+
   // Pointer, wheel and keyboard.
   useEffect(() => {
     const s = rig.current!
@@ -392,6 +416,7 @@ export function CameraRig({ still }: { still: boolean }) {
         a = dx * k
         b = dy * k
         s.look = clampLook(s.look.yaw + a, s.look.pitch + b)
+        s.turnTo = null
       } else return
       s.spin = seconds > 0 ? [a / seconds, b / seconds] : [0, 0]
       invalidate()
@@ -473,12 +498,18 @@ export function CameraRig({ still }: { still: boolean }) {
       else if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
         const sign = e.key === 'ArrowLeft' ? 1 : -1
         if (m === 'orbit') s.orbit = clampOrbit({ ...s.orbit, theta: s.orbit.theta + sign * rad(5) })
-        else s.look = clampLook(s.look.yaw + sign * rad(6), s.look.pitch)
+        else {
+          s.look = clampLook(s.look.yaw + sign * rad(6), s.look.pitch)
+          s.turnTo = null
+        }
       } else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
         const sign = e.key === 'ArrowUp' ? 1 : -1
         // Up raises the overview camera (a smaller angle from overhead) and tilts a seated view upward.
         if (m === 'orbit') s.orbit = clampOrbit({ ...s.orbit, phi: s.orbit.phi - sign * rad(4) })
-        else s.look = clampLook(s.look.yaw, s.look.pitch + sign * rad(4))
+        else {
+          s.look = clampLook(s.look.yaw, s.look.pitch + sign * rad(4))
+          s.turnTo = null
+        }
       } else if (e.key === '+' || e.key === '=') zoom(0.9)
       else if (e.key === '-' || e.key === '_') zoom(1 / 0.9)
       else handled = false
@@ -555,6 +586,19 @@ export function CameraRig({ still }: { still: boolean }) {
     }
 
     if (mode === 'pov' && s.seat >= 0) {
+      // A turn toward a landmark: eased, along the shorter way round.
+      if (s.turnTo) {
+        const turn = s.turnTo
+        turn.elapsed += Math.min(dt, MAX_FLIGHT_STEP)
+        const t = Math.min(turn.elapsed / LOOK_TURN, 1)
+        const k = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
+        let dy = turn.to.yaw - turn.from.yaw
+        if (dy > Math.PI) dy -= 2 * Math.PI
+        if (dy < -Math.PI) dy += 2 * Math.PI
+        s.look = clampLook(turn.from.yaw + dy * k, turn.from.pitch + (turn.to.pitch - turn.from.pitch) * k)
+        if (t >= 1) s.turnTo = null
+        else invalidate()
+      }
       const v = getVenue()
       camera.position.set(v.position[s.seat * 3], seatEye(s.seat, v)[1], v.position[s.seat * 3 + 2])
       camera.rotation.set(s.look.pitch, s.look.yaw, 0, 'YXZ')

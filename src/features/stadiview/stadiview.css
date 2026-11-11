@@ -258,7 +258,7 @@ html[data-motion='reduced'] .sv-tip__plate, html[data-motion='reduced'] .sv-tip[
   pointer-events: none;
 }
 .sv-dock { inset-block-end: max(20px, env(safe-area-inset-bottom)); }
-.sv-hint { inset-block-end: calc(max(20px, env(safe-area-inset-bottom)) + 64px); }
+.sv-hint { inset-block-end: calc(max(20px, env(safe-area-inset-bottom)) + 116px); }
 
 /* Arriving: a fade and a short rise. Leaving is quicker and does not move. */
 .sv-dock > *, .sv-hint > * {
@@ -757,3 +757,28 @@ html[data-motion='reduced'] .sv-mx, html[data-motion='reduced'] .sv-insp { anima
 .sv-route p { margin: 0; font-size: 0.8125rem; line-height: 1.45; color: var(--sv-text-soft); }
 .sv-mine__route { padding: 12px 16px 0; }
 .sv-guest__buttons .sv-route { flex: 1 1 100%; }
+
+/* ---- Landmark chips, in first person: a row above the way back ---- */
+
+.sv-chips {
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: calc(max(20px, env(safe-area-inset-bottom)) + 64px);
+  z-index: 10;
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  padding-inline: var(--sv-edge);
+  overflow-x: auto;
+  scrollbar-width: none;
+  animation: sv-sheet-up 220ms var(--ease-out-strong, cubic-bezier(0.23, 1, 0.32, 1));
+}
+.sv-chips::-webkit-scrollbar { display: none; }
+.sv-chips__chip { flex: none; min-height: 40px; padding-inline: 14px; font-size: 0.8125rem; }
+html[data-motion='reduced'] .sv-chips { animation: none; }
+@media (max-width: 1099px) { .sv-chips { justify-content: flex-start; } }
+@media (max-width: 640px) {
+  .sv-chips { inset-block-end: calc(56px + env(safe-area-inset-bottom) + 76px); }
+  .sv-chips__chip { min-height: 44px; }
+  .sv-hint { inset-block-end: calc(56px + env(safe-area-inset-bottom) + 132px); }
+}

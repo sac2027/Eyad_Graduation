@@ -217,4 +217,11 @@ export const en: Record<string, string> = {
   'sv.route.min.few': '{n} minutes',
   'sv.route.min.many': '{n} minutes',
   'sv.route.min.other': '{n} minutes',
+  'sv.look.label': 'Look toward',
+  'sv.look.stage': 'Stage',
+  'sv.look.screens': 'LED screens',
+  'sv.look.vip': 'VIP box',
+  'sv.look.family': 'Family stands',
+  'sv.look.gate': 'Procession Gate',
+  'sv.look.graduate': 'My graduate',
 }

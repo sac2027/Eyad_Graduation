@@ -5,6 +5,8 @@ const { chromium } = require('playwright')
 const BASE = process.env.BASE_URL || 'http://localhost:5173'
 const CHROME = process.env.PW_CHROMIUM || '/opt/pw-browsers/chromium-1243/chrome-linux64/chrome'
 const OUT = process.env.OUT || 'docs/review/stadiview'
+// ONLY=18 or ONLY='^2[0-7]' takes just the pictures whose names match.
+const ONLY = process.env.ONLY ? new RegExp(process.env.ONLY) : null
 
 // A graduate in the middle of the booking window, and a few steps the pictures need.
 const T = '2027-03-20T10:00'
@@ -20,6 +22,18 @@ const GUEST_FLOW = `(async () => {
   document.querySelector('[data-sv-ticket-find]').click()
   await new Promise((r) => setTimeout(r, 200))
   document.querySelector('[data-sv-ticket-graduate]').click()
+})()`
+
+const ROUTE_FLOW = `(async () => {
+  document.querySelector('[data-sv-guest-toggle]')?.click()
+  await new Promise((r) => setTimeout(r, 200))
+  const set = (el, v) => { Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, v); el.dispatchEvent(new Event('input', { bubbles: true })) }
+  set(document.querySelector('[data-sv-ticket-input]'), 'TICKET-G1-204')
+  document.querySelector('[data-sv-ticket-find]').click()
+  await new Promise((r) => setTimeout(r, 200))
+  document.querySelector('[data-sv-route-toggle="ticket"] [data-sv-route-button]').click()
+  document.querySelector('[data-sv-guest-close]').click()
+  document.querySelector('[data-sv-fit=all]').click()
 })()`
 
 // [file name, URL, width, height, what to do before the picture]
@@ -42,14 +56,28 @@ const SHOTS = [
   ['15-phone-inspector-sheet-ar', `/stadium?tier=2&${GRAD}`, 390, 844, { js: INSPECT_FREE, wait: 2500 }],
   ['16-phone-seat-list-en', `/stadium?lang=en&tier=2&${GRAD}`, 390, 844, { js: `document.querySelector('[data-sv-dock-button=matrix]').click(); setTimeout(() => document.querySelector('[data-sv-tab=list]').click(), 200)` }],
   ['17-overview-ar', `/stadium?tier=3&${GRAD}`, 1440, 900, {}],
+  // Phase 4: the people, the march, the bowl and the light.
+  ['18-full-house-overview-ar', `/stadium?tier=3&${GRAD}&full=1`, 1440, 900, {}],
+  ['19-full-house-overview-en', `/stadium?lang=en&tier=3&${GRAD}&full=1`, 1440, 900, {}],
+  ['20-figures-gallery', '/stadium?svavatars=1&tier=0&lang=en', 1600, 700, { fallback: 'gallery', js: '1', wait: 2500 }],
+  ['21-figures-first-person-en', `/stadium?lang=en&tier=3&${GRAD}&full=1`, 1440, 900, { sit: 'P3-20-07' }],
+  ['22-carpet-and-gate-first-person-en', `/stadium?lang=en&tier=3&${GRAD}`, 1440, 900, { sit: 'P1-30-14', js: `document.querySelector('[data-sv-landmark=gate]').click()`, wait: 1500 }],
+  ['23-bowl-from-north-west-stand-en', `/stadium?lang=en&tier=3&${GRAD}`, 1440, 900, { sit: 'NW-15-001' }],
+  ['24-gold-arc-from-south-stand-en', `/stadium?lang=en&tier=3&persona=guest&t=${T}`, 1440, 900, { js: GUEST_FLOW, wait: 1800 }],
+  ['25-route-from-gate-1-en', `/stadium?lang=en&tier=3&persona=guest&t=${T}`, 1440, 900, { js: ROUTE_FLOW, wait: 1800 }],
+  ['26-landmark-chips-phone-ar', `/stadium?tier=2&${GRAD}`, 390, 844, { sit: 'S-10-060' }],
+  ['27-bloom-tier-3-en', `/stadium?lang=en&tier=3&${GRAD}&full=1&svbloom=1`, 1440, 900, { wait: 6000, js: '1' }],
 ]
 
 ;(async () => {
   const browser = await chromium.launch({ executablePath: CHROME, args: ['--no-sandbox', '--use-gl=swiftshader', '--enable-unsafe-swiftshader'] })
   for (const [name, url, width, height, step] of SHOTS) {
+    if (ONLY && !ONLY.test(name)) continue
     const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: 2 })
     await page.goto(BASE + url)
-    if (step.fallback) {
+    if (step.fallback === 'gallery') {
+      await page.locator('[data-sv-gallery]').waitFor()
+    } else if (step.fallback) {
       await page.locator('[data-stadium-fallback]').waitFor()
       await page.waitForFunction(() => window.__stadiview && typeof window.__stadiview.myZone === 'function')
     } else {

@@ -76,6 +76,8 @@ test.describe('with the keyboard alone', () => {
   })
 
   test('a guest types a ticket, then finds a graduate and chooses them', async ({ page }) => {
+    // About forty Tab stops, each waiting on a frame drawn in software here; the arc and beacon follow the choice.
+    test.setTimeout(120_000)
     await open(page, stadiumUrl({ persona: 'guest' }))
     const g = (await call(page, (h) => h.sampleGraduate(true, 5))) as Sample
     await tabTo(page, '[data-sv-guest-toggle]')

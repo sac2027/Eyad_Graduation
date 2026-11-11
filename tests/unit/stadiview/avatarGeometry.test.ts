@@ -26,9 +26,9 @@ describe('the seated figures', () => {
       const near = avatarMesh(kind, 'near', headwear)
       const far = avatarMesh(kind, 'far', headwear)
 
-      it('stays within the triangle budget', () => {
+      it('stays within the triangle budget (far figures: 14, or 18 with wheels)', () => {
         expect(near.triangles).toBeLessThanOrEqual(160)
-        expect(far.triangles).toBeLessThanOrEqual(28)
+        expect(far.triangles).toBeLessThanOrEqual(18)
         expect(near.positions.length).toBe(near.triangles * 9)
       })
 

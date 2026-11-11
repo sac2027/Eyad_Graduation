@@ -382,3 +382,40 @@ The plan is written to the defaults. Say which to change.
 | Gate-to-seat walking route in the guest panel, My seat and the seat card dialog | 10 |
 | Landmark chips in first person | 11 |
 | Bloom on tier 3, and final visual and performance checks | 12, 13 |
+
+---
+
+## Implementation notes (11 Nov 2026)
+
+All thirteen tasks were built in order in the main session, one commit each, without background workflows.
+
+**Deviations from the plan**
+- **The Procession Gate is see-through outside first person.** Task 1's test found that any arch tall enough to walk under stands in front of some Block 1 chair from some camera angle. Making it slimmer helped (posts 0.16 × 0.20 m, band 0.12 m) but could not reach zero. So outside first person the arch and the exit frame are drawn as translucent light (opacity 0.42), and solid only when seated, where nothing is picked. The bowl, by contrast, covers no part of any seat from the opening view or anywhere on the idle turn, measured over all 7,998 seats from 24 camera angles.
+- **"Hidden" means most of a chair is covered.** The decor test measures the share of a chair back (0.4 × 0.54 m, a 7 × 7 grid) that a piece covers, rather than testing one point, so a slim post crossing a chair does not count as hiding it.
+- **The Fill switch lives in the demo console**, shown only on the stadium page and kept in the URL as `?full=1`, not in the seat-map card. At 720 px tall the card has no room for another row, and growing it would bring back the Phase 3 overlap over `S-10-060`. On ceremony night the switch reads "on" and cannot be turned off.
+- **Far figures are one draw call.** Every kind shares one silhouette (14 triangles), and each instance carries its garment and head-cloth colours. The detailed figures stay one mesh per kind (7). The nearest set is chosen again only once the camera has rested 0.4 s after moving 3 m, never during a flight or the idle turn.
+- **Bloom gives up on slow frames**, when the median of 90 frames is over 25 ms. The stadium has no adaptive pixel ratio for it to follow. `?svbloom=1` keeps it on for review here.
+- **Graduates' routes come in through the east tunnel** to the Procession Start, then up the carpet's east leg in march direction. Gate 3 guests go straight onto the step-free platform. Other guests use a concourse ring outside the stands and the bowl, through all five gates.
+- **The gold arc's test checks that it crosses no solid part of the stadium.** The plan's "above the roof line" does not apply to short arcs, such as from the accessibility platform to the front rows, where there is no roof in between.
+- **New state:** `useStadium.facing` (Phase 3) and a separate look channel for the landmark chips; `useHud.sightline` and `useHud.route`; the demo flag `fullHouse`; `isCeremonyNight` in the shared schedule.
+- **Two long browser tests get 120 s.** One is the Phase 3 keyboard-only guest flow (about 40 Tab stops); the other is the locator-off share-code flow. Each waits on frames drawn in software, and the figures make those about 30% slower here. Both pass well inside the time alone.
+- Phase 2's reduced-motion test now allows 1.5 s for the cut instead of 0.9 s. The cut is a 0.3 s fade timer that waits behind one software-drawn frame, which reached 1.0 to 1.1 s under two parallel workers. A ride still takes 2.6 s, so the test still tells a cut from a ride.
+- The old `procession.loop` and `procession.exit` settings were never drawn and are gone. The east tunnel (`procession.entrance`) stays, and its gap stays open.
+
+**Results**
+- Pin test: every seat's position and yaw, `ORBIT_HOME`, the camera limits, what blocks a click, and the seated parts of the venue all hash to the values recorded before Phase 4.
+- Type check and lint clean; 778 unit tests. Whole-site browser suite: 335 of 337 before the last changes. The two failures were the timing-sensitive tests above, under two parallel workers; both pass on their own and after the fixes.
+- Landing download: 178,702 B gzipped. That is +256 B over Phase 3 (the demo console's new switch and the ceremony-night check) and +427 B over the pre-StadiView baseline, against a +2 KB budget. The plan had hoped for no growth.
+- StadiView's own code: 84.9 KB gzipped (page 45.1, scene 32.8, styles 7.0), against a 120 KB budget. The bloom passes add 5.0 KB, fetched on tier 3 only; the figure gallery is 1 KB.
+- Drawing at tier 1, 1440 × 900: about 257,000 triangles in 40 calls mid-window, and 310,000 in 41 calls for a full house. The budget is 450,000 triangles and 55 calls.
+- Frame times (production build, processor slowed 4 times, a graduate signed in, a seat inspected, the idle turn on). "Own work" is the page's JavaScript per frame, three.js's draw submission included:
+
+  | Screen | Tier | Mid-window, overview | Full house, overview | First person |
+  |---|---|---|---|---|
+  | Phone 390×844 | 1 | 5.2 ms | 7.5 ms | 3.8 to 4.2 ms |
+  | Phone 390×844 | 2 | 8.6 ms | 9.0 ms | 3.2 to 3.6 ms |
+  | Desktop 1440×900 | 1 | 11.2 ms | 9.1 ms | 4.3 to 4.7 ms |
+  | Desktop 1440×900 | 2 | 16.0 ms | 12.3 ms | 4.8 to 7.0 ms |
+
+  The 6 ms target is met in first person everywhere, and in the overview only on a tier 1 phone mid-window. It is **not met** in the overview elsewhere. A CPU profile shows no single cause in the page's own code. The time is spread over three.js's scene traversal and draw submission (40 calls, up from 29), the LED texture upload and React. Frames here are 300 to 1,000 ms apart because this container draws in software, so each median rests on 5 to 15 frames and is noisy. This must be measured on a real phone and laptop before release. The likely next steps: merge the carpet's four parts and the bowl into fewer meshes, and draw the stand chairs under figures only when close.
+- Review screenshots 18 to 27 are in `docs/review/stadiview/`.

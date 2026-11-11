@@ -1,5 +1,6 @@
 // Frame times of the 3D stadium, measured in a real browser on a production build.
 // Usage: npm run build && npx vite preview --port 4173 --strictPort, then: node scripts/stadiview-frames.cjs
+// FULL=1 measures a full house (every seat holding a figure).
 //
 // For a few seconds in the overview (with the idle turn on) and in first person, for tiers 1 and 2,
 // on a desktop and a phone-sized screen, with the processor slowed four times, it records two things:
@@ -73,7 +74,7 @@ async function frames(page) {
       await page.addInitScript(TIME_FRAME_CALLBACKS)
       // With the HUD as people use it: a graduate during the booking period, a seat in the inspector,
       // and the seat map redrawing its camera marker as the idle turn moves the view.
-      await page.goto(`${BASE}/stadium?lang=en&tier=${tier}&idle=1&persona=grad-m-gold&t=2027-03-20T10:00&svdebug=1`)
+      await page.goto(`${BASE}/stadium?lang=en&tier=${tier}&idle=1&persona=grad-m-gold&t=2027-03-20T10:00&svdebug=1${process.env.FULL ? '&full=1' : ''}`)
       await page.waitForFunction(() => window.__stadiview && window.__stadiview.ready === true, undefined, { timeout: 60000 })
       await page.evaluate(() => window.__stadiview.inspect('P3-12-07'))
       await cdp.send('Emulation.setCPUThrottlingRate', { rate: THROTTLE })

@@ -49,7 +49,7 @@ Also in the console: **Reset demo data** (scrubbing time backwards cannot undo e
 
 ## The 3D stadium (StadiView)
 
-`/stadium` is a full-screen 3D model of the stadium on graduation night, built in code (no model files). It is being delivered in phases; this is what works after **Phase 3 (the interface and the booking flow)**:
+`/stadium` is a full-screen 3D model of the stadium on graduation night, built in code (no model files). It was delivered in four phases; this is what works after **Phase 4 (people, the march, the bowl and the light)**:
 
 - **The stadium**: the pitch with six blocks of graduate chairs facing the stage at the west end, the running track, the south family stand with **KFUPM** spelled in sand-coloured seats, the east curve with the procession entrance, the north stands with the VIP box under its canopy, the accessibility platform, five gates, four floodlight masts, and the stage with its animated FAST Matrix backdrop and two LED screens.
 - **Every seat is real**: 2,986 graduate seats, 12 wheelchair bays and 5,000 stand seats, each one hoverable and clickable. Hover shows a tooltip (block, row, seat, college and degree, status). The whole stadium is about 166,000 triangles in 22 to 25 draw calls.
@@ -70,14 +70,18 @@ Also in the console: **Reset demo data** (scrubbing time backwards cannot undo e
 
 The data is mock: 2,986 graduates, 5,000 guest tickets and occupancy that grows with the simulated clock, all in memory (the demo console's reset clears it).
 
-What is not there yet: the avatars, the sightline arc, the animated walking route and the final polish (Phase 4).
+**The people (Phase 4).** Every seat that is taken holds a seated figure, and no free seat does: men graduating in a black bisht with gold zari trim, the white thobe, the KFUPM shawl and a ghutra with iqal (Blocks 2 to 6); women graduating in an abaya, shayla and shawl (Block 1); families in a white thobe with ghutra or red shemagh, or an abaya and shayla. Family seats fill as their graduate books; the stadium is full on ceremony night (7 April, 18:45 to 21:30), and the demo console's **Fill the stadium (ceremony night)** switch (or `?full=1`) shows a full house at any time without changing any booking. Seated in first person, your own seat and the figures within 1.5 m of your eyes are left out, so the row in front never hides the stage. `/stadium?svavatars=1` shows the figures on their own.
+
+**The march and the bowl.** The crimson march carpet (مسار المسيرة) runs round the blocks with gold lights on both edges and arrows flowing the way the graduates walk: from the Procession Start (نقطة بداية المسيرة) up the east side, through the Procession Gate (بوابة المسيرة) on the north side, past the stage and out by the Procession Exit (بوابة الخروج). Empty terraces close the bowl round the bends. All of it is for the eye only: none of it hides a seat or takes a click.
+
+**For guests and graduates.** A guest with a ticket and a located graduate sees a gold arc from their seat to the graduate's, with a 12 m beam on the graduate's seat. **Show my route** (guest panel, My seat, seat card) draws the walk from the gate to the seat, in 3D and on the seat map, with the distance and minutes. Seated, landmark chips (Stage, LED screens, VIP box, Family stands, Procession Gate, My graduate) turn the view. Desktops (tier 3) get bloom.
 
 **Changing the venue.** Every number about the stadium (head counts per college and degree, block sizes, stands, gates, camera) is in `src/features/stadiview/config/venue.ts`. The layout, the picking, the drawing and the camera all read from it.
 
 **Devices.** The page picks one of four tiers: 0 (no WebGL: the 2D seat map takes the page), 1 (low-end), 2 (default), 3 (desktop). Add `?tier=0` to `?tier=3` to force one. Reduced motion and the console's low-end switch turn flights into a short cut and stop the idle turn.
 
 **For testing and review.**
-- `?idle=1` turns the idle rotation on under automation; `?svslow=8` slows flights eight times; `?svdebug=1` exposes `window.__stadiview` on a production build.
+- `?idle=1` turns the idle rotation on under automation; `?svslow=8` slows flights eight times; `?svdebug=1` exposes `window.__stadiview` on a production build; `?full=1` fills the stadium; `?svbloom=1` keeps bloom on where frames are slow; `?svavatars=1` shows the figures on their own.
 - `node scripts/stadiview-stills.cjs` (dev server running) regenerates `docs/review/stadiview/`.
 - `node scripts/stadiview-frames.cjs` (after `npm run build` and `npx vite preview --port 4173`) measures frame times.
 - `node scripts/landing-weight.cjs` (after `npm run build`) reports how much the landing page downloads.

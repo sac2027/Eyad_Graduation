@@ -51,6 +51,8 @@ type V = [number, number, number]
 class FigureBuilder {
   positions: number[] = []
   colors: number[] = []
+  /** The painted-on shading of each corner, before colour. */
+  shades: number[] = []
   paints: Paint[] = []
   parts: Record<string, [number, number]> = {}
   private linear = new Map<Paint, [number, number, number]>()
@@ -90,6 +92,7 @@ class FigureBuilder {
       // Darker toward the floor, as in the shadow between rows.
       const k = Math.min(1, face * (0.62 + 0.38 * Math.min(1, p[1] / 1.25)))
       this.colors.push(r * k, g * k, bl * k)
+      this.shades.push(k)
     }
     this.paints.push(paint)
   }
@@ -238,18 +241,17 @@ function nearFigure(kind: AvatarKind, headwear: Headwear): AvatarMesh {
 }
 
 function farFigure(kind: AvatarKind, headwear: Headwear): AvatarMesh {
+  // Seen from across the stadium a figure is a few pixels tall: the garment's shape and colour,
+  // and the head-cloth's peak, in 14 triangles.
   const f = new FigureBuilder()
   const graduate = kind.startsWith('grad') || kind.startsWith('bay')
   const man = kind.endsWith('-m')
   const robe: Paint = man ? (graduate ? 'bisht' : 'thobe') : 'abaya'
-  f.part('lap', () => f.block(SEAT, [0.25, KNEE.z, 0.08], KNEE.y + 0.04, [0.25, KNEE.z, 0.08], robe, ['back', 'sides']))
-  // The head-cloth covers the shoulders' top, so the torso needs none.
+  f.part('lap', () => f.block(SEAT, [0.25, KNEE.z, 0.08], KNEE.y + 0.04, [0.25, KNEE.z, 0.08], robe, ['back', 'sides', 'front']))
+  // The torso's four sides; the head-cloth covers its top.
   f.part('torso', () => f.block(KNEE.y, [0.25, -0.1, 0.13], SHOULDER, [0.22, -0.07, 0.13], robe, ['top']))
   const top: Paint = man ? (headwear === 'shemagh' ? 'shemagh' : 'ghutra') : 'shayla'
-  f.part('headcloth', () => {
-    f.block(SHOULDER - 0.06, [0.2, -0.08, 0.16], 1.16, [0.11, -0.085, 0.13], top, ['top'])
-    f.crown(1.16, [0.11, -0.085, 0.13], [0, 1.27, 0.03], top)
-  })
+  f.part('headcloth', () => f.crown(SHOULDER - 0.02, [0.2, -0.08, 0.16], [0, 1.27, 0.03], top))
   if (kind.startsWith('bay')) {
     f.part('wheels', () => {
       f.panel(-0.34, -0.33, 0.02, 0.58, 0, 'wheel')
@@ -270,6 +272,37 @@ export function avatarGeometry(kind: AvatarKind, lod: Lod, headwear: Headwear = 
   const g = new BufferGeometry()
   g.setAttribute('position', new BufferAttribute(m.positions, 3))
   g.setAttribute('color', new BufferAttribute(m.colors, 3))
+  g.computeBoundingSphere()
+  return g
+}
+
+/** The two colours of a far figure: its garment and its head-cloth. */
+export function farColors(kind: AvatarKind, headwear: Headwear = 'ghutra'): { robe: string; head: string } {
+  const man = kind.endsWith('-m')
+  const graduate = !kind.startsWith('family')
+  const robe = man ? (graduate ? AVATAR_COLORS.bisht : AVATAR_COLORS.thobe) : AVATAR_COLORS.abaya
+  const head = man ? (headwear === 'shemagh' ? AVATAR_COLORS.shemagh : AVATAR_COLORS.ghutra) : AVATAR_COLORS.shayla
+  return { robe, head }
+}
+
+/**
+ * The far figure as one shape for every kind, so all of them are drawn in a single call: each
+ * corner carries its painted-on shading (red channel) and whether it belongs to the garment (green
+ * 0) or the head-cloth (green 1). The figure's own two colours come per instance.
+ */
+export function farTemplate(): BufferGeometry {
+  const f = new FigureBuilder()
+  f.block(SEAT, [0.25, KNEE.z, 0.08], KNEE.y + 0.04, [0.25, KNEE.z, 0.08], 'bisht', ['back', 'sides', 'front'])
+  f.block(KNEE.y, [0.25, -0.1, 0.13], SHOULDER, [0.22, -0.07, 0.13], 'bisht', ['top'])
+  f.crown(SHOULDER - 0.02, [0.2, -0.08, 0.16], [0, 1.27, 0.03], 'ghutra')
+  const colors = new Float32Array(f.shades.length * 3)
+  f.shades.forEach((k, i) => {
+    colors[i * 3] = k
+    colors[i * 3 + 1] = f.paints[Math.floor(i / 3)] === 'ghutra' ? 1 : 0
+  })
+  const g = new BufferGeometry()
+  g.setAttribute('position', new BufferAttribute(new Float32Array(f.positions), 3))
+  g.setAttribute('color', new BufferAttribute(colors, 3))
   g.computeBoundingSphere()
   return g
 }

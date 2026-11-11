@@ -332,6 +332,13 @@ Faceless, low-poly, head-and-shoulders-and-torso figures seated in chairs. No fa
 - The guest panel has no "sightline and route toggles" yet (Phase 4); it gives the distance, the compass direction and where to look relative to the stage, and "View from my seat, facing them".
 - Tier 0: the seat map takes the page with a short note; the inspector shows a drawn plan of the line of sight in place of the view picture.
 
+**As built in Phase 4 (11 Nov 2026).** See `docs/superpowers/plans/2026-11-11-stadiview-phase4.md` for the decisions and the measured numbers.
+- Sections 7 and 8 are built: figures on reserved seats only (near and far detail, a 1.5 m clear circle in first person), the gold sightline arc with a 12 m beacon, and walking routes from the gate in 3D, on the 2D map and in words.
+- The procession follows the requester's aerial photo: one counter-clockwise march round a crimson carpet from the Procession Start at the south end of the east leg, through the Procession Gate on the north side, in front of the stage and out at the south-east. Graduates still come in through the east tunnel. The old two-loop procession settings are gone.
+- The open bends are closed by empty, visual-only terraces. The Procession Gate and the exit frame are drawn see-through outside first person, because no post tall enough to walk under can avoid standing in front of some chair from some angle.
+- Tier 3 bloom gives up on slow frames (median of 90 frames over 25 ms) instead of following an adaptive pixel ratio, which the stadium does not have.
+- The crowd numbers in the table below are the detailed figures; every reserved seat has at least a simple one.
+
 ## 10. Device tiers
 
 | Tier | When | What changes |

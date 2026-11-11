@@ -17,9 +17,8 @@ export const FRAME_OPACITY_OVERVIEW = 0.42
 const TEAL = '#2BB3C0'
 
 /** The arch: two slim posts and a pointed band, all lit gold. */
-function archGeometry(): BufferGeometry {
+function addArch(m: MeshBuilder): void {
   const a = VENUE.arch
-  const m = new MeshBuilder()
   for (const [x0, x1, z0, z1] of archPosts()) m.box([x0, 0, z0], [x1, a.springY + 0.05, z1], SV.gold, ['-y'])
   const curve = archCurve(VENUE, 14)
   const half = a.band / 2
@@ -46,11 +45,10 @@ function archGeometry(): BufferGeometry {
     m.face([front[2], front[3], back[3], back[2]], [0, ny, nz], SV.gold)
     m.face([front[0], front[1], back[1], back[0]], [0, -ny, -nz], SV.gold)
   }
-  return m.build()
 }
 
 /** The exit's frame: two posts and a lintel across the exit leg, square to it. */
-function exitGeometry(): BufferGeometry {
+function addExit(b: MeshBuilder): void {
   const m = VENUE.march
   const [ex, , ez] = m.exit
   // Square to the last stretch of the exit leg.
@@ -58,7 +56,6 @@ function exitGeometry(): BufferGeometry {
   const dz = ez - m.exitVia[2]
   const len = Math.hypot(dx, dz) || 1
   const side = [-dz / len, dx / len]
-  const b = new MeshBuilder()
   const half = m.width / 2 + 0.6
   for (const s of [-1, 1]) {
     const cx = ex + side[0] * half * s
@@ -71,7 +68,14 @@ function exitGeometry(): BufferGeometry {
   const z1 = ez + side[1] * half
   b.face([[x0, 3.45, z0], [x1, 3.45, z1], [x1, 3.75, z1], [x0, 3.75, z0]], [dx, 0, dz], SV.gold)
   b.face([[x0, 3.45, z0], [x1, 3.45, z1], [x1, 3.75, z1], [x0, 3.75, z0]], [-dx, 0, -dz], SV.gold)
-  return b.build()
+}
+
+/** The two lit frames, the arch and the exit, as one geometry: they are drawn alike, in one call. */
+function framesGeometry(): BufferGeometry {
+  const m = new MeshBuilder()
+  addArch(m)
+  addExit(m)
+  return m.build()
 }
 
 /** The Procession Start: a gold ring on the carpet, a short light post, and the teal link from the blocks. */
@@ -132,11 +136,11 @@ export function ProcessionGate() {
   const built = useMemo(() => {
     const frame = new MeshBasicMaterial({ vertexColors: true, toneMapped: false, transparent: true, opacity: FRAME_OPACITY_OVERVIEW, depthWrite: false })
     const solid = new MeshBasicMaterial({ vertexColors: true, toneMapped: false })
-    return { arch: archGeometry(), exit: exitGeometry(), start: startGeometry(), frame, solid, scratch: new Vector3() }
+    return { frames: framesGeometry(), start: startGeometry(), frame, solid, scratch: new Vector3() }
   }, [])
   useEffect(
     () => () => {
-      for (const g of [built.arch, built.exit, built.start]) g.dispose()
+      for (const g of [built.frames, built.start]) g.dispose()
       built.frame.dispose()
       built.solid.dispose()
     },
@@ -169,8 +173,7 @@ export function ProcessionGate() {
 
   return (
     <group name="procession-places">
-      <mesh geometry={built.arch} material={seated ? built.solid : built.frame} renderOrder={3} name="procession-arch" />
-      <mesh geometry={built.exit} material={seated ? built.solid : built.frame} renderOrder={3} />
+      <mesh geometry={built.frames} material={seated ? built.solid : built.frame} renderOrder={3} name="procession-arch" />
       <mesh geometry={built.start} material={built.solid} />
     </group>
   )

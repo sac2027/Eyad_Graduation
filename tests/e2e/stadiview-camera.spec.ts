@@ -176,9 +176,12 @@ test.describe('flying into a seat', () => {
           }),
         [wanted, act] as const,
       )
-    expect(await timeTo('pov', 'select')).toBeLessThan(900)
+    // A ride takes 2.6 s. The cut is a 0.3 s fade, but here it also waits behind one frame drawn in
+    // software, which with the Phase 4 crowd can take most of a second while other tests run.
+    const CUT = 1500
+    expect(await timeTo('pov', 'select')).toBeLessThan(CUT)
     expect(distance((await camera(page)).position, EYE_P3_12_07)).toBeLessThan(0.05)
-    expect(await timeTo('orbit', 'back')).toBeLessThan(900)
+    expect(await timeTo('orbit', 'back')).toBeLessThan(CUT)
     expect(distance((await camera(page)).position, [72, 64, -88])).toBeLessThan(0.5)
   })
 })

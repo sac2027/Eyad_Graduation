@@ -6,6 +6,7 @@ import { Logo } from '@/brand/logo/Logo'
 import { useDemoFlags } from '@/features/demo-console/flags'
 import { extendDebugHook, installDebugHook, removeDebugHook } from '@/features/stadiview/debugHook'
 import { BackButton } from '@/features/stadiview/hud/BackButton'
+import { Inspector } from '@/features/stadiview/hud/Inspector'
 import { PovHint } from '@/features/stadiview/hud/PovHint'
 import { RoleSwitch } from '@/features/stadiview/hud/RoleSwitch'
 import { SeatMatrix } from '@/features/stadiview/hud/SeatMatrix'
@@ -15,6 +16,7 @@ import { getDirectory } from '@/features/stadiview/data/graduateDirectory'
 import { getVenue } from '@/features/stadiview/layout/venueLayout'
 import { useHud } from '@/features/stadiview/state/hudStore'
 import { useStadium } from '@/features/stadiview/state/stadiumStore'
+import { TIER_SETTINGS } from '@/features/stadiview/engine/tiers'
 import { useTier } from '@/features/stadiview/useTier'
 import { useLocale, useT } from '@/i18n'
 import { useSession } from '@/session/sessionStore'
@@ -72,6 +74,7 @@ export default function StadiViewPage() {
     hud.inspect(-1)
     hud.setPanel('none')
     hud.setGuest({ ticketSeat: -1, graduate: -1 })
+    hud.setCardOpen(false)
     useHud.setState({ role: persona.role === 'graduate' ? 'graduate' : 'guest' })
   }, [persona.id, persona.role])
 
@@ -100,6 +103,10 @@ export default function StadiViewPage() {
       // For tests: a free or a taken seat in the same zone as the seat named, and the viewer's own seat.
       freeSeat: (zoneOf, skip = 0) => seatInZone(v.indexOf(zoneOf), 'available', skip),
       takenSeat: (zoneOf) => seatInZone(v.indexOf(zoneOf), 'taken', 0),
+      myZone: () => {
+        const g = viewerNow()
+        return g ? v.idOf(v.zones[g.zone].start) : null
+      },
       mySeat: () => {
         const g = viewerNow()
         return g ? v.idOf(pitchSeats().seatOf(g, getNow())) || null : null
@@ -154,6 +161,7 @@ export default function StadiViewPage() {
 
       <SeatTooltip />
       <SeatMatrix canFly={show3d} />
+      <Inspector canFly={show3d} livePreview={TIER_SETTINGS[tier].livePreview} />
       {show3d && <PovHint />}
       {show3d && <BackButton />}
 

@@ -25,6 +25,7 @@ export interface Hook {
   matrixPoint(seatId: string): Point | null
   freeSeat(zoneOf: string, skip?: number): string | null
   takenSeat(zoneOf: string): string | null
+  myZone(): string | null
   mySeat(): string | null
 }
 

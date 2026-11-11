@@ -58,7 +58,7 @@ export function SeatMarker({ still }: { still: boolean }) {
   })
 
   return (
-    <group ref={group} visible={shown} dispose={null}>
+    <group ref={group} name="seat-marker" visible={shown} dispose={null}>
       <mesh geometry={parts.beam} material={parts.glow} renderOrder={6} />
       <mesh ref={ring} geometry={parts.circle} material={parts.line} position={[0, 0.06, 0]} renderOrder={6} />
     </group>

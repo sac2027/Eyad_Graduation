@@ -48,6 +48,8 @@ html.sv-locked, html.sv-locked body { overflow: hidden; overscroll-behavior: non
  * On this page it moves up under the top row, and opens downward.
  */
 html.sv-locked [data-demo-console] { inset-block: 76px auto; display: flex; flex-direction: column-reverse; align-items: flex-start; gap: 8px; }
+/* It stays on the side the brand is on, clear of the inspector across the page. */
+html.sv-locked[dir='rtl'] [data-demo-console] { left: auto; right: 0.75rem; align-items: flex-end; }
 html.sv-locked [data-demo-console] > section { margin: 0; max-height: calc(100dvh - 150px); }
 
 /* The 3D picture fills the whole screen; every HUD element floats over it. */
@@ -415,3 +417,53 @@ select.sv-field option { color: #061a17; background: #fff; }
 @media (max-height: 640px) { .sv-mx__legend { display: none; } .sv-mx__map { height: 8rem; } }
 /* Seat numbers are typed left to right, but an Arabic hint must still read right to left. */
 [dir='rtl'] .sv-mx__tools .sv-field:placeholder-shown { direction: rtl; }
+
+/* ---- The inspector ---- */
+
+.sv-insp {
+  position: absolute;
+  inset-block-start: 84px;
+  inset-inline-end: max(var(--sv-edge), env(safe-area-inset-right));
+  z-index: 12;
+  display: flex;
+  flex-direction: column;
+  width: min(21.5rem, calc(100vw - 2 * var(--sv-edge)));
+  max-height: calc(100dvh - 100px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--sv-line-gold) transparent;
+}
+.sv-insp__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; padding: 10px 4px 0 16px; }
+[dir='rtl'] .sv-insp__head { padding: 10px 16px 0 4px; }
+.sv-insp__head h2 { margin: 0; font: 700 1.0625rem/1.3 var(--font-display); font-variant-numeric: tabular-nums; text-wrap: balance; }
+.sv-insp__head p { display: flex; align-items: center; gap: 8px; margin: 3px 0 0; font-size: 0.875rem; line-height: 1.35; color: var(--sv-text-soft); }
+.sv-insp__college { flex: none; width: 10px; height: 10px; outline: 1px solid rgb(255 255 255 / 0.5); }
+.sv-insp__status { display: inline-flex; align-items: center; gap: 8px; margin: 8px 16px 0; font: 600 0.875rem/1.3 var(--font-body); }
+.sv-insp__status i { width: 9px; height: 9px; background: var(--sv-green); transform: var(--sv-lean); }
+.sv-insp__status[data-status='taken'] i { background: #6f8a83; }
+.sv-insp__status[data-status='mine'] i { background: var(--sv-gold); }
+
+.sv-preview { margin: 12px 0 0; }
+.sv-preview canvas { display: block; width: 100%; height: auto; aspect-ratio: 8 / 5; background: #0a2119; border-block: 1px solid var(--sv-line-green); cursor: grab; touch-action: none; opacity: 0.35; transition: opacity 180ms ease-out; }
+.sv-preview[data-ready] canvas { opacity: 1; }
+/* On a short window the picture is cropped rather than letting the buttons fall below the fold. */
+@media (max-height: 780px) and (min-width: 721px) { .sv-preview canvas { aspect-ratio: 2 / 1; object-fit: cover; } }
+.sv-preview canvas:active { cursor: grabbing; }
+.sv-preview canvas:focus-visible { outline: 2px solid var(--sv-gold); outline-offset: -2px; }
+.sv-preview figcaption { padding: 6px 16px 0; font-size: 0.75rem; color: var(--sv-text-soft); }
+
+.sv-insp__facts { display: grid; gap: 5px; margin: 12px 0 0; padding: 0 16px; list-style: none; font-size: 0.875rem; line-height: 1.4; color: var(--sv-white); font-variant-numeric: tabular-nums; }
+.sv-insp__facts li { display: flex; gap: 9px; }
+.sv-insp__facts li::before { content: ''; flex: none; width: 3px; margin-block: 4px; background: var(--sv-gold); transform: var(--sv-lean); }
+
+.sv-insp__actions { display: flex; flex-direction: column; align-items: stretch; gap: 10px; padding: 14px 16px 16px; }
+.sv-insp__actions .sv-button { justify-content: center; }
+.sv-insp__note { margin: 0; font-size: 0.875rem; line-height: 1.5; color: var(--sv-text-soft); text-wrap: pretty; }
+.sv-insp__promise { margin: 0; padding-inline-start: 10px; border-inline-start: 2px solid var(--sv-line-gold-strong); font-size: 0.75rem; line-height: 1.5; color: var(--sv-sand); text-wrap: pretty; }
+.sv-insp__error { margin: 0; padding: 8px 10px; font-size: 0.875rem; line-height: 1.45; color: #ffd2ca; background: rgb(240 138 124 / 0.14); border: 1px solid rgb(240 138 124 / 0.5); }
+/* Controls that exist only to drive the demo are marked as such. */
+.sv-insp__demo { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0; font-size: 0.75rem; }
+.sv-insp__demo span { padding: 1px 6px; font-weight: 700; color: var(--sv-night); background: var(--sv-sand); }
+.sv-link { padding: 6px 0; font: 600 0.8125rem/1.2 var(--font-body); color: var(--sv-sand); text-decoration: underline; text-underline-offset: 3px; background: none; border: 0; cursor: pointer; }
+@media (hover: hover) and (pointer: fine) { .sv-link:hover { color: var(--sv-gold); } }

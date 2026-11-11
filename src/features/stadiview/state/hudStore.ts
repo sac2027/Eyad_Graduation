@@ -27,6 +27,9 @@ export interface HudState {
   filters: SeatFilters
   /** Guest tools: the seat of the ticket that was looked up, and the directory index of the graduate being located. -1 for none. */
   guest: { ticketSeat: number; graduate: number }
+  /** Whether the graduate's seat card is open. */
+  cardOpen: boolean
+  setCardOpen(open: boolean): void
   setRole(role: Role): void
   inspect(seat: number): void
   setPanel(panel: Panel): void
@@ -47,12 +50,14 @@ export const useHud = create<HudState>((set) => ({
   panel: 'none',
   filters: NO_FILTERS,
   guest: { ticketSeat: -1, graduate: -1 },
-  setRole: (role) => set((s) => (s.role === role ? s : { role, inspected: -1, panel: 'none' })),
+  cardOpen: false,
+  setCardOpen: (cardOpen) => set({ cardOpen }),
+  setRole: (role) => set((s) => (s.role === role ? s : { role, inspected: -1, panel: 'none', cardOpen: false })),
   inspect: (seat) => set((s) => (s.inspected === seat ? s : { inspected: Number.isInteger(seat) && seat >= 0 ? seat : -1 })),
   setPanel: (panel) => set({ panel }),
   setFilters: (part) => set((s) => ({ filters: { ...s.filters, ...part } })),
   setGuest: (part) => set((s) => ({ guest: { ...s.guest, ...part } })),
-  reset: () => set({ role: 'guest', inspected: -1, panel: 'none', filters: NO_FILTERS, guest: { ticketSeat: -1, graduate: -1 } }),
+  reset: () => set({ role: 'guest', inspected: -1, panel: 'none', filters: NO_FILTERS, guest: { ticketSeat: -1, graduate: -1 }, cardOpen: false }),
 }))
 
 /** True when no filter is set. */

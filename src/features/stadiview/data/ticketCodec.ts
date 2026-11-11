@@ -50,6 +50,20 @@ export function ticketFor(seat: number): string | null {
   return `TICKET-G${v.sections[v.section[seat]].gate}-${tables.serial[seat]}`
 }
 
+/** The gate and serial digits of text shaped like a ticket number, or null. */
+function shapeOf(text: string): RegExpExecArray | null {
+  const plain = normalise(text)
+    .toUpperCase()
+    .replace(/[\s‐-―−_-]+/g, '')
+  return /^TICKETG(\d)(\d{1,6})$/.exec(plain)
+}
+
+/** The gate number written in a ticket, whether or not such a gate exists; null when the text is not shaped like a ticket. */
+export function ticketGate(text: string): number | null {
+  const m = shapeOf(text)
+  return m ? Number(m[1]) : null
+}
+
 /**
  * Reads a ticket number as someone might type it: any letter case, spaces or any kind of dash
  * between its parts, Latin or Arabic digits. Says what is wrong when it cannot be a ticket:
@@ -58,10 +72,7 @@ export function ticketFor(seat: number): string | null {
  * - 'range': that gate has fewer seats than the number given
  */
 export function parseTicket(text: string): Result<number, 'format' | 'gate' | 'range'> {
-  const plain = normalise(text)
-    .toUpperCase()
-    .replace(/[\s‐-―−_-]+/g, '')
-  const m = /^TICKETG(\d)(\d{1,6})$/.exec(plain)
+  const m = shapeOf(text)
   if (!m) return err('format')
   const serial = Number(m[2])
   if (serial < 1) return err('format')

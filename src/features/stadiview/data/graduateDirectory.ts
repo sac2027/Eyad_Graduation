@@ -127,9 +127,9 @@ let searchable: { g: Graduate; words: string[] }[] | undefined
  * - Otherwise every word typed must begin a word of the name, in Arabic or in English. At least
  *   two letters are needed, so one keystroke does not list three thousand people.
  *
- * `matches` holds the first `limit`; `total` is how many there are in all.
+ * `matches` holds the first `limit`; `total` is how many there are in all. With a `college`, only its graduates are found.
  */
-export function searchGraduates(query: string, limit = 8): { matches: Graduate[]; total: number } {
+export function searchGraduates(query: string, limit = 8, college: CollegeCode | null = null): { matches: Graduate[]; total: number } {
   const q = normalise(query)
   const all = getDirectory().all
   let found: Graduate[]
@@ -142,6 +142,10 @@ export function searchGraduates(query: string, limit = 8): { matches: Graduate[]
     if (typed.join('').length < 2) return { matches: [], total: 0 }
     searchable ??= all.map((g) => ({ g, words: [...normalise(g.name.ar).split(' '), ...normalise(g.name.en).split(' ')] }))
     found = searchable.filter((s) => typed.every((w) => s.words.some((word) => word.startsWith(w)))).map((s) => s.g)
+  }
+  if (college) {
+    const zones = getVenue().zones
+    found = found.filter((g) => zones[g.zone].college === college)
   }
   return { matches: found.slice(0, limit), total: found.length }
 }

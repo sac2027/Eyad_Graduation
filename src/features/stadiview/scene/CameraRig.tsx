@@ -27,7 +27,7 @@ import {
 } from '@/features/stadiview/engine/cameraMath'
 import type { Look, Orbit } from '@/features/stadiview/engine/cameraMath'
 import { overviewPoints, overviewRadius } from '@/features/stadiview/engine/framing'
-import { seatBack, seatFacing } from '@/features/stadiview/engine/seatFrame'
+import { seatAim, seatBack, seatFacing } from '@/features/stadiview/engine/seatFrame'
 import { getVenue } from '@/features/stadiview/layout/venueLayout'
 import { setCameraOnPlan } from '@/features/stadiview/state/cameraOnPlan'
 import { useStadium } from '@/features/stadiview/state/stadiumStore'
@@ -223,6 +223,12 @@ export function CameraRig({ still }: { still: boolean }) {
       stage?.removeAttribute('data-cut')
     }
 
+    /** What a viewer in a seat looks at on arriving: the stage, or the seat they asked to face. */
+    const lookTarget = (seat: number): Vec3 => {
+      const facing = useStadium.getState().facing
+      return facing >= 0 ? seatAim(facing, v) : seatLook(seat, v)
+    }
+
     /** The flight has arrived: settle into the seat, or back into the overview. */
     const land = (seat: number) => {
       s.flight = null
@@ -230,7 +236,7 @@ export function CameraRig({ still }: { still: boolean }) {
       if (seat >= 0) {
         const eye = seatEye(seat, v)
         s.seat = seat
-        const ahead = lookAngles(eye, seatLook(seat, v))
+        const ahead = lookAngles(eye, lookTarget(seat))
         s.look = clampLook(ahead.yaw, ahead.pitch)
         s.povFov = POV_FOV
         useStadium.getState().setMode('pov')
@@ -282,7 +288,7 @@ export function CameraRig({ still }: { still: boolean }) {
           const way = roofed(seat) ? frontFlightPath(exit ?? here, eye, seatFacing(seat, v)) : flightPath(exit ?? here, eye, seatBack(seat, v))
           path = exit ? [here, ...way] : way
         }
-        toLook = seatLook(seat, v)
+        toLook = lookTarget(seat)
         duration = alreadyThere ? RELOOK : FLY_IN
         toFov = POV_FOV
         toNear = NEAR_SEAT
@@ -336,7 +342,7 @@ export function CameraRig({ still }: { still: boolean }) {
     flying.current = { pose, land }
 
     const unsubscribe = useStadium.subscribe((now, before) => {
-      if (now.mode === 'fly' && (before.mode !== 'fly' || now.selected !== before.selected)) start(now.selected, before.mode)
+      if (now.mode === 'fly' && (before.mode !== 'fly' || now.selected !== before.selected || now.facing !== before.facing)) start(now.selected, before.mode)
     })
 
     extendDebugHook({

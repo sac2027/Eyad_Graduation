@@ -111,3 +111,21 @@ describe('searching', () => {
     expect(maskStudentId('12')).toBe('12')
   })
 })
+
+describe('searching within one college', () => {
+  const v = getVenue()
+
+  it('finds only that college\'s graduates', () => {
+    const everyone = searchGraduates('al', 5000)
+    const business = searchGraduates('al', 5000, 'KBS')
+    expect(business.total).toBeGreaterThan(0)
+    expect(business.total).toBeLessThan(everyone.total)
+    for (const g of business.matches) expect(v.zones[g.zone].college).toBe('KBS')
+  })
+
+  it('counts the college\'s matches, not everyone\'s, in the total', () => {
+    const colleges = ['CEP', 'CCM', 'KBS', 'CDBE', 'CMM', 'CPEG'] as const
+    const sum = colleges.reduce((n, c) => n + searchGraduates('al', 8, c).total, 0)
+    expect(sum).toBe(searchGraduates('al', 8).total)
+  })
+})

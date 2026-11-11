@@ -40,7 +40,7 @@ describe('the HUD store', () => {
     expect(filtersOff(useHud.getState().filters)).toBe(false)
     useHud.getState().setGuest({ ticketSeat: 3000 })
     useHud.getState().setGuest({ graduate: 12 })
-    expect(useHud.getState().guest).toEqual({ ticketSeat: 3000, graduate: 12 })
+    expect(useHud.getState().guest).toEqual({ ticketSeat: 3000, graduate: 12, byCode: false })
   })
 })
 
@@ -77,5 +77,63 @@ describe('seatMatches', () => {
     expect(seatMatches(platform, v, f, 'available')).toBe(true)
     expect(seatMatches(pitch, v, f, 'available')).toBe(false)
     expect(seatMatches(stand, v, f, 'available')).toBe(false)
+  })
+})
+
+describe('panels, the seat card and the matrix', () => {
+  beforeEach(() => useHud.getState().reset())
+  const hud = () => useHud.getState()
+
+  it('opens the guest tools when someone chooses Guest', () => {
+    hud().setRole('graduate')
+    expect(hud().panel).toBe('none')
+    hud().setRole('guest')
+    expect(hud().panel).toBe('guest')
+  })
+
+  it('gives the side panel\'s place to the inspector when a seat is inspected', () => {
+    hud().setPanel('mine')
+    hud().inspect(40)
+    expect(hud()).toMatchObject({ inspected: 40, panel: 'none' })
+  })
+
+  it('keeps the panel open when the panel itself marks a seat', () => {
+    hud().setPanel('guest')
+    hud().inspect(3000, true)
+    expect(hud()).toMatchObject({ inspected: 3000, panel: 'guest' })
+    // Clearing the seat never closes a panel either.
+    hud().inspect(-1)
+    expect(hud()).toMatchObject({ inspected: -1, panel: 'guest' })
+  })
+
+  it('knows whether the seat card opened because of a booking', () => {
+    hud().setCardOpen(true, true)
+    expect(hud()).toMatchObject({ cardOpen: true, cardFresh: true })
+    hud().setCardOpen(false)
+    expect(hud()).toMatchObject({ cardOpen: false, cardFresh: false })
+    hud().setCardOpen(true)
+    expect(hud()).toMatchObject({ cardOpen: true, cardFresh: false })
+  })
+
+  it('closes the seat card when the role changes', () => {
+    hud().setRole('graduate')
+    hud().setCardOpen(true, true)
+    hud().setRole('guest')
+    expect(hud()).toMatchObject({ cardOpen: false, cardFresh: false })
+  })
+
+  it('gives every request to fit the matrix a new token, even for the same place', () => {
+    const first = hud().matrixFit.token
+    hud().fitMatrix({ zone: 2 })
+    expect(hud().matrixFit).toEqual({ what: { zone: 2 }, token: first + 1 })
+    hud().fitMatrix({ zone: 2 })
+    expect(hud().matrixFit.token).toBe(first + 2)
+  })
+
+  it('remembers how a graduate was reached', () => {
+    hud().setGuest({ graduate: 12, byCode: true })
+    expect(hud().guest).toEqual({ ticketSeat: -1, graduate: 12, byCode: true })
+    hud().reset()
+    expect(hud().guest).toEqual({ ticketSeat: -1, graduate: -1, byCode: false })
   })
 })

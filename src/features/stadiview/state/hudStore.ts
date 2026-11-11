@@ -28,8 +28,11 @@ export interface HudState {
   inspected: number
   panel: Panel
   filters: SeatFilters
-  /** Guest tools: the seat of the ticket that was looked up, and the directory index of the graduate being located. -1 for none. */
-  guest: { ticketSeat: number; graduate: number }
+  /**
+   * Guest tools: the seat of the ticket that was looked up, the directory index of the graduate being
+   * located (-1 for none), and whether that graduate was reached with their Family Share Code.
+   */
+  guest: { ticketSeat: number; graduate: number; byCode: boolean }
   /** Whether the graduate's seat card is open, and whether it opened because a seat was booked a moment ago. */
   cardOpen: boolean
   cardFresh: boolean
@@ -57,13 +60,14 @@ export const useHud = create<HudState>((set) => ({
   inspected: -1,
   panel: 'none',
   filters: NO_FILTERS,
-  guest: { ticketSeat: -1, graduate: -1 },
+  guest: { ticketSeat: -1, graduate: -1, byCode: false },
   cardOpen: false,
   cardFresh: false,
   setCardOpen: (cardOpen, fresh = false) => set({ cardOpen, cardFresh: cardOpen && fresh }),
   matrixFit: { what: 'pitch', token: 0 },
   fitMatrix: (what) => set((s) => ({ matrixFit: { what, token: s.matrixFit.token + 1 } })),
-  setRole: (role) => set((s) => (s.role === role ? s : { role, inspected: -1, panel: 'none', cardOpen: false, cardFresh: false })),
+  // Someone who chooses Guest came to look something up: their tools open with the role.
+  setRole: (role) => set((s) => (s.role === role ? s : { role, inspected: -1, panel: role === 'guest' ? 'guest' : 'none', cardOpen: false, cardFresh: false })),
   inspect: (seat, keepPanel = false) =>
     set((s) => {
       const inspected = Number.isInteger(seat) && seat >= 0 ? seat : -1
@@ -73,7 +77,7 @@ export const useHud = create<HudState>((set) => ({
   setPanel: (panel) => set({ panel }),
   setFilters: (part) => set((s) => ({ filters: { ...s.filters, ...part } })),
   setGuest: (part) => set((s) => ({ guest: { ...s.guest, ...part } })),
-  reset: () => set({ role: 'guest', inspected: -1, panel: 'none', filters: NO_FILTERS, guest: { ticketSeat: -1, graduate: -1 }, cardOpen: false, cardFresh: false }),
+  reset: () => set({ role: 'guest', inspected: -1, panel: 'none', filters: NO_FILTERS, guest: { ticketSeat: -1, graduate: -1, byCode: false }, cardOpen: false, cardFresh: false }),
 }))
 
 /** True when no filter is set. */

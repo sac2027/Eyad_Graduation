@@ -5,7 +5,7 @@ import { getDirectory } from '@/features/stadiview/data/graduateDirectory'
 import { guestTicketService } from '@/features/stadiview/data/guestTicketService'
 import { locatorService } from '@/features/stadiview/data/locatorService'
 import { pitchSeats } from '@/features/stadiview/data/pitchSeatService'
-import { parseTicket, ticketFor } from '@/features/stadiview/data/ticketCodec'
+import { parseTicket, ticketFor, ticketGate } from '@/features/stadiview/data/ticketCodec'
 import { bearingBetween, relativeToStage } from '@/features/stadiview/engine/bearing'
 import { getVenue } from '@/features/stadiview/layout/venueLayout'
 
@@ -189,5 +189,17 @@ describe('bearings', () => {
     // The podium is to the north-west of the south stand; a seat east of centre is to its right, and below.
     expect(r.side).toBe('right')
     expect(r.tilt).toBe('down')
+  })
+})
+
+describe('the gate written in a ticket', () => {
+  it('is read from anything shaped like a ticket, even for a gate that does not exist', () => {
+    expect(ticketGate('TICKET-G1-204')).toBe(1)
+    expect(ticketGate('ticket g9 1')).toBe(9)
+    expect(ticketGate('TICKET-G1-99999')).toBe(1)
+  })
+
+  it('is null for anything else', () => {
+    for (const text of ['', 'hello', 'TICKET', 'G1-204', 'TICKET-GX-1']) expect(ticketGate(text), text).toBeNull()
   })
 })

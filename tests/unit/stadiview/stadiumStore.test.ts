@@ -385,8 +385,9 @@ describe('the store as others use it', () => {
     expect(snap()).toEqual({ mode: 'fly', hover: -1, selected: -1 })
   })
 
-  it('holds exactly the fields the plan lists', () => {
-    expect(Object.keys(st()).sort()).toEqual(['back', 'hover', 'mode', 'select', 'selected', 'setHover', 'setMode'])
+  it('holds exactly the fields the plans list', () => {
+    // `facing` came with Phase 3: a guest sits in their seat turned toward their graduate.
+    expect(Object.keys(st()).sort()).toEqual(['back', 'facing', 'hover', 'mode', 'select', 'selected', 'setHover', 'setMode'])
   })
 
   it('can be put back to the start with its own initial state', () => {
@@ -425,5 +426,43 @@ describe('the store as others use it', () => {
     expect(result.current).toBe(A)
     act(() => st().select(A))
     expect(result.current).toBe(-1)
+  })
+})
+
+describe('facing another seat', () => {
+  beforeEach(() => useStadium.setState(useStadium.getInitialState(), true))
+
+  it('looks at the stage unless asked otherwise', () => {
+    st().select(B)
+    expect(st()).toMatchObject({ mode: 'fly', selected: B, facing: -1 })
+  })
+
+  it('remembers the seat to face until the camera leaves', () => {
+    st().select(B, A)
+    expect(st()).toMatchObject({ mode: 'fly', selected: B, facing: A })
+    st().setMode('pov')
+    expect(st().facing).toBe(A)
+    st().back()
+    expect(st()).toMatchObject({ selected: -1, facing: -1 })
+  })
+
+  it('turns the view when the same seat is chosen again with someone to face', () => {
+    st().select(B)
+    st().setMode('pov')
+    st().select(B, A)
+    expect(st()).toMatchObject({ mode: 'fly', selected: B, facing: A })
+    // And back to the stage.
+    st().setMode('pov')
+    st().select(B)
+    expect(st()).toMatchObject({ mode: 'fly', selected: B, facing: -1 })
+  })
+
+  it('ignores a seat that cannot be faced: itself, or no seat at all', () => {
+    st().select(B, B)
+    expect(st().facing).toBe(-1)
+    st().back()
+    st().setMode('orbit')
+    st().select(C, 99_999)
+    expect(st().facing).toBe(-1)
   })
 })

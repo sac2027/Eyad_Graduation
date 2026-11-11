@@ -37,12 +37,25 @@ export interface StadiViewDebug {
   /** For tests: the id of a free (or taken) seat in the same zone as the seat named; `skip` passes over that many first. */
   freeSeat?(zoneOf: string, skip?: number): string | null
   takenSeat?(zoneOf: string): string | null
+  /** For tests: a graduate of the simulated class (not a persona) who has, or has not, booked a seat by now. */
+  sampleGraduate?(booked: boolean, skip?: number): SampleGraduate | null
+  /** For tests: the signed-in graduate's place in the directory. */
+  me?(): { index: number; studentId: string; shareCode: string } | null
   /** For tests: the first seat of the signed-in graduate's own zone, to pass to `freeSeat`. */
   myZone?(): string | null
   /** The signed-in graduate's own seat, or null. */
   mySeat?(): string | null
   /** Where a seat is on the 2D matrix, in CSS pixels of the viewport; null when it is outside the card. */
   matrixPoint?(seatId: string): { x: number; y: number } | null
+}
+
+export interface SampleGraduate {
+  index: number
+  name: { ar: string; en: string }
+  studentId: string
+  shareCode: string
+  seat: string | null
+  tickets: string[]
 }
 
 declare global {

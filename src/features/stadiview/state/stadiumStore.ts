@@ -13,8 +13,14 @@ export interface StadiumState {
    * 'fly' with a seat is a flight in to that seat, 'fly' with -1 is the flight back to the overview.
    */
   selected: number
+  /**
+   * Index of a seat to look toward on arriving in first person, -1 to look at the stage as usual.
+   * A guest uses it to sit in their own seat and face their graduate's.
+   */
+  facing: number
   setHover(i: number): void
-  select(i: number): void
+  /** Flies to a seat. With `facing`, the view on arrival is turned toward that other seat instead of the stage. */
+  select(i: number, facing?: number): void
   back(): void
   /** For the camera rig, when a flight ends: 'pov' after a flight in, 'orbit' after a flight back. */
   setMode(m: CameraMode): void
@@ -38,6 +44,7 @@ export const useStadium = create<StadiumState>((set, get) => ({
   mode: 'orbit',
   hover: NO_SEAT,
   selected: NO_SEAT,
+  facing: NO_SEAT,
 
   setHover(i) {
     const s = get()
@@ -47,19 +54,20 @@ export const useStadium = create<StadiumState>((set, get) => ({
     if (hover !== s.hover) set({ hover })
   },
 
-  select(i) {
+  select(i, facing = NO_SEAT) {
     if (!isSeat(i)) return
+    const toward = isSeat(facing) && facing !== i ? facing : NO_SEAT
     const s = get()
-    if (s.mode === 'fly' && s.selected === i) return // already on the way to this seat
+    if (s.mode === 'fly' && s.selected === i && s.facing === toward) return // already on the way to this seat
     // One update, so no subscriber sees the new mode with the old seat or a leftover hover.
-    set({ mode: 'fly', selected: i, hover: NO_SEAT })
+    set({ mode: 'fly', selected: i, facing: toward, hover: NO_SEAT })
   },
 
   back() {
     const s = get()
     if (s.mode === 'orbit') return // already in the overview
     if (s.mode === 'fly' && s.selected === NO_SEAT) return // already on the way back
-    set({ mode: 'fly', selected: NO_SEAT, hover: NO_SEAT })
+    set({ mode: 'fly', selected: NO_SEAT, facing: NO_SEAT, hover: NO_SEAT })
   },
 
   setMode(mode) {

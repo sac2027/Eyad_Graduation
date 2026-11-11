@@ -6,6 +6,7 @@ import { Logo } from '@/brand/logo/Logo'
 import { useDemoFlags } from '@/features/demo-console/flags'
 import { extendDebugHook, installDebugHook, removeDebugHook } from '@/features/stadiview/debugHook'
 import { BackButton } from '@/features/stadiview/hud/BackButton'
+import { GuestPanel, GuestToggle } from '@/features/stadiview/hud/GuestPanel'
 import { Inspector } from '@/features/stadiview/hud/Inspector'
 import { MySeatPanel, MySeatToggle } from '@/features/stadiview/hud/MySeatPanel'
 import { PovHint } from '@/features/stadiview/hud/PovHint'
@@ -15,6 +16,7 @@ import { SeatMatrix } from '@/features/stadiview/hud/SeatMatrix'
 import { SeatTooltip } from '@/features/stadiview/hud/SeatTooltip'
 import { pitchSeats } from '@/features/stadiview/data/pitchSeatService'
 import { getDirectory } from '@/features/stadiview/data/graduateDirectory'
+import { guestTicketService } from '@/features/stadiview/data/guestTicketService'
 import { getVenue } from '@/features/stadiview/layout/venueLayout'
 import { useHud } from '@/features/stadiview/state/hudStore'
 import { useStadium } from '@/features/stadiview/state/stadiumStore'
@@ -75,7 +77,7 @@ export default function StadiViewPage() {
     const hud = useHud.getState()
     hud.inspect(-1)
     hud.setPanel('none')
-    hud.setGuest({ ticketSeat: -1, graduate: -1 })
+    hud.setGuest({ ticketSeat: -1, graduate: -1, byCode: false })
     hud.setCardOpen(false)
     useHud.setState({ role: persona.role === 'graduate' ? 'graduate' : 'guest' })
   }, [persona.id, persona.role])
@@ -105,6 +107,21 @@ export default function StadiViewPage() {
       // For tests: a free or a taken seat in the same zone as the seat named, and the viewer's own seat.
       freeSeat: (zoneOf, skip = 0) => seatInZone(v.indexOf(zoneOf), 'available', skip),
       takenSeat: (zoneOf) => seatInZone(v.indexOf(zoneOf), 'taken', 0),
+      sampleGraduate: (booked, skip = 0) => {
+        let seen = 0
+        for (const g of getDirectory().all) {
+          if (g.personaId) continue
+          const seat = pitchSeats().seatOf(g, getNow())
+          if (seat >= 0 === booked && seen++ === skip) {
+            return { index: g.index, name: g.name, studentId: g.studentId, shareCode: g.shareCode, seat: seat >= 0 ? v.idOf(seat) : null, tickets: guestTicketService.ticketsOf(g).map((k) => k.ticket) }
+          }
+        }
+        return null
+      },
+      me: () => {
+        const g = viewerNow()
+        return g ? { index: g.index, studentId: g.studentId, shareCode: g.shareCode } : null
+      },
       myZone: () => {
         const g = viewerNow()
         return g ? v.idOf(v.zones[g.zone].start) : null
@@ -157,6 +174,7 @@ export default function StadiViewPage() {
         </div>
         <RoleSwitch />
         <MySeatToggle />
+        <GuestToggle />
         <button type="button" className="sv-plate sv-button sv-top__language" onClick={() => setLocale(locale === 'ar' ? 'en' : 'ar')} lang={locale === 'ar' ? 'en' : 'ar'} data-sv-language>
           {t('nav.language')}
         </button>
@@ -166,6 +184,7 @@ export default function StadiViewPage() {
       <SeatMatrix canFly={show3d} />
       <Inspector canFly={show3d} livePreview={TIER_SETTINGS[tier].livePreview} />
       <MySeatPanel canFly={show3d} />
+      <GuestPanel canFly={show3d} />
       <SeatCardDialog />
       {show3d && <PovHint />}
       {show3d && <BackButton />}

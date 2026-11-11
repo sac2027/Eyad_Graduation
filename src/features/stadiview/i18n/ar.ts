@@ -207,4 +207,6 @@ export const ar: Record<string, string> = {
   'sv.place.gate': 'بوابة المسيرة',
   'sv.place.start': 'نقطة بداية المسيرة',
   'sv.place.exit': 'بوابة الخروج',
+  'sv.sight.line': 'اعرض الخط الذهبي',
+  'sv.sight.lineHint': 'خط في المشهد ثلاثي الأبعاد وعلى الخريطة، من مقعدك إلى مقعده.',
 }

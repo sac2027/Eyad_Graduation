@@ -144,6 +144,8 @@ test.describe('a guest locates a graduate', () => {
   })
 
   test('with the locator off a search asks for the share code, and the right code shows the seat', async ({ page }) => {
+    // A long flow: a booking, the locator switched off, the role changed, a search and two codes.
+    test.setTimeout(120_000)
     // Khaled books and switches his locator off; then a guest looks for him.
     await open(page, stadiumUrl())
     const zone = (await call(page, (h) => h.myZone()))!
@@ -267,4 +269,49 @@ test.describe('from the ticket seat to the graduate', () => {
       expect(empty.violations, `${lang} search: ${empty.violations.map((v) => `${v.id} ${v.nodes[0]?.html}`).join(', ')}`).toEqual([])
     })
   }
+})
+
+test.describe('the gold line and the beacon', () => {
+  async function ticketAndGraduate(page: Page, extra?: string) {
+    await openGuest(page, extra ? { extra } : {})
+    const g = await sample(page, true, 5)
+    await findTicket(page, g.tickets[0])
+    await page.locator('[data-sv-ticket-graduate]').click()
+    await expect(page.locator('[data-sv-located="found"]')).toBeVisible()
+    return g
+  }
+
+  test('a ticket and a located graduate draw the arc between their seats, and a 12 m beacon on the graduate', async ({ page }) => {
+    const g = await ticketAndGraduate(page)
+    const arc = (await call(page, (h) => h.arc()))!
+    expect(arc.to).toBe(g.seat)
+    expect(arc.from).toMatch(/^[A-Z]+-\d{2}-\d{3}$/)
+    expect(await call(page, (h) => h.beacon())).toEqual({ seat: g.seat, height: 12 })
+    // The middle of the arc is on screen from the opening view.
+    const mid = arc.points[Math.floor(arc.points.length / 2)]
+    expect(await call(page, (h, p) => h.projectPoint(JSON.parse(p)), JSON.stringify(mid))).not.toBeNull()
+  })
+
+  test('the switch turns the line off and on; clearing the graduate removes it and the beacon', async ({ page }) => {
+    await ticketAndGraduate(page)
+    const sw = page.locator('[data-sv-show-line]')
+    await expect(sw).toBeChecked()
+    await sw.uncheck()
+    expect(await call(page, (h) => h.arc())).toBeNull()
+    await sw.check()
+    expect(await call(page, (h) => h.arc())).not.toBeNull()
+    await page.locator('[data-sv-clear-graduate]').click()
+    await expect.poll(async () => call(page, (h) => h.arc())).toBeNull()
+    expect(await call(page, (h) => h.beacon())).toBeNull()
+  })
+
+  test('"View from my seat, facing them" has the arc ahead on screen', async ({ page }) => {
+    await ticketAndGraduate(page, 'reduced=1')
+    await page.locator('[data-sv-face-them]').click()
+    await waitForMode(page, 'pov')
+    const arc = (await call(page, (h) => h.arc()))!
+    // The arc climbs above the view near the guest and comes down to the graduate in front of them.
+    const p = arc.points[Math.floor(arc.points.length * 0.85)]
+    expect(await call(page, (h, q) => h.projectPoint(JSON.parse(q)), JSON.stringify(p))).not.toBeNull()
+  })
 })

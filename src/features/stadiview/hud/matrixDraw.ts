@@ -31,6 +31,8 @@ export interface MatrixScene {
   ratio: number
   hover: number
   inspected: number
+  /** The gold line from a guest's seat to their graduate's, when it is shown. */
+  line?: { from: number; to: number } | null
   /** Where the 3D camera is; null when there is no 3D picture, and then no arrow is drawn. */
   camera: CameraOnPlan | null
   labels: { stage: string; north: string; gate: (n: number) => string }
@@ -186,6 +188,21 @@ function drawMoving(ctx: CanvasRenderingContext2D, s: MatrixScene): void {
   const at = (x: number, z: number) => toScreen(view, x, z, width, height)
   const size = Math.max(1.5, SEAT_SIZE * view.scale)
   const P = s.v.position
+
+  // The gold line from a guest's seat to their graduate's.
+  if (s.line) {
+    const [x0, y0] = at(P[s.line.from * 3], P[s.line.from * 3 + 2])
+    const [x1, y1] = at(P[s.line.to * 3], P[s.line.to * 3 + 2])
+    ctx.save()
+    ctx.strokeStyle = SV.gold
+    ctx.lineWidth = 2
+    ctx.setLineDash([6, 4])
+    ctx.beginPath()
+    ctx.moveTo(x0, y0)
+    ctx.lineTo(x1, y1)
+    ctx.stroke()
+    ctx.restore()
+  }
 
   // The seat under the pointer, and the inspected seat, each in a ring that stays visible at any zoom.
   const ring = (i: number, radius: number, line: number) => {

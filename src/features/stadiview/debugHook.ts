@@ -49,6 +49,10 @@ export interface StadiViewDebug {
   march?(): { length: number; lights: number; arrowsMoving: boolean }
   /** How solid the Procession Gate is drawn now: see-through in the overview, 1 in first person. */
   archOpacity?(): number
+  /** The gold sightline arc, when drawn: from the guest's seat to the graduate's, and its points. */
+  arc?(): { from: string; to: string; points: [number, number, number][] } | null
+  /** The beacon over a located graduate's seat. */
+  beacon?(): { seat: string; height: number } | null
   /** For tests: the signed-in graduate's place in the directory. */
   me?(): { index: number; studentId: string; shareCode: string } | null
   /** For tests: the first seat of the signed-in graduate's own zone, to pass to `freeSeat`. */

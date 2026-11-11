@@ -30,6 +30,8 @@ export interface Hook {
   occupancy(): { reserved: number; byKind: Record<string, number> }
   setFull(on: boolean): void
   archOpacity(): number
+  arc(): { from: string; to: string; points: V3[] } | null
+  beacon(): { seat: string; height: number } | null
   march(): { length: number; lights: number; arrowsMoving: boolean }
   avatars(): { drawn: number; near: number; far: number; hiddenNear: string[]; highlight: string[] }
   sampleGraduate(booked: boolean, skip?: number): { index: number; name: { ar: string; en: string }; studentId: string; shareCode: string; seat: string | null; tickets: string[] } | null

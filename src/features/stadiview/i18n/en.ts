@@ -207,4 +207,6 @@ export const en: Record<string, string> = {
   'sv.place.gate': 'Procession Gate',
   'sv.place.start': 'Procession Start',
   'sv.place.exit': 'Procession Exit',
+  'sv.sight.line': 'Show the gold line',
+  'sv.sight.lineHint': 'A line in the 3D view and on the map, from your seat to theirs.',
 }

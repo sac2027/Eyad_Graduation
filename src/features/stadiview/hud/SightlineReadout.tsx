@@ -2,7 +2,7 @@ import { VENUE } from '@/features/stadiview/config/venue'
 import { seatEye } from '@/features/stadiview/engine/cameraMath'
 import { bearingBetween, relativeToStage } from '@/features/stadiview/engine/bearing'
 import { seatAim } from '@/features/stadiview/engine/seatFrame'
-import { useLocated } from '@/features/stadiview/hud/GraduateSearch'
+import { useLocated } from '@/features/stadiview/state/useLocated'
 import { getVenue } from '@/features/stadiview/layout/venueLayout'
 import { useHud } from '@/features/stadiview/state/hudStore'
 import { useStadium } from '@/features/stadiview/state/stadiumStore'
@@ -20,6 +20,7 @@ export function SightlineReadout({ canFly }: { canFly: boolean }) {
   const t = useT()
   const locale = useLocale((s) => s.locale)
   const ticketSeat = useHud((s) => s.guest.ticketSeat)
+  const showLine = useHud((s) => s.sightline)
   const located = useLocated()
   if (ticketSeat < 0 || located.state !== 'found' || !located.graduate) return null
 
@@ -40,6 +41,14 @@ export function SightlineReadout({ canFly }: { canFly: boolean }) {
         {turn.side === 'ahead' ? t('sv.sight.ahead') : t(`sv.sight.${turn.side}`, { deg: n(turn.degrees) })}
         {turn.tilt !== 'level' && `${locale === 'ar' ? '، ' : ', '}${t(`sv.sight.${turn.tilt}`)}`}.
       </p>
+      <label className="sv-switch">
+        <input type="checkbox" role="switch" checked={showLine} onChange={(e) => useHud.getState().setSightline(e.target.checked)} data-sv-show-line />
+        <span className="sv-switch__track" aria-hidden />
+        <span className="sv-switch__words">
+          <b>{t('sv.sight.line')}</b>
+          <small>{t('sv.sight.lineHint')}</small>
+        </span>
+      </label>
       {canFly && (
         <button type="button" className="sv-plate sv-button sv-button--gold" onClick={() => useStadium.getState().select(ticketSeat, located.seat)} data-sv-face-them>
           {t('sv.sight.face')}

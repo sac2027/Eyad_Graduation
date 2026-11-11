@@ -1,16 +1,15 @@
-import { useState, useSyncExternalStore } from 'react'
+import { useState } from 'react'
 import { COLLEGE_NAMES } from '@/domain/types'
 import { COLLEGE_ID } from '@/features/stadiview/config/venue'
 import type { CollegeCode } from '@/features/stadiview/config/venue'
 import { getDirectory, maskStudentId, searchGraduates } from '@/features/stadiview/data/graduateDirectory'
 import type { Graduate } from '@/features/stadiview/data/graduateDirectory'
 import { locatorService } from '@/features/stadiview/data/locatorService'
-import { usePitchSeats } from '@/features/stadiview/data/pitchSeatService'
 import { seatWords } from '@/features/stadiview/hud/SeatTooltip'
 import { getVenue } from '@/features/stadiview/layout/venueLayout'
+import { useLocated } from '@/features/stadiview/state/useLocated'
 import { useHud } from '@/features/stadiview/state/hudStore'
 import { useStadium } from '@/features/stadiview/state/stadiumStore'
-import { useViewer } from '@/features/stadiview/state/useViewer'
 import { formatNumber, useLocale, useT } from '@/i18n'
 import type { Locale, TFn } from '@/i18n'
 import { getNow } from '@/time/clockStore'
@@ -37,20 +36,6 @@ function zonePlace(zone: number, t: TFn, locale: Locale): string {
   const blocks = b0 === b1 ? t('sv.tip.block', { n: n(b0) }) : t('sv.guest.blocks', { a: n(b0), b: n(b1) })
   const rows = r0 === r1 ? t('sv.tip.row', { n: n(r0) }) : t('sv.guest.rows', { a: n(r0), b: n(r1) })
   return t('sv.guest.zonePlace', { blocks, rows })
-}
-
-/** The graduate a guest has chosen, and where they are, if the guest may know. */
-export function useLocated(): { graduate: Graduate | null; seat: number; state: 'none' | 'found' | 'no-seat-yet' | 'locator-off' } {
-  const viewer = useViewer()
-  usePitchSeats()
-  useSyncExternalStore(locatorService.subscribe, locatorService.version)
-  const guest = useHud((s) => s.guest)
-  const graduate = guest.graduate >= 0 ? (getDirectory().all[guest.graduate] ?? null) : null
-  if (!graduate) return { graduate: null, seat: -1, state: 'none' }
-  // The share code is the graduate's own consent, so it finds them whatever the locator says.
-  const found = locatorService.locate(guest.byCode ? { shareCode: graduate.shareCode } : { graduate }, viewer.now)
-  if (found.ok) return { graduate, seat: found.value.seat, state: 'found' }
-  return { graduate, seat: -1, state: found.error === 'locator-off' ? 'locator-off' : 'no-seat-yet' }
 }
 
 /**

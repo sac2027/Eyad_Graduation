@@ -6,6 +6,7 @@ import { getVenue } from '@/features/stadiview/layout/venueLayout'
 import { SV } from '@/features/stadiview/scene/palette'
 import { useHud } from '@/features/stadiview/state/hudStore'
 import { useStadium } from '@/features/stadiview/state/stadiumStore'
+import { useBeaconSeat } from '@/features/stadiview/state/useLocated'
 
 /** How tall the beam of light over the inspected seat stands, in metres. */
 const BEAM_HEIGHT = 16
@@ -41,7 +42,9 @@ export function SeatMarker({ still }: { still: boolean }) {
     [parts],
   )
 
-  const shown = inspected >= 0 && mode !== 'pov'
+  // The located graduate's seat has its own, taller beacon.
+  const beacon = useBeaconSeat()
+  const shown = inspected >= 0 && mode !== 'pov' && inspected !== beacon
   useEffect(() => {
     if (shown && group.current) {
       const v = getVenue()

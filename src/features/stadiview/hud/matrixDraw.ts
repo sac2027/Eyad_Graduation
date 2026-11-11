@@ -1,4 +1,5 @@
 import { VENUE } from '@/features/stadiview/config/venue'
+import type { Vec3 } from '@/features/stadiview/config/venue'
 import { toScreen } from '@/features/stadiview/engine/planView'
 import type { PlanView } from '@/features/stadiview/engine/planView'
 import type { VenueLayout } from '@/features/stadiview/layout/types'
@@ -31,6 +32,8 @@ export interface MatrixScene {
   ratio: number
   hover: number
   inspected: number
+  /** The walking route shown, as points on the ground. */
+  route?: Vec3[] | null
   /** The gold line from a guest's seat to their graduate's, when it is shown. */
   line?: { from: number; to: number } | null
   /** Where the 3D camera is; null when there is no 3D picture, and then no arrow is drawn. */
@@ -188,6 +191,23 @@ function drawMoving(ctx: CanvasRenderingContext2D, s: MatrixScene): void {
   const at = (x: number, z: number) => toScreen(view, x, z, width, height)
   const size = Math.max(1.5, SEAT_SIZE * view.scale)
   const P = s.v.position
+
+  // The walking route, dashed in pale gold from the gate.
+  if (s.route && s.route.length > 1) {
+    ctx.save()
+    ctx.strokeStyle = '#FFE08A'
+    ctx.lineWidth = 2.5
+    ctx.lineJoin = 'round'
+    ctx.setLineDash([5, 4])
+    ctx.beginPath()
+    s.route.forEach((p, k) => {
+      const [x, y] = at(p[0], p[2])
+      if (k === 0) ctx.moveTo(x, y)
+      else ctx.lineTo(x, y)
+    })
+    ctx.stroke()
+    ctx.restore()
+  }
 
   // The gold line from a guest's seat to their graduate's.
   if (s.line) {

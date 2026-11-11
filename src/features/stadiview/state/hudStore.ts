@@ -38,6 +38,9 @@ export interface HudState {
    * located (-1 for none), and whether that graduate was reached with their Family Share Code.
    */
   guest: { ticketSeat: number; graduate: number; byCode: boolean }
+  /** The walking route shown, to this seat; -1 for none. One route at a time. */
+  route: number
+  setRoute(seat: number): void
   /** Whether the gold line from a guest's seat to their graduate is drawn (Phase 4). */
   sightline: boolean
   setSightline(on: boolean): void
@@ -71,6 +74,8 @@ export const useHud = create<HudState>((set) => ({
   filters: NO_FILTERS,
   guest: { ticketSeat: -1, graduate: -1, byCode: false },
   sightline: true,
+  route: -1,
+  setRoute: (route) => set({ route }),
   setSightline: (sightline) => set({ sightline }),
   cardOpen: false,
   cardFresh: false,
@@ -78,7 +83,7 @@ export const useHud = create<HudState>((set) => ({
   matrixFit: { what: 'pitch', token: 0 },
   fitMatrix: (what, bringForward = true) => set((s) => ({ matrixFit: { what, token: s.matrixFit.token + 1 }, panel: bringForward && isPhone() ? 'matrix' : s.panel })),
   // Someone who chooses Guest came to look something up: their tools open with the role.
-  setRole: (role) => set((s) => (s.role === role ? s : { role, inspected: -1, panel: role === 'guest' ? 'guest' : 'none', cardOpen: false, cardFresh: false })),
+  setRole: (role) => set((s) => (s.role === role ? s : { role, inspected: -1, panel: role === 'guest' ? 'guest' : 'none', cardOpen: false, cardFresh: false, route: -1 })),
   inspect: (seat, keepPanel = false) =>
     set((s) => {
       const inspected = Number.isInteger(seat) && seat >= 0 ? seat : -1
@@ -93,7 +98,7 @@ export const useHud = create<HudState>((set) => ({
   setPanel: (panel) => set({ panel }),
   setFilters: (part) => set((s) => ({ filters: { ...s.filters, ...part } })),
   setGuest: (part) => set((s) => ({ guest: { ...s.guest, ...part } })),
-  reset: () => set({ role: 'guest', inspected: -1, panel: 'none', filters: NO_FILTERS, guest: { ticketSeat: -1, graduate: -1, byCode: false }, cardOpen: false, cardFresh: false, sightline: true }),
+  reset: () => set({ role: 'guest', inspected: -1, panel: 'none', filters: NO_FILTERS, guest: { ticketSeat: -1, graduate: -1, byCode: false }, cardOpen: false, cardFresh: false, sightline: true, route: -1 }),
 }))
 
 /** True when no filter is set. */

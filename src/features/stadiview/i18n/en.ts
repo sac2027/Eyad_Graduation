@@ -209,4 +209,12 @@ export const en: Record<string, string> = {
   'sv.place.exit': 'Procession Exit',
   'sv.sight.line': 'Show the gold line',
   'sv.sight.lineHint': 'A line in the 3D view and on the map, from your seat to theirs.',
+  'sv.route.show': 'Show my route',
+  'sv.route.hide': 'Hide my route',
+  'sv.route.words': 'About {m} m from Gate {gate}, about {min} on foot.',
+  'sv.route.min.one': 'a minute',
+  'sv.route.min.two': '{n} minutes',
+  'sv.route.min.few': '{n} minutes',
+  'sv.route.min.many': '{n} minutes',
+  'sv.route.min.other': '{n} minutes',
 }

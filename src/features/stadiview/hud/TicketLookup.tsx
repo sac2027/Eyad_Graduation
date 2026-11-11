@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { guestTicketService } from '@/features/stadiview/data/guestTicketService'
 import { seatsOfGate, ticketGate } from '@/features/stadiview/data/ticketCodec'
 import type { GateId } from '@/features/stadiview/config/venue'
+import { RouteToggle } from '@/features/stadiview/hud/RouteToggle'
 import { seatWords } from '@/features/stadiview/hud/SeatTooltip'
 import { useHud } from '@/features/stadiview/state/hudStore'
 import { useStadium } from '@/features/stadiview/state/stadiumStore'
@@ -114,6 +115,7 @@ export function TicketLookup({ canFly, onFindGraduate }: { canFly: boolean; onFi
                 {t('sv.guest.viewMine')}
               </button>
             )}
+            <RouteToggle seat={ticket.seat} place="ticket" />
             {ticket.graduate && (
               <button type="button" className="sv-plate sv-button" onClick={() => onFindGraduate(ticket.graduate!.index)} data-sv-ticket-graduate>
                 {t('sv.guest.findMyGraduate')}

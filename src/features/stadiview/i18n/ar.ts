@@ -209,4 +209,12 @@ export const ar: Record<string, string> = {
   'sv.place.exit': 'بوابة الخروج',
   'sv.sight.line': 'اعرض الخط الذهبي',
   'sv.sight.lineHint': 'خط في المشهد ثلاثي الأبعاد وعلى الخريطة، من مقعدك إلى مقعده.',
+  'sv.route.show': 'اعرض طريقي',
+  'sv.route.hide': 'أخفِ طريقي',
+  'sv.route.words': 'نحو {m} م من البوابة {gate}، قرابة {min} سيرًا.',
+  'sv.route.min.one': 'دقيقة واحدة',
+  'sv.route.min.two': 'دقيقتين',
+  'sv.route.min.few': '{n} دقائق',
+  'sv.route.min.many': '{n} دقيقة',
+  'sv.route.min.other': '{n} دقيقة',
 }

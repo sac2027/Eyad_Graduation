@@ -14,6 +14,7 @@ import { Avatars } from '@/features/stadiview/scene/Avatars'
 import { Bowl } from '@/features/stadiview/scene/Bowl'
 import { GraduateBeacon } from '@/features/stadiview/scene/GraduateBeacon'
 import { SightlineArc } from '@/features/stadiview/scene/SightlineArc'
+import { WalkRoute } from '@/features/stadiview/scene/WalkRoute'
 import { MarchCarpet } from '@/features/stadiview/scene/MarchCarpet'
 import { ProcessionGate } from '@/features/stadiview/scene/ProcessionGate'
 import { SV } from '@/features/stadiview/scene/palette'
@@ -148,6 +149,7 @@ function Scene({ tier, still, onReady, onLost }: Omit<StadiumCanvasProps, 'label
       <SeatMarker still={still} />
       <GraduateBeacon still={still} />
       <SightlineArc still={still} />
+      <WalkRoute still={still} />
       <PreviewCamera />
       <Pointer />
       <CameraRig still={still} />

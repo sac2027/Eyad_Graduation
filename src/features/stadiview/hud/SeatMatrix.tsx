@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { extendDebugHook } from '@/features/stadiview/debugHook'
 import { parseSeatQuery, planBounds, seatAtPlan } from '@/features/stadiview/engine/planIndex'
@@ -13,6 +13,8 @@ import { cameraOnPlan, onCameraOnPlan } from '@/features/stadiview/state/cameraO
 import { SeatFinder } from '@/features/stadiview/hud/SeatFinder'
 import { useSheet } from '@/features/stadiview/hud/Sheet'
 import { useSightline } from '@/features/stadiview/state/useLocated'
+import { routeTo } from '@/features/stadiview/engine/routes'
+import type { Vec3 } from '@/features/stadiview/config/venue'
 import { useHud } from '@/features/stadiview/state/hudStore'
 import { usePhone } from '@/features/stadiview/state/usePhone'
 import { useStadium } from '@/features/stadiview/state/stadiumStore'
@@ -47,9 +49,11 @@ export function SeatMatrix({ canFly, flat = false, notice }: { canFly: boolean; 
   const flatRef = useRef(flat)
   flatRef.current = flat
   const sightline = useSightline()
+  const routeSeat = useHud((s) => s.route)
+  const route = useMemo(() => (routeSeat >= 0 ? routeTo(routeSeat).points : null), [routeSeat])
   const lineKey = sightline ? `${sightline.from}-${sightline.to}` : ''
-  const scene = useRef({ styles, inspected, line: null as { from: number; to: number } | null, labels: { stage: '', north: '', gate: (n: number) => String(n) } })
-  scene.current = { styles, inspected, line: sightline, labels: { stage: t('sv.mx.stage'), north: t('sv.mx.north'), gate: (n) => formatNumber(n, locale) } }
+  const scene = useRef({ styles, inspected, line: null as { from: number; to: number } | null, route: null as Vec3[] | null, labels: { stage: '', north: '', gate: (n: number) => String(n) } })
+  scene.current = { styles, inspected, line: sightline, route, labels: { stage: t('sv.mx.stage'), north: t('sv.mx.north'), gate: (n) => formatNumber(n, locale) } }
 
   // Whether the card is open. On a wide screen that is the card's own choice. On a phone the card is a
   // sheet, open when the dock says so. Without the 3D picture the map is the page, and always open.
@@ -83,6 +87,7 @@ export function SeatMatrix({ canFly, flat = false, notice }: { canFly: boolean; 
         hover: useStadium.getState().hover,
         inspected: scene.current.inspected,
         line: scene.current.line,
+        route: scene.current.route,
         camera: flatRef.current ? null : cameraOnPlan(),
         labels: scene.current.labels,
         },
@@ -137,7 +142,7 @@ export function SeatMatrix({ canFly, flat = false, notice }: { canFly: boolean; 
   }, [open, tab, redraw])
 
   // Anything that changes the picture asks for one redraw.
-  useEffect(redraw, [styles, inspected, locale, lineKey, redraw])
+  useEffect(redraw, [styles, inspected, locale, lineKey, routeSeat, redraw])
   useEffect(() => {
     const stopHover = useStadium.subscribe((now, before) => {
       if (now.hover === before.hover) return

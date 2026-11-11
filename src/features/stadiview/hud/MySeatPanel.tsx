@@ -4,6 +4,7 @@ import { COLLEGE_ID } from '@/features/stadiview/config/venue'
 import { bookingPhase } from '@/features/stadiview/data/bookingWindow'
 import { locatorService } from '@/features/stadiview/data/locatorService'
 import { pitchSeats, usePitchSeats } from '@/features/stadiview/data/pitchSeatService'
+import { RouteToggle } from '@/features/stadiview/hud/RouteToggle'
 import { seatWords } from '@/features/stadiview/hud/SeatTooltip'
 import { useSheet } from '@/features/stadiview/hud/Sheet'
 import { NO_ZONE } from '@/features/stadiview/layout/types'
@@ -145,6 +146,12 @@ export function MySeatPanel({ canFly }: { canFly: boolean }) {
           </button>
         )}
       </div>
+
+      {seat >= 0 && (
+        <div className="sv-mine__route">
+          <RouteToggle seat={seat} place="mine" />
+        </div>
+      )}
 
       <p className="sv-insp__promise sv-mine__promise">{t('sv.book.promise')}</p>
 

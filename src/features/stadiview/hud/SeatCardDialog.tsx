@@ -5,6 +5,7 @@ import { LOGO_NEGATIVE_FILE } from '@/brand/logo/Logo'
 import { pitchSeats, usePitchSeats } from '@/features/stadiview/data/pitchSeatService'
 import { downloadPass, drawPass, loadImage } from '@/features/stadiview/hud/passImage'
 import { passWords } from '@/features/stadiview/hud/passWords'
+import { RouteToggle } from '@/features/stadiview/hud/RouteToggle'
 import { SeatCard } from '@/features/stadiview/hud/SeatCard'
 import { useHud } from '@/features/stadiview/state/hudStore'
 import { useViewer } from '@/features/stadiview/state/useViewer'
@@ -64,6 +65,8 @@ export function SeatCardDialog() {
             <Dialog.Description className="sv-dialog__lead">{t('sv.card.lead')}</Dialog.Description>
             <SeatCard words={words} />
             <p className="sv-insp__promise">{t('sv.book.promise')}</p>
+            {/* Showing the route puts the card away, so the route can be seen. */}
+            <RouteToggle seat={seat} place="card" onShow={() => useHud.getState().setCardOpen(false)} />
             <div className="sv-dialog__actions">
               <button type="button" className="sv-plate sv-button sv-button--gold" onClick={download} disabled={busy} data-sv-download>
                 {t('sv.card.download')}

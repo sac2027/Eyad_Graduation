@@ -53,6 +53,8 @@ export interface StadiViewDebug {
   arc?(): { from: string; to: string; points: [number, number, number][] } | null
   /** The beacon over a located graduate's seat. */
   beacon?(): { seat: string; height: number } | null
+  /** The walking route shown, if any. */
+  route?(): { seat: string; gate: number; length: number; points: number } | null
   /** For tests: the signed-in graduate's place in the directory. */
   me?(): { index: number; studentId: string; shareCode: string } | null
   /** For tests: the first seat of the signed-in graduate's own zone, to pass to `freeSeat`. */

@@ -748,3 +748,12 @@ html[data-motion='reduced'] .sv-mx, html[data-motion='reduced'] .sv-insp { anima
 .sv-place::after { content: ''; position: absolute; left: 50%; bottom: -5px; width: 8px; height: 8px; background: inherit; transform: translateX(-50%) rotate(45deg); }
 .sv-place--start { background: #7fd6df; }
 @media (max-width: 640px) { .sv-place { font-size: 0.6875rem; } }
+
+/* ---- Walking routes ---- */
+
+.sv-route { display: grid; gap: 4px; }
+.sv-route .sv-button { justify-content: center; }
+.sv-route .sv-button[aria-pressed='true']::before { border-color: var(--sv-line-gold-strong); }
+.sv-route p { margin: 0; font-size: 0.8125rem; line-height: 1.45; color: var(--sv-text-soft); }
+.sv-mine__route { padding: 12px 16px 0; }
+.sv-guest__buttons .sv-route { flex: 1 1 100%; }

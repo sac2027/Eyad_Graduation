@@ -174,7 +174,9 @@ describe('venue config', () => {
     expect(VENUE.floodlights.masts.map((m) => `${m[0]},${m[1]},${m[2]}`).sort()).toEqual(['-75,0,-62', '-75,0,62', '75,0,-62', '75,0,62'])
   })
 
-  it('sends the women round the north loop and the men round the south, with their exits', () => {
-    expect(VENUE.procession).toEqual({ entrance: [97, 0, 0], loop: { f: 'north', m: 'south' }, exit: { m: [-60, 0, 50], f: [60, 0, 50] } })
+  it('brings the graduates in through the east tunnel to one march round the carpet (Phase 4, decision H)', () => {
+    expect(VENUE.procession).toEqual({ entrance: [97, 0, 0] })
+    expect(VENUE.march).toMatchObject({ north: -33.7, south: 33.7, west: -34.7, east: 22, width: 2.6, start: [22, 0, 30], exit: [58, 0, 52] })
+    expect(VENUE.arch.x).toBe(0)
   })
 })

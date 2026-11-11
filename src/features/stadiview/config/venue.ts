@@ -191,11 +191,62 @@ export interface VenueConfig {
   /** Positions are assumptions until a site plan is supplied. */
   gates: GateConfig[]
 
+  /** The graduates' way in from outside: the tunnel through the gap in the east curve, at `entrance`. */
+  procession: { entrance: Vec3 }
+
   /**
-   * How the graduates walk in. They come through the gap in the east curve at `entrance`, split
-   * onto the two loops of the track, file into the blocks from the east, and leave by `exit`.
+   * The march carpet (مسار المسيرة), drawn on the grass inside the track, round the blocks.
+   *
+   * Its centre line is a loop of four straight legs at `north`, `south` (z) and `west`, `east` (x),
+   * joined by corners of radius `corner`. The march goes counter-clockwise seen from above: from
+   * `start` north up the east leg, west along the north leg (through the arch), south in front of
+   * the stage, east along the south leg, then out across the south-east bend to `exit` through the
+   * control point `exitVia`. `startLink` is where the graduates leave their blocks for the start.
+   * Lights stand on both edges, `lightOffset` out from the centre line, every `lightSpacing`.
    */
-  procession: { entrance: Vec3; loop: Record<Gender, 'north' | 'south'>; exit: Record<Gender, Vec3> }
+  march: {
+    width: number
+    north: number
+    south: number
+    west: number
+    east: number
+    corner: number
+    start: Vec3
+    startLink: Vec3
+    exitVia: Vec3
+    exit: Vec3
+    lightSpacing: number
+    lightOffset: number
+  }
+
+  /**
+   * The Procession Gate (بوابة المسيرة), straddling the north leg at x = `x`: a slim lit frame,
+   * not a wall, so the seats behind it stay in sight. Two posts stand `span` apart (centre to
+   * centre) across the carpet, each `postWidth` across the carpet and `depth` along it; a pointed
+   * band `band` thick and `bandDepth` deep springs from them at `springY` and peaks at `height`.
+   */
+  arch: { x: number; span: number; postWidth: number; depth: number; band: number; bandDepth: number; springY: number; height: number }
+
+  /**
+   * Terraces that close the bowl round the bends: no seats, no tickets, nothing to pick. Each
+   * section is a ring of `rows` steps about (cx, cz) between two angles (degrees from east toward
+   * south, as for the east curve), with `gaps` left open for gates and paths.
+   */
+  bowl: {
+    sections: { id: string; cx: number; cz: number; fromDeg: number; toDeg: number; gaps: { atDeg: number; halfWidthDeg: number }[] }[]
+    firstRadius: number
+    rows: number
+    firstY: number
+    tread: number
+    riser: number
+    /** The rear wall rises this far above the last step. */
+    rise: number
+    /** Radial stairs every this many degrees. */
+    stairEveryDeg: number
+  }
+
+  /** The points the first-person landmark chips turn toward. */
+  landmarks: { stage: Vec3; screens: [Vec3, Vec3]; vip: Vec3; familyStand: Vec3; processionGate: Vec3 }
 
   /** Mast feet, mast height, and the point the lamp banks are aimed at. */
   floodlights: { masts: Vec3[]; height: number; aim: Vec3 }
@@ -332,10 +383,54 @@ export const VENUE: VenueConfig = {
     { id: 5, name: 'schools', position: [62, 0, -62] },     // north-east: female graduates
   ],
 
-  procession: {
-    entrance: [97, 0, 0],
-    loop: { f: 'north', m: 'south' },
-    exit: { m: [-60, 0, 50], f: [60, 0, 50] },
+  procession: { entrance: [97, 0, 0] },
+
+  // Fitted to the measured gaps: 5.6 m between the outer blocks and the track kerb, 5.75 m between
+  // the stage steps and the wheelchair bays. The east leg runs 4 m clear of Block 1's last row.
+  march: {
+    width: 2.6,
+    north: -33.7,
+    south: 33.7,
+    west: -34.7,
+    east: 22,
+    corner: 3,
+    start: [22, 0, 30],
+    startLink: [7.5, 0, 27],
+    exitVia: [50, 0, 33.7],
+    exit: [58, 0, 52],
+    lightSpacing: 2.5,
+    lightOffset: 1.42,
+  },
+
+  arch: { x: 0, span: 3.0, postWidth: 0.16, depth: 0.2, band: 0.12, bandDepth: 0.12, springY: 4.3, height: 6.2 },
+
+  bowl: {
+    sections: [
+      // Behind the stage, the mirror of the east curve.
+      { id: 'W', cx: -42.195, cz: 0, fromDeg: 146, toDeg: 214, gaps: [] },
+      { id: 'NW', cx: -42.195, cz: 0, fromDeg: 214, toDeg: 272, gaps: [] },
+      // Open from the south stand's end to here: Gate 3 (guests with disabilities) comes in at the south-west.
+      { id: 'SW', cx: -42.195, cz: 0, fromDeg: 104, toDeg: 146, gaps: [] },
+      // Gate 5 (female graduates) at the north-east.
+      { id: 'NE', cx: 42.195, cz: 0, fromDeg: -92, toDeg: -35, gaps: [{ atDeg: -72, halfWidthDeg: 7 }] },
+      // Gate 2 and the Procession Exit at the south-east.
+      { id: 'SE', cx: 42.195, cz: 0, fromDeg: 35, toDeg: 92, gaps: [{ atDeg: 72, halfWidthDeg: 8 }] },
+    ],
+    firstRadius: 52,
+    rows: 12,
+    firstY: 1.2,
+    tread: 0.85,
+    riser: 0.42,
+    rise: 1.1,
+    stairEveryDeg: 12,
+  },
+
+  landmarks: {
+    stage: [-42, 3.2, 0],
+    screens: [[-50, 8, -29], [-50, 8, 29]],
+    vip: [0, 5, -55],
+    familyStand: [0, 4, 60],
+    processionGate: [0, 4, -33.7],
   },
 
   floodlights: {

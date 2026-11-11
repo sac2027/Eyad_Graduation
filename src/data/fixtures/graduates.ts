@@ -17,7 +17,7 @@ export const PERSONAS: Persona[] = [
   { id: 'grad-f-silver', role: 'graduate', gender: 'f', name: { ar: 'لينا الحربي', en: 'Lina Alharbi' }, college: 'business', gpa: 3.4 },
   { id: 'grad-m-bronze', role: 'graduate', gender: 'm', name: { ar: 'سلطان الزهراني', en: 'Sultan Alzahrani' }, college: 'design', gpa: 3.1 },
   { id: 'grad-f-bronze', role: 'graduate', gender: 'f', name: { ar: 'نورة القحطاني', en: 'Noura Alqahtani' }, college: 'chemicals', gpa: 3.05 },
-  { id: 'grad-m-none', role: 'graduate', gender: 'm', name: { ar: 'ماجد المطيري', en: 'Majed Almutairi' }, college: 'general-studies', gpa: 2.7 },
+  { id: 'grad-m-none', role: 'graduate', gender: 'm', name: { ar: 'ماجد المطيري', en: 'Majed Almutairi' }, college: 'business', gpa: 2.7 },
   { id: 'grad-f-none', role: 'graduate', gender: 'f', name: { ar: 'هند السبيعي', en: 'Hind Alsubaie' }, college: 'computing', gpa: 2.85 },
   {
     id: 'grad-long-name',

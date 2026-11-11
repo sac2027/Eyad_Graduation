@@ -20,6 +20,9 @@ const Attire = lazy(() => import('@/features/graduate/Attire').then((m) => ({ de
 const Tickets = lazy(() => import('@/features/graduate/Tickets').then((m) => ({ default: m.Tickets })))
 const AdminPage = lazy(() => import('@/features/admin/AdminPage').then((m) => ({ default: m.AdminPage })))
 const KitPage = lazy(() => import('@/features/kit/KitPage').then((m) => ({ default: m.KitPage })))
+// The stadium is a page of its own, outside the site header. Nothing else here may import from its folder,
+// or the 3D code would be pulled into the first download.
+const StadiViewPage = lazy(() => import('@/features/stadiview/StadiViewPage'))
 
 function Layout() {
   const t = useT()
@@ -44,6 +47,7 @@ function Layout() {
         <nav aria-label="Main" className="order-3 flex w-full flex-wrap items-center sm:order-none sm:w-auto">
           <NavLink to="/" end className={link}>{t('nav.home')}</NavLink>
           <NavLink to="/guide" className={link}>{t('nav.guide')}</NavLink>
+          <NavLink to="/stadium" className={link}>{t('nav.stadium')}</NavLink>
           {persona.role === 'graduate' && <NavLink to="/me" className={link}>{t('nav.me')}</NavLink>}
           <NavLink to="/honors" className={link}>{t('nav.honors')}</NavLink>
           {persona.role === 'admin' && <NavLink to="/admin" className={link}>{t('nav.admin')}</NavLink>}
@@ -61,6 +65,27 @@ function Layout() {
       </header>
       <PhaseBanner />
       <Suspense fallback={<main className="min-h-[40dvh]" aria-busy="true" />}>
+        <Outlet />
+      </Suspense>
+      <DemoConsole />
+      <CertificateMomentHost />
+      <Fireworks />
+      <Toaster position="top-center" dir={dir} />
+    </>
+  )
+}
+
+/**
+ * The shell of an immersive page: no header and no phase banner, so the page owns the whole screen.
+ * The demo console, the certificate moment, the fireworks and the toasts are still there.
+ */
+function ImmersiveLayout() {
+  const { dir } = useLocale()
+  return (
+    <>
+      <RootPhase />
+      {/* Night-coloured while the page loads, so the beige site background never flashes. */}
+      <Suspense fallback={<main className="fixed inset-0 bg-[#061a17]" aria-busy="true" />}>
         <Outlet />
       </Suspense>
       <DemoConsole />
@@ -90,6 +115,9 @@ export function AppRoutes() {
         />
         <Route path="admin" element={<AdminPage />} />
         <Route path="kit" element={<KitPage />} />
+      </Route>
+      <Route element={<ImmersiveLayout />}>
+        <Route path="stadium" element={<StadiViewPage />} />
       </Route>
     </Routes>
   )

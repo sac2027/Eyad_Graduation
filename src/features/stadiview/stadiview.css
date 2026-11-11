@@ -1,0 +1,784 @@
+/*
+ * KFUPM StadiView: the "Prestige Graduation Night" theme.
+ *
+ * Everything here is scoped to the stadium page's root, so the rest of the site keeps the
+ * university's brand colours. Two shapes carry the look:
+ * - a plate: a small glass strip whose ends lean 5 degrees, like one bar of the FAST Matrix.
+ *   Titles, buttons and tooltips are plates.
+ * - a card: a larger glass rectangle with sharp corners and a strip of Matrix bars along its top.
+ */
+
+[data-theme='stadiview'] {
+  --sv-night: #061a17;
+  --sv-deep: #005a50;
+  --sv-green: #009c5a;
+  --sv-gold: #e7a614;
+  --sv-sand: #e8dec3;
+  --sv-white: #ffffff;
+
+  --sv-glass: rgb(6 26 23 / 0.72);
+  --sv-glass-solid: rgb(6 26 23 / 0.9);
+  --sv-line-gold: rgb(231 166 20 / 0.35);
+  --sv-line-gold-strong: rgb(231 166 20 / 0.8);
+  --sv-line-green: rgb(0 156 90 / 0.35);
+  /* Sand at full strength is for headings; body copy on glass uses it a step softer. */
+  --sv-text-soft: rgb(232 222 195 / 0.88);
+  --sv-blur: blur(14px) saturate(1.25);
+  /* The brand's lean. It is the same in Arabic and English: the Matrix is never mirrored. */
+  --sv-lean: skewX(-5deg);
+  --sv-edge: 16px;
+
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: var(--sv-night);
+  color: var(--sv-white);
+  font-family: var(--font-body);
+  color-scheme: dark;
+  -webkit-tap-highlight-color: transparent;
+}
+
+[data-theme='stadiview'] ::selection { background: var(--sv-gold); color: var(--sv-night); }
+[data-theme='stadiview'] :focus-visible { outline: 2px solid var(--sv-gold); outline-offset: 3px; }
+
+/* While the stadium is open the page itself must not scroll: the wheel and the finger belong to the camera. */
+html.sv-locked, html.sv-locked body { overflow: hidden; overscroll-behavior: none; }
+/*
+ * The demo console normally sits in the bottom corner, where the stadium keeps its own controls.
+ * On this page it moves up under the top row, and opens downward.
+ */
+html.sv-locked [data-demo-console] { inset-block: 76px auto; display: flex; flex-direction: column-reverse; align-items: flex-start; gap: 8px; }
+/* It stays on the side the brand is on, clear of the inspector across the page. */
+html.sv-locked[dir='rtl'] [data-demo-console] { left: auto; right: 0.75rem; align-items: flex-end; }
+/* A dialog owns the screen while it is open. */
+html.sv-locked:has(.sv-dialog) [data-demo-console] { display: none; }
+html.sv-locked [data-demo-console] > section { margin: 0; max-height: calc(100dvh - 150px); }
+
+/* The 3D picture fills the whole screen; every HUD element floats over it. */
+.sv-stage { position: absolute; inset: 0; }
+.sv-stage canvas { display: block; }
+
+/* ---- Plates ---- */
+
+.sv-plate {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  padding: 6px 18px;
+  color: var(--sv-white);
+  text-decoration: none;
+}
+.sv-plate::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  transform: var(--sv-lean);
+  background: var(--sv-glass);
+  border: 1px solid var(--sv-line-gold);
+  -webkit-backdrop-filter: var(--sv-blur);
+  backdrop-filter: var(--sv-blur);
+  transition: border-color 160ms ease, background-color 160ms ease;
+}
+
+/* A plate that can be pressed. */
+.sv-button {
+  font: 700 0.9375rem/1 var(--font-display);
+  cursor: pointer;
+  background: none;
+  border: 0;
+  transition: transform 160ms var(--ease-out-strong), color 160ms ease;
+}
+.sv-button:active { transform: scale(0.97); }
+@media (hover: hover) and (pointer: fine) {
+  .sv-button:hover { color: var(--sv-gold); }
+  .sv-button:hover::before { border-color: var(--sv-line-gold-strong); }
+}
+/* The one filled button of a group: gold, with night-coloured type (white on gold is too faint to read). */
+.sv-button--gold { color: var(--sv-night); }
+.sv-button--gold::before { background: var(--sv-gold); border-color: var(--sv-gold); -webkit-backdrop-filter: none; backdrop-filter: none; }
+@media (hover: hover) and (pointer: fine) {
+  .sv-button--gold:hover { color: var(--sv-night); }
+  .sv-button--gold:hover::before { background: #f3b824; }
+}
+
+/* ---- The top of the screen ---- */
+
+.sv-top {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: 0;
+  z-index: 10;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: max(12px, env(safe-area-inset-top)) max(var(--sv-edge), env(safe-area-inset-right)) 0 max(var(--sv-edge), env(safe-area-inset-left));
+  /* The bar itself is empty air: only the plates on it take the pointer. */
+  pointer-events: none;
+}
+.sv-top > * { pointer-events: auto; }
+
+.sv-title { min-width: 0; padding-inline: 14px 20px; gap: 14px; }
+.sv-title__home { display: inline-flex; align-items: center; min-height: 44px; --logo-h: 22px; }
+.sv-title__rule { align-self: stretch; width: 1px; margin-block: 8px; background: var(--sv-line-gold); transform: var(--sv-lean); }
+.sv-title__words { display: flex; min-width: 0; flex-direction: column; gap: 3px; }
+.sv-title h1 { margin: 0; font: 700 1.0625rem/1.1 var(--font-display); white-space: nowrap; }
+.sv-title p { margin: 0; font-size: 0.8125rem; line-height: 1.2; color: var(--sv-text-soft); white-space: nowrap; }
+@media (max-width: 640px) {
+  .sv-title p { display: none; }
+  .sv-title { padding-inline: 10px 14px; gap: 10px; }
+  .sv-title__home { --logo-h: 18px; }
+}
+
+/* ---- Cards ---- */
+
+.sv-card {
+  position: relative;
+  background: var(--sv-glass-solid);
+  border: 1px solid var(--sv-line-gold);
+  -webkit-backdrop-filter: var(--sv-blur);
+  backdrop-filter: var(--sv-blur);
+  box-shadow: 0 18px 48px rgb(0 0 0 / 0.45);
+}
+/* A strip of Matrix bars: three weights, leaning 5 degrees. */
+.sv-matrix {
+  height: 10px;
+  background-color: var(--sv-deep);
+  background-image: repeating-linear-gradient(
+    95deg,
+    transparent 0 5px, var(--sv-gold) 5px 12px, transparent 12px 17px, var(--sv-gold) 17px 24px, transparent 24px 29px, var(--sv-gold) 29px 36px,
+    transparent 36px 46px, var(--sv-gold) 46px 48px, transparent 48px 58px, var(--sv-gold) 58px 60px, transparent 60px 70px, var(--sv-gold) 70px 72px,
+    transparent 72px 80px, var(--sv-gold) 80px 84px, transparent 84px 92px, var(--sv-gold) 92px 96px, transparent 96px 104px, var(--sv-gold) 104px 108px,
+    transparent 108px 144px
+  );
+}
+
+/* ---- Loading and fallback ---- */
+
+.sv-centre {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  padding: 88px var(--sv-edge) 96px;
+  pointer-events: none;
+}
+.sv-centre > * { pointer-events: auto; }
+
+.sv-loading { gap: 14px; padding-inline: 22px; font: 700 0.9375rem/1 var(--font-display); color: var(--sv-sand); }
+.sv-loading__bars { display: inline-flex; gap: 4px; height: 18px; transform: var(--sv-lean); }
+.sv-loading__bars i { width: 4px; background: var(--sv-gold); transform-origin: bottom; animation: sv-bar 900ms var(--ease-in-out-strong) infinite alternate; }
+.sv-loading__bars i:nth-child(1) { width: 2px; }
+.sv-loading__bars i:nth-child(2) { animation-delay: 150ms; }
+.sv-loading__bars i:nth-child(3) { width: 7px; animation-delay: 300ms; }
+@keyframes sv-bar { from { transform: scaleY(0.35); } to { transform: scaleY(1); } }
+html[data-motion='reduced'] .sv-loading__bars i { animation: none; }
+@media (prefers-reduced-motion: reduce) { .sv-loading__bars i { animation: none; } }
+
+.sv-fallback { width: min(100%, 30rem); }
+.sv-fallback__body { padding: 22px 24px 24px; }
+.sv-fallback h2 { margin: 0 0 10px; font: 700 1.375rem/1.2 var(--font-display); text-wrap: balance; }
+.sv-fallback p { margin: 0 0 22px; max-width: 46ch; font-size: 1rem; line-height: 1.6; color: var(--sv-text-soft); text-wrap: pretty; }
+.sv-fallback__actions { display: flex; flex-wrap: wrap; gap: 14px; }
+
+/* ---- The seat tooltip ---- */
+
+/* The outer element only carries the position, moved by script as the pointer moves. */
+.sv-tip {
+  position: absolute;
+  inset-block-start: 0;
+  left: 0;
+  z-index: 20;
+  max-width: min(22rem, calc(100vw - 16px));
+  pointer-events: none;
+  will-change: transform;
+}
+/* The plate inside it carries the entrance: a short fade and a slight growth from the pointer's corner. */
+.sv-tip__plate {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  min-height: 0;
+  padding: 9px 16px 10px;
+  opacity: 0;
+  transform: scale(0.97);
+  transform-origin: var(--sv-tip-origin, left top);
+  /* Leaving is quicker than arriving. */
+  transition: opacity 90ms ease-out, transform 90ms ease-out;
+}
+.sv-tip[data-open] .sv-tip__plate {
+  opacity: 1;
+  transform: scale(1);
+  transition: opacity 125ms var(--ease-out-strong), transform 125ms var(--ease-out-strong);
+}
+.sv-tip__plate::before { border-color: var(--sv-line-gold-strong); box-shadow: 0 10px 28px rgb(0 0 0 / 0.5); }
+.sv-tip__text { display: flex; min-width: 0; flex-direction: column; gap: 3px; }
+.sv-tip__text strong { font: 600 0.875rem/1.3 var(--font-body); color: var(--sv-white); font-variant-numeric: tabular-nums; }
+.sv-tip__text span { font-size: 0.8125rem; line-height: 1.35; color: var(--sv-text-soft); }
+.sv-tip__status {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  margin-block-start: 1px;
+  font: 600 0.8125rem/1.3 var(--font-body);
+  color: var(--sv-white);
+  white-space: nowrap;
+}
+.sv-tip__status i { width: 8px; height: 8px; background: var(--sv-green); transform: var(--sv-lean); }
+@media (prefers-reduced-motion: reduce) {
+  .sv-tip__plate, .sv-tip[data-open] .sv-tip__plate { transform: none; transition: opacity 90ms ease-out; }
+}
+html[data-motion='reduced'] .sv-tip__plate, html[data-motion='reduced'] .sv-tip[data-open] .sv-tip__plate { transform: none; }
+
+/* ---- The canvas as a control ---- */
+
+.sv-stage canvas { cursor: grab; }
+.sv-stage[data-dragging] canvas { cursor: grabbing; }
+/* The ring is drawn inside the edge, because the canvas fills the screen and an outer ring would be cut off. */
+.sv-stage:focus-visible { outline: 2px solid var(--sv-gold); outline-offset: -5px; }
+/* A cut between views under reduced motion: the picture dips to dark while the camera moves. */
+.sv-stage { transition: opacity 180ms ease-out; }
+.sv-stage[data-cut] { opacity: 0; }
+
+/* ---- The bottom of the screen: the way back, and the arrival hint above it ---- */
+
+.sv-dock, .sv-hint {
+  position: absolute;
+  inset-inline: 0;
+  z-index: 10;
+  display: flex;
+  justify-content: center;
+  padding-inline: var(--sv-edge);
+  pointer-events: none;
+}
+.sv-dock { inset-block-end: max(20px, env(safe-area-inset-bottom)); }
+.sv-hint { inset-block-end: calc(max(20px, env(safe-area-inset-bottom)) + 116px); }
+
+/* Arriving: a fade and a short rise. Leaving is quicker and does not move. */
+.sv-dock > *, .sv-hint > * {
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 120ms ease-out, transform 0s 120ms;
+}
+.sv-dock[data-open] > *, .sv-hint[data-open] > * {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 220ms var(--ease-out-strong), transform 220ms var(--ease-out-strong);
+}
+.sv-dock[data-open] > * { pointer-events: auto; }
+/* The scale of a press must win over the rise above. */
+.sv-dock[data-open] > .sv-button:active { transform: scale(0.97); transition: transform 160ms var(--ease-out-strong); }
+
+/* The brief writes its main actions in capitals. Arabic has none, so this is for Latin text only. */
+.sv-button--cta { min-height: 48px; padding-inline: 22px 26px; }
+/* Spacing between letters is for Latin only: in Arabic it would pull joined letters apart. */
+.sv-button--cta:lang(en) { text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.875rem; }
+.sv-button--cta::before { border-color: var(--sv-line-gold-strong); }
+.sv-arrow { flex: none; }
+[dir='rtl'] .sv-arrow { transform: scaleX(-1); }
+
+.sv-hint__plate { flex-direction: column; align-items: center; gap: 2px; margin: 0; padding: 9px 20px 10px; text-align: center; max-width: min(34rem, 100%); }
+.sv-hint__plate strong { font: 600 0.875rem/1.35 var(--font-body); color: var(--sv-white); text-wrap: balance; }
+.sv-hint__plate span { font-size: 0.8125rem; line-height: 1.35; color: var(--sv-text-soft); }
+.sv-hint__plate em { margin-block-start: 5px; font: 600 0.8125rem/1.3 var(--font-body); color: var(--sv-gold); }
+/* For screen readers only. */
+.sv-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+@media (prefers-reduced-motion: reduce) {
+  .sv-dock > *, .sv-hint > *, .sv-dock[data-open] > *, .sv-hint[data-open] > * { transform: none; }
+}
+html[data-motion='reduced'] .sv-dock > *, html[data-motion='reduced'] .sv-hint > * { transform: none !important; }
+
+/* ---- The role switch ---- */
+
+.sv-role { display: inline-flex; align-items: center; gap: 2px; margin-inline-start: auto; }
+.sv-role__option { min-width: 0; padding-inline: 16px; }
+/* The chosen role is the filled plate: gold, with night-coloured type. */
+.sv-role__option[aria-pressed='true'] { color: var(--sv-night); }
+.sv-role__option[aria-pressed='true']::before { background: var(--sv-gold); border-color: var(--sv-gold); -webkit-backdrop-filter: none; backdrop-filter: none; }
+.sv-role__name {
+  max-width: 14rem;
+  margin-inline-start: 10px;
+  overflow: hidden;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--sv-sand);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-shadow: 0 1px 6px rgb(6 26 23 / 0.9);
+}
+@media (max-width: 899px) {
+  .sv-role__name { display: none; }
+}
+/* On a phone the top row holds the title and the language; the role switch drops to a row of its own on the right. */
+@media (max-width: 640px) {
+  .sv-top { flex-wrap: wrap; }
+  .sv-top__language { margin-inline-start: auto; }
+  .sv-role { order: 3; width: 100%; justify-content: flex-end; margin: 0; }
+  .sv-title h1 { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .sv-title__rule { display: none; }
+}
+.sv-tip__status[data-status='taken'] i { background: #6f8a83; }
+.sv-tip__status[data-status='mine'] i { background: var(--sv-gold); }
+
+/* ---- Small controls shared by the cards ---- */
+
+.sv-icon {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  color: var(--sv-sand);
+  background: none;
+  border: 0;
+  cursor: pointer;
+  transition: color 160ms ease, transform 160ms var(--ease-out-strong);
+}
+.sv-icon:active { transform: scale(0.94); }
+@media (hover: hover) and (pointer: fine) { .sv-icon:hover { color: var(--sv-gold); } }
+
+.sv-field {
+  min-width: 0;
+  min-height: 40px;
+  padding: 6px 10px;
+  font: 500 0.875rem/1.2 var(--font-body);
+  color: var(--sv-white);
+  background: rgb(0 90 80 / 0.28);
+  border: 1px solid var(--sv-line-green);
+  border-radius: 0;
+  caret-color: var(--sv-gold);
+}
+.sv-field::placeholder { color: rgb(232 222 195 / 0.62); }
+.sv-field:focus-visible { outline: 2px solid var(--sv-gold); outline-offset: 1px; }
+.sv-field[aria-invalid='true'] { border-color: #f08a7c; }
+select.sv-field { appearance: none; padding-inline-end: 26px; background-image: linear-gradient(45deg, transparent 50%, var(--sv-sand) 50%), linear-gradient(135deg, var(--sv-sand) 50%, transparent 50%); background-position: right 12px center, right 7px center; background-size: 5px 5px; background-repeat: no-repeat; }
+[dir='rtl'] select.sv-field { background-position: left 7px center, left 12px center; }
+select.sv-field option { color: #061a17; background: #fff; }
+
+.sv-chip {
+  min-height: 36px;
+  padding: 4px 12px;
+  font: 600 0.8125rem/1 var(--font-body);
+  color: var(--sv-sand);
+  background: none;
+  border: 1px solid var(--sv-line-gold);
+  cursor: pointer;
+  transition: color 160ms ease, border-color 160ms ease, transform 160ms var(--ease-out-strong);
+}
+.sv-chip:active { transform: scale(0.97); }
+@media (hover: hover) and (pointer: fine) { .sv-chip:hover { color: var(--sv-gold); border-color: var(--sv-line-gold-strong); } }
+
+.sv-check { display: inline-flex; align-items: center; gap: 8px; min-height: 36px; font-size: 0.8125rem; color: var(--sv-text-soft); cursor: pointer; }
+.sv-check input { width: 18px; height: 18px; margin: 0; accent-color: var(--sv-gold); }
+
+/* ---- The 2D seat matrix ---- */
+
+.sv-mx {
+  position: absolute;
+  inset-block-end: max(16px, env(safe-area-inset-bottom));
+  inset-inline-start: max(var(--sv-edge), env(safe-area-inset-left));
+  z-index: 12;
+  display: flex;
+  flex-direction: column;
+  width: min(22.5rem, calc(100vw - 2 * var(--sv-edge)));
+  max-height: calc(100dvh - 96px);
+}
+.sv-mx__head { display: grid; grid-template-columns: 1fr auto; align-items: center; column-gap: 8px; padding-inline-start: 14px; }
+.sv-mx__head h2 { margin: 0; padding-block-start: 8px; font: 700 1rem/1.2 var(--font-display); }
+.sv-mx__head p { grid-column: 1; margin: 0; padding-block-end: 8px; font-size: 0.8125rem; line-height: 1.3; color: var(--sv-text-soft); font-variant-numeric: tabular-nums; }
+.sv-mx__head .sv-icon { grid-column: 2; grid-row: 1 / span 2; }
+.sv-mx__tools { display: flex; gap: 6px; padding: 0 10px 8px 14px; }
+.sv-mx__tools form { display: flex; flex: 1; min-width: 0; }
+.sv-mx__tools .sv-field { flex: 1; text-align: start; }
+[dir='rtl'] .sv-mx__tools .sv-field { text-align: end; }
+.sv-mx__zoom { display: flex; border: 1px solid var(--sv-line-green); }
+.sv-mx__zoom .sv-icon { width: 40px; height: 38px; }
+.sv-mx__missing { margin: -2px 14px 8px; font-size: 0.8125rem; color: #ffb4a8; }
+.sv-mx__map { position: relative; height: 13.75rem; border-block: 1px solid var(--sv-line-green); }
+.sv-mx__map canvas { display: block; width: 100%; height: 100%; touch-action: none; cursor: crosshair; }
+.sv-mx__fit { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 14px 0; }
+.sv-mx__filters { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 10px; padding: 10px 14px 0; }
+.sv-mx__legend { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 0; padding: 10px 14px 12px; list-style: none; font-size: 0.75rem; color: var(--sv-text-soft); }
+.sv-mx__legend li { display: inline-flex; align-items: center; gap: 6px; }
+.sv-mx__legend i { width: 10px; height: 10px; }
+
+/* On a medium screen the map and the way back would sit on each other in first person; the map steps aside. */
+@media (max-width: 1099px) {
+  [data-mode='pov'] .sv-mx { display: none; }
+}
+/* Short screens: the map gives up height before the card leaves the screen. */
+/* The tabs took a row; on a short screen the legend gives it back (the colours are named in the tooltip and the inspector). */
+@media (max-height: 760px) { .sv-mx__map { height: 8.75rem; } .sv-mx__legend { display: none; } }
+@media (max-height: 640px) { .sv-mx__legend { display: none; } .sv-mx__map { height: 8rem; } }
+/* Seat numbers are typed left to right, but an Arabic hint must still read right to left. */
+[dir='rtl'] .sv-mx__tools .sv-field:placeholder-shown { direction: rtl; }
+
+/* ---- The inspector ---- */
+
+.sv-insp {
+  position: absolute;
+  inset-block-start: 84px;
+  inset-inline-end: max(var(--sv-edge), env(safe-area-inset-right));
+  z-index: 12;
+  display: flex;
+  flex-direction: column;
+  width: min(21.5rem, calc(100vw - 2 * var(--sv-edge)));
+  max-height: calc(100dvh - 100px);
+  overflow: hidden auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--sv-line-gold) transparent;
+}
+.sv-insp__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; padding: 10px 4px 0 16px; }
+[dir='rtl'] .sv-insp__head { padding: 10px 16px 0 4px; }
+.sv-insp__head h2 { margin: 0; font: 700 1.0625rem/1.3 var(--font-display); font-variant-numeric: tabular-nums; text-wrap: balance; }
+.sv-insp__head p { display: flex; align-items: center; gap: 8px; margin: 3px 0 0; font-size: 0.875rem; line-height: 1.35; color: var(--sv-text-soft); }
+.sv-insp__college { flex: none; width: 10px; height: 10px; outline: 1px solid rgb(255 255 255 / 0.5); }
+.sv-insp__status { display: inline-flex; align-items: center; gap: 8px; margin: 8px 16px 0; font: 600 0.875rem/1.3 var(--font-body); }
+.sv-insp__status i { width: 9px; height: 9px; background: var(--sv-green); transform: var(--sv-lean); }
+.sv-insp__status[data-status='taken'] i { background: #6f8a83; }
+.sv-insp__status[data-status='mine'] i { background: var(--sv-gold); }
+
+.sv-preview { margin: 12px 0 0; }
+.sv-preview canvas { display: block; width: 100%; height: auto; aspect-ratio: 8 / 5; background: #0a2119; border-block: 1px solid var(--sv-line-green); cursor: grab; touch-action: none; opacity: 0.35; transition: opacity 180ms ease-out; }
+.sv-preview[data-ready] canvas { opacity: 1; }
+/* On a short window the picture is cropped rather than letting the buttons fall below the fold. */
+@media (max-height: 780px) and (min-width: 721px) { .sv-preview canvas { aspect-ratio: 2 / 1; object-fit: cover; } }
+.sv-preview canvas:active { cursor: grabbing; }
+.sv-preview canvas:focus-visible { outline: 2px solid var(--sv-gold); outline-offset: -2px; }
+.sv-preview figcaption { padding: 6px 16px 0; font-size: 0.75rem; color: var(--sv-text-soft); }
+
+.sv-insp__facts { display: grid; gap: 5px; margin: 12px 0 0; padding: 0 16px; list-style: none; font-size: 0.875rem; line-height: 1.4; color: var(--sv-white); font-variant-numeric: tabular-nums; }
+.sv-insp__facts li { display: flex; gap: 9px; }
+.sv-insp__facts li::before { content: ''; flex: none; width: 3px; margin-block: 4px; background: var(--sv-gold); transform: var(--sv-lean); }
+
+.sv-insp__actions { display: flex; flex-direction: column; align-items: stretch; gap: 10px; padding: 14px 16px 16px; }
+.sv-insp__actions .sv-button { justify-content: center; }
+.sv-insp__note { margin: 0; font-size: 0.875rem; line-height: 1.5; color: var(--sv-text-soft); text-wrap: pretty; }
+.sv-insp__promise { margin: 0; padding-inline-start: 10px; border-inline-start: 2px solid var(--sv-line-gold-strong); font-size: 0.75rem; line-height: 1.5; color: var(--sv-sand); text-wrap: pretty; }
+.sv-insp__error { margin: 0; padding: 8px 10px; font-size: 0.875rem; line-height: 1.45; color: #ffd2ca; background: rgb(240 138 124 / 0.14); border: 1px solid rgb(240 138 124 / 0.5); }
+/* Controls that exist only to drive the demo are marked as such. */
+.sv-insp__demo { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0; font-size: 0.75rem; }
+.sv-insp__demo span { padding: 1px 6px; font-weight: 700; color: var(--sv-night); background: var(--sv-sand); }
+.sv-link { padding: 6px 0; font: 600 0.8125rem/1.2 var(--font-body); color: var(--sv-sand); text-decoration: underline; text-underline-offset: 3px; background: none; border: 0; cursor: pointer; }
+@media (hover: hover) and (pointer: fine) { .sv-link:hover { color: var(--sv-gold); } }
+
+/* ---- "My seat" ---- */
+
+/* The button in the top row. Its small square turns gold once a seat is booked. */
+.sv-top__mine { gap: 9px; padding-inline: 14px 18px; }
+.sv-top__mine i { width: 9px; height: 9px; border: 1.5px solid var(--sv-sand); transform: var(--sv-lean); }
+.sv-top__mine[data-booked] i { background: var(--sv-gold); border-color: var(--sv-gold); }
+.sv-top__mine[aria-expanded='true']::before { border-color: var(--sv-line-gold-strong); }
+
+.sv-mine__name { font-weight: 600; color: var(--sv-white) !important; overflow-wrap: anywhere; }
+.sv-mine__seat { display: grid; gap: 2px; margin: 12px 16px 0; padding: 10px 12px; background: rgb(0 90 80 / 0.35); border-inline-start: 3px solid var(--sv-gold); }
+.sv-mine__seat b { font: 700 1.0625rem/1.3 var(--font-display); font-variant-numeric: tabular-nums; }
+.sv-mine__seat span { font-size: 0.875rem; line-height: 1.45; color: var(--sv-text-soft); }
+.sv-mine__seat bdi { font: 600 0.8125rem/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--sv-sand); }
+.sv-mine__actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 12px 16px 0; }
+.sv-mine__actions .sv-button { justify-content: center; min-width: 0; padding-inline: 10px; text-align: center; }
+.sv-mine__actions .sv-button:only-child { grid-column: 1 / -1; }
+.sv-mine__promise { margin: 14px 16px 0; }
+
+.sv-mine__share { margin: 14px 16px 0; padding-block-start: 12px; border-block-start: 1px solid var(--sv-line-green); }
+.sv-mine__share h3 { margin: 0; font: 600 0.8125rem/1.3 var(--font-body); color: var(--sv-sand); }
+.sv-mine__share p { margin: 6px 0 0; font-size: 0.8125rem; line-height: 1.45; color: var(--sv-text-soft); }
+.sv-mine__code { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-block-start: 6px; }
+/* The badge: the code in gold on night, large enough to read out over the phone. */
+.sv-mine__code bdi { padding: 6px 12px; font: 700 1.125rem/1.3 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing: 0.06em; color: var(--sv-gold); background: var(--sv-night); border: 1px solid var(--sv-line-gold-strong); user-select: all; }
+
+.sv-mine__switches { display: grid; gap: 4px; padding: 10px 16px 16px; }
+.sv-switch { position: relative; display: flex; align-items: flex-start; gap: 12px; padding-block: 8px; cursor: pointer; }
+/* The real checkbox covers the whole row, invisible: the row is the target, and the track shows the state. */
+.sv-switch input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.sv-switch__track { flex: none; position: relative; width: 42px; height: 24px; margin-block-start: 1px; background: rgb(232 222 195 / 0.16); border: 1px solid rgb(232 222 195 / 0.55); transform: var(--sv-lean); transition: background-color 150ms ease-out, border-color 150ms ease-out; }
+.sv-switch__track::after { content: ''; position: absolute; inset-block: 3px; left: 3px; width: 16px; background: var(--sv-sand); transition: transform 150ms cubic-bezier(0.23, 1, 0.32, 1), background-color 150ms ease-out; }
+.sv-switch input:checked + .sv-switch__track { background: var(--sv-green); border-color: var(--sv-green); }
+.sv-switch input:checked + .sv-switch__track::after { transform: translateX(18px); background: var(--sv-white); }
+.sv-switch input:focus-visible + .sv-switch__track { outline: 2px solid var(--sv-gold); outline-offset: 3px; }
+.sv-switch__words { display: grid; gap: 2px; min-width: 0; }
+.sv-switch__words b { font: 600 0.875rem/1.35 var(--font-body); }
+.sv-switch__words small { font-size: 0.8125rem; line-height: 1.4; color: var(--sv-text-soft); }
+html[data-motion='reduced'] .sv-switch__track, html[data-motion='reduced'] .sv-switch__track::after { transition: none; }
+
+/* ---- The seat card dialog ---- */
+
+.sv-dialog__backdrop { position: fixed; inset: 0; z-index: 40; background: rgb(3 14 12 / 0.74); transition: opacity 180ms ease-out; }
+.sv-dialog__backdrop[data-starting-style], .sv-dialog__backdrop[data-ending-style] { opacity: 0; }
+.sv-dialog {
+  position: fixed;
+  inset: 0;
+  z-index: 41;
+  width: min(27rem, calc(100vw - 24px));
+  height: fit-content;
+  max-height: calc(100dvh - 24px);
+  margin: auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  transition: opacity 180ms ease-out, transform 180ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+.sv-dialog[data-starting-style], .sv-dialog[data-ending-style] { opacity: 0; transform: scale(0.96); }
+html[data-motion='reduced'] .sv-dialog, html[data-motion='reduced'] .sv-dialog__backdrop { transition: none; }
+.sv-dialog__body { display: grid; gap: 12px; padding: 14px 16px 16px; }
+.sv-dialog__title { margin: 0; font: 700 1.25rem/1.25 var(--font-display); text-wrap: balance; }
+.sv-dialog__lead { margin: -6px 0 0; font-size: 0.875rem; line-height: 1.5; color: var(--sv-text-soft); text-wrap: pretty; }
+.sv-dialog__actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.sv-dialog__actions .sv-button { flex: 1 1 auto; justify-content: center; }
+.sv-button:disabled { opacity: 0.6; cursor: progress; }
+
+/* The card itself: dark on white whatever surrounds it, because it is read by a steward and a scanner. */
+.sv-pass { overflow: hidden; color: #061a17; background: #fff; border: 1px solid #061a17; color-scheme: light; }
+.sv-pass__head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; color: #fff; background: #005a50; }
+.sv-pass__head p { display: grid; margin: 0; text-align: end; }
+.sv-pass__head b { font: 700 0.875rem/1.3 var(--font-display); }
+.sv-pass__head span { font-size: 0.75rem; line-height: 1.35; color: #e8dec3; }
+.sv-pass__bars { height: 8px; background-color: #061a17; background-image: repeating-linear-gradient(95deg, #e7a614 0 7px, transparent 7px 11px, #e7a614 11px 14px, transparent 14px 18px, #e7a614 18px 23px, transparent 23px 29px); }
+.sv-pass__body { padding: 14px; }
+.sv-pass h3 { margin: 0; font: 700 1.375rem/1.25 var(--font-display); overflow-wrap: anywhere; text-wrap: balance; }
+.sv-pass__zone { margin: 3px 0 0; font-size: 0.875rem; line-height: 1.4; color: #3d5650; }
+.sv-pass__cells { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 8px; margin: 12px 0 0; }
+.sv-pass__cells div { display: grid; justify-items: center; padding: 6px 4px 8px; border: 2px solid #061a17; }
+.sv-pass__cells dt { font-size: 0.75rem; font-weight: 600; color: #3d5650; text-align: center; }
+.sv-pass__cells dd { margin: 0; font: 700 2rem/1.1 var(--font-display); font-variant-numeric: tabular-nums; }
+.sv-pass__lower { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: start; margin-block-start: 12px; }
+.sv-pass__rows { display: grid; gap: 8px; margin: 0; min-width: 0; }
+.sv-pass__rows dt { font-size: 0.75rem; font-weight: 600; color: #3d5650; }
+.sv-pass__rows dd { margin: 0; font-size: 0.875rem; font-weight: 600; line-height: 1.4; overflow-wrap: anywhere; }
+.sv-pass__qr { display: grid; justify-items: center; gap: 2px; }
+.sv-pass__qr svg { border-radius: 0; }
+.sv-pass__qr bdi { font: 700 0.8125rem/1.3 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+.sv-pass__mock { margin: 10px 0 0; font-size: 0.75rem; color: #3d5650; }
+@media (max-width: 359px) {
+  .sv-pass__lower { grid-template-columns: 1fr; justify-items: center; }
+  .sv-pass__rows { justify-self: stretch; }
+}
+
+/*
+ * Printing. Only the seat card goes on paper, on one page, at a size a gate scanner reads easily.
+ * Everything else on the page (the 3D picture, the HUD, the site's own floating parts) is hidden.
+ */
+@media print {
+  html.sv-locked, html.sv-locked body { overflow: visible; background: #fff; }
+  html.sv-locked body * { visibility: hidden !important; }
+  html.sv-locked .sv-pass, html.sv-locked .sv-pass * { visibility: visible !important; }
+  html.sv-locked [data-theme='stadiview'] { position: static; overflow: visible; background: #fff; }
+  html.sv-locked .sv-dialog { position: static; width: auto; max-height: none; margin: 0; overflow: visible; background: none; border: 0; box-shadow: none; backdrop-filter: none; transform: none; }
+  html.sv-locked .sv-dialog__body { padding: 0; }
+  html.sv-locked .sv-pass { width: 105mm; margin: 12mm auto 0; break-inside: avoid; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  html.sv-locked .sv-stage, html.sv-locked .sv-top, html.sv-locked .sv-mx, html.sv-locked .sv-insp, html.sv-locked .sv-dialog__backdrop, html.sv-locked [data-demo-console] { display: none !important; }
+}
+
+/* ---- The guest tools ---- */
+
+.sv-guest__part { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; margin: 14px 16px 0; padding-block-start: 12px; border-block-start: 1px solid var(--sv-line-green); }
+.sv-guest__part:last-child { padding-block-end: 16px; }
+.sv-guest__part h3 { margin: 0; font: 700 0.9375rem/1.3 var(--font-display); color: var(--sv-white); }
+.sv-guest__row { display: flex; gap: 8px; }
+.sv-guest__row .sv-field { flex: 1; min-width: 0; }
+.sv-guest__row .sv-button { flex: none; }
+.sv-guest__row--search { flex-wrap: wrap; }
+.sv-guest__row--search select { flex: 1 1 100%; }
+.sv-guest__help { min-height: 1.2em; margin: 0; font-size: 0.8125rem; line-height: 1.45; color: var(--sv-text-soft); }
+.sv-guest__help:empty { display: none; }
+.sv-guest__problem { color: #ffb4a8; }
+.sv-guest__chips { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.sv-guest__chips .sv-chip { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.75rem; }
+.sv-guest__demo { padding: 1px 6px; font-size: 0.75rem; font-weight: 700; color: var(--sv-night); background: var(--sv-sand); }
+.sv-guest__found { display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; padding: 10px 12px; background: rgb(0 90 80 / 0.35); border-inline-start: 3px solid var(--sv-gold); }
+.sv-guest__found > b { font: 700 1rem/1.3 var(--font-display); overflow-wrap: anywhere; }
+.sv-guest__found > span { font-size: 0.8125rem; color: var(--sv-text-soft); }
+.sv-guest__found p { margin: 0; font-size: 0.875rem; line-height: 1.5; text-wrap: pretty; }
+.sv-guest__found ul { display: flex; flex-wrap: wrap; gap: 2px 14px; margin: 0; padding: 0; list-style: none; font-size: 0.875rem; font-variant-numeric: tabular-nums; }
+.sv-guest__found .sv-link { justify-self: start; }
+.sv-guest__buttons { display: flex; flex-wrap: wrap; gap: 8px; }
+.sv-guest__buttons:empty { display: none; }
+.sv-guest__buttons .sv-button { flex: 1 1 auto; justify-content: center; }
+.sv-guest__results { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.sv-guest__results button { display: grid; gap: 1px; width: 100%; min-height: 48px; padding: 7px 10px; text-align: start; color: var(--sv-white); background: rgb(232 222 195 / 0.06); border: 1px solid var(--sv-line-green); cursor: pointer; transition: background-color 120ms ease-out, border-color 120ms ease-out; }
+.sv-guest__results b { font: 600 0.875rem/1.35 var(--font-body); overflow-wrap: anywhere; }
+.sv-guest__results span { font-size: 0.75rem; line-height: 1.4; color: var(--sv-text-soft); }
+@media (hover: hover) and (pointer: fine) { .sv-guest__results button:hover { background: rgb(231 166 20 / 0.14); border-color: var(--sv-line-gold-strong); } }
+.sv-guest__results button:active { background: rgb(231 166 20 / 0.22); }
+.sv-guest__sight p { margin: 0; font-size: 0.875rem; line-height: 1.5; text-wrap: pretty; }
+.sv-guest__sight .sv-button { justify-content: center; }
+.sv-guest .sv-link { justify-self: start; }
+
+/* ---- The seat map's two tabs, and the seat finder ---- */
+
+.sv-mx__tabs { display: flex; gap: 0; margin: 0 14px 8px; border: 1px solid var(--sv-line-green); }
+.sv-mx__tabs button { flex: 1; min-height: 36px; font: 600 0.8125rem/1 var(--font-body); color: var(--sv-text-soft); background: none; border: 0; cursor: pointer; transition: background-color 120ms ease-out, color 120ms ease-out; }
+.sv-mx__tabs button[aria-selected='true'] { color: var(--sv-night); background: var(--sv-sand); }
+.sv-mx__tabs button:focus-visible { outline-offset: -2px; }
+.sv-mx__panel { display: flex; flex-direction: column; min-height: 0; overflow: hidden auto; scrollbar-width: thin; scrollbar-color: var(--sv-line-gold) transparent; }
+.sv-chip--gold { color: var(--sv-night); background: var(--sv-gold); border-color: var(--sv-gold); }
+
+.sv-finder { display: grid; gap: 12px; padding: 0 14px 14px; }
+.sv-finder__pick { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.sv-finder__pick label { display: grid; gap: 3px; min-width: 0; }
+.sv-finder__pick label:first-child { grid-column: 1 / -1; }
+.sv-finder__pick label span { font-size: 0.75rem; font-weight: 600; color: var(--sv-sand); }
+.sv-finder__pick .sv-field { width: 100%; }
+.sv-finder__pick .sv-button { grid-column: 1 / -1; justify-content: center; }
+.sv-finder__free { display: grid; gap: 8px; padding-block-start: 10px; border-block-start: 1px solid var(--sv-line-green); }
+.sv-finder__free h3 { margin: 0; font: 700 0.9375rem/1.3 var(--font-display); }
+.sv-finder__free p { margin: 0; font-size: 0.8125rem; line-height: 1.45; color: var(--sv-text-soft); }
+.sv-finder__list { display: grid; gap: 10px; }
+.sv-finder__list [data-free-row] { display: grid; gap: 4px; }
+.sv-finder__list [data-free-row] > span { font-size: 0.75rem; font-weight: 600; color: var(--sv-sand); font-variant-numeric: tabular-nums; }
+.sv-finder__list [data-free-row] > div { display: flex; flex-wrap: wrap; gap: 4px; }
+.sv-finder__list button { min-width: 44px; min-height: 44px; padding: 0 6px; font: 600 0.875rem/1 var(--font-body); font-variant-numeric: tabular-nums; color: var(--sv-white); background: rgb(0 156 90 / 0.28); border: 1px solid var(--sv-green); cursor: pointer; transition: background-color 120ms ease-out; }
+.sv-finder__list button[aria-pressed='true'] { color: var(--sv-night); background: var(--sv-gold); border-color: var(--sv-gold); }
+.sv-finder__list button:active { transform: scale(0.96); }
+@media (hover: hover) and (pointer: fine) { .sv-finder__list button:not([aria-pressed='true']):hover { background: rgb(0 156 90 / 0.5); } }
+
+/* The drawing that stands in for the view when there is no 3D picture. */
+.sv-sketch { margin: 12px 0 0; }
+.sv-sketch svg { display: block; width: 100%; height: auto; border-block: 1px solid var(--sv-line-green); }
+.sv-sketch figcaption { padding: 6px 16px 0; font-size: 0.75rem; color: var(--sv-text-soft); }
+
+/* ---- Without the 3D picture: the seat map is the page ---- */
+
+.sv-flatnote { display: grid; gap: 6px; margin: 0 14px 10px; padding: 8px 10px; font-size: 0.8125rem; line-height: 1.45; color: var(--sv-text-soft); background: rgb(231 166 20 / 0.1); border-inline-start: 3px solid var(--sv-gold); }
+.sv-flatnote p { margin: 0; text-wrap: pretty; }
+.sv-flatnote b { color: var(--sv-white); }
+.sv-flatnote div { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; }
+[data-flat] .sv-mx {
+  /* Below the demo button, which sits under the top row on this page. */
+  inset-block: 128px max(16px, env(safe-area-inset-bottom));
+  width: calc(100vw - 21.5rem - 3 * var(--sv-edge));
+  max-height: none;
+}
+[data-flat] .sv-mx__panel { flex: 1; }
+[data-flat] .sv-mx__map { flex: 1; height: auto; min-height: 12rem; }
+@media (max-width: 899px) and (min-width: 641px) {
+  [data-flat] .sv-mx { width: calc(100vw - 2 * var(--sv-edge)); }
+}
+
+/* ---- The phone: a dock along the bottom, and one sheet at a time ---- */
+
+.sv-bar { display: none; }
+@media (max-width: 640px) {
+  .sv-bar {
+    position: absolute;
+    inset: auto 0 0;
+    z-index: 30;
+    display: flex;
+    padding-block-end: env(safe-area-inset-bottom);
+    background: var(--sv-glass-solid);
+    border-block-start: 1px solid var(--sv-line-gold);
+    -webkit-backdrop-filter: var(--sv-blur);
+    backdrop-filter: var(--sv-blur);
+  }
+  .sv-bar button { flex: 1; display: grid; justify-items: center; align-content: center; gap: 3px; min-width: 0; min-height: 56px; padding: 6px 4px; font: 600 0.75rem/1.2 var(--font-body); color: var(--sv-text-soft); background: none; border: 0; cursor: pointer; }
+  .sv-bar button span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sv-bar button[aria-pressed='true'] { color: var(--sv-gold); box-shadow: inset 0 2px 0 var(--sv-gold); }
+  .sv-bar button:active { background: rgb(232 222 195 / 0.08); }
+  .sv-bar button:focus-visible { outline-offset: -3px; }
+
+  /* The dock has "My seat" and "Find a seat"; the top row keeps the title, the role and the language. */
+  .sv-top__mine { display: none; }
+  .sv-role { width: 100%; flex: none; }
+
+  /* Every card is a sheet: full width, rising from above the dock. */
+  .sv-mx, .sv-insp {
+    position: absolute;
+    inset: auto 0 calc(56px + env(safe-area-inset-bottom));
+    z-index: 20;
+    width: auto;
+    max-height: 60dvh;
+    border-inline: 0;
+    border-block-end: 0;
+    box-shadow: 0 -18px 40px rgb(0 0 0 / 0.5);
+    animation: sv-sheet-up 240ms var(--ease-out-strong, cubic-bezier(0.23, 1, 0.32, 1));
+  }
+  .sv-mx:focus, .sv-insp:focus { outline: none; }
+  /* A short sheet scrolls; nothing in it is squeezed to make room. */
+  .sv-insp > * { flex-shrink: 0; }
+  .sv-preview canvas { aspect-ratio: 2.4 / 1; object-fit: cover; }
+  .sv-mx { height: 60dvh; }
+  .sv-mx__panel { flex: 1; }
+  .sv-mx__map { flex: 1; height: auto; min-height: 9rem; }
+  .sv-mx__legend { display: none; }
+  /* The way back and its hint sit above the dock. */
+  .sv-dock { inset-block-end: calc(56px + env(safe-area-inset-bottom) + 12px); }
+  .sv-hint { inset-block-end: calc(56px + env(safe-area-inset-bottom) + 76px); }
+
+  /* Without 3D the map is the page behind the sheets, between the top rows and the dock. */
+  [data-flat] .sv-mx { inset: 124px 0 calc(56px + env(safe-area-inset-bottom)); z-index: 5; width: auto; height: auto; max-height: none; box-shadow: none; animation: none; }
+
+  .sv-dialog { max-height: calc(100dvh - 16px); }
+  /* Thumbs need 44 px. */
+  .sv-chip, .sv-link, .sv-field { min-height: 44px; }
+  .sv-mx__zoom .sv-icon { width: 44px; height: 44px; }
+  .sv-mx__tabs button { min-height: 44px; }
+  .sv-check { min-height: 44px; }
+}
+@keyframes sv-sheet-up {
+  from { transform: translateY(24px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+html[data-motion='reduced'] .sv-mx, html[data-motion='reduced'] .sv-insp { animation: none; }
+
+/* While every seat is drawn filled, the inspector says the picture is a preview. */
+.sv-insp__filled { margin: 8px 16px 0; padding: 6px 10px; font-size: 0.8125rem; line-height: 1.45; color: var(--sv-night); background: var(--sv-sand); }
+
+/* ---- The march's three places, named in the overview ---- */
+
+.sv-places { position: absolute; inset: 0; z-index: 4; pointer-events: none; overflow: hidden; }
+.sv-place {
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding: 3px 9px 4px;
+  font: 700 0.75rem/1.2 var(--font-display);
+  color: var(--sv-night);
+  white-space: nowrap;
+  background: var(--sv-gold);
+  border: 1px solid rgb(6 26 23 / 0.6);
+  box-shadow: 0 4px 14px rgb(0 0 0 / 0.45);
+}
+.sv-place::after { content: ''; position: absolute; left: 50%; bottom: -5px; width: 8px; height: 8px; background: inherit; transform: translateX(-50%) rotate(45deg); }
+.sv-place--start { background: #7fd6df; }
+@media (max-width: 640px) { .sv-place { font-size: 0.6875rem; } }
+
+/* ---- Walking routes ---- */
+
+.sv-route { display: grid; gap: 4px; }
+.sv-route .sv-button { justify-content: center; }
+.sv-route .sv-button[aria-pressed='true']::before { border-color: var(--sv-line-gold-strong); }
+.sv-route p { margin: 0; font-size: 0.8125rem; line-height: 1.45; color: var(--sv-text-soft); }
+.sv-mine__route { padding: 12px 16px 0; }
+.sv-guest__buttons .sv-route { flex: 1 1 100%; }
+
+/* ---- Landmark chips, in first person: a row above the way back ---- */
+
+.sv-chips {
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: calc(max(20px, env(safe-area-inset-bottom)) + 64px);
+  z-index: 10;
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  padding-inline: var(--sv-edge);
+  overflow-x: auto;
+  scrollbar-width: none;
+  animation: sv-sheet-up 220ms var(--ease-out-strong, cubic-bezier(0.23, 1, 0.32, 1));
+}
+.sv-chips::-webkit-scrollbar { display: none; }
+.sv-chips__chip { flex: none; min-height: 40px; padding-inline: 14px; font-size: 0.8125rem; }
+html[data-motion='reduced'] .sv-chips { animation: none; }
+@media (max-width: 1099px) { .sv-chips { justify-content: flex-start; } }
+@media (max-width: 640px) {
+  .sv-chips { inset-block-end: calc(56px + env(safe-area-inset-bottom) + 76px); }
+  .sv-chips__chip { min-height: 44px; }
+  .sv-hint { inset-block-end: calc(56px + env(safe-area-inset-bottom) + 132px); }
+}

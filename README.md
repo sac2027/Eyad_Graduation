@@ -15,7 +15,7 @@ npm run build      # type-check and production build
 
 ## The demo console (time travel)
 
-Click **Demo** (bottom corner). It lets you:
+Click **Demo** (bottom corner; on the stadium page it sits under the top row). It lets you:
 
 - jump to any date and time (datetime box, a scrubber with deadline ticks, or one-click presets such as *Sizes due*, *Honors day*, *Ceremony live*, *After*);
 - run a time lapse (1 day per second, or 1 hour per second on 6 and 7 April);
@@ -47,6 +47,45 @@ Also in the console: **Reset demo data** (scrubbing time backwards cannot undo e
   - nothing is drawn under reduced motion or on a low-end device
   - automated browsers skip the welcome moment unless the URL has `?welcome=1`
 
+## The 3D stadium (StadiView)
+
+`/stadium` is a full-screen 3D model of the stadium on graduation night, built in code (no model files). It was delivered in four phases; this is what works after **Phase 4 (people, the march, the bowl and the light)**:
+
+- **The stadium**: the pitch with six blocks of graduate chairs facing the stage at the west end, the running track, the south family stand with **KFUPM** spelled in sand-coloured seats, the east curve with the procession entrance, the north stands with the VIP box under its canopy, the accessibility platform, five gates, four floodlight masts, and the stage with its animated FAST Matrix backdrop and two LED screens.
+- **Every seat is real**: 2,986 graduate seats, 12 wheelchair bays and 5,000 stand seats, each one hoverable and clickable. Hover shows a tooltip (block, row, seat, college and degree, status). The whole stadium is about 166,000 triangles in 22 to 25 draw calls.
+- **Click a seat** and the camera flies into it for the view from that seat. **Back to stadium overview** (or Escape) flies back.
+
+| | Overview | In a seat |
+|---|---|---|
+| Drag | turn the stadium | look around |
+| Wheel or pinch | zoom | narrow or widen the view |
+| Arrow keys, `+`, `-` | the same, once the picture has focus | the same |
+| Escape | | back to the overview |
+
+**Graduates (Phase 3).** Sign in as a graduate persona (the role switch in the top row) and, during the booking period (14 March to 1 April 2027; the inspector offers a labelled demo jump), pick a free seat in your college-and-degree zone and press **Confirm & book my seat**. The booking opens the Digital Seat Card (name, block, row, seat, gate, line-up position, QR), which prints alone or downloads as a PNG. **My seat** holds the seat, the Family Share Code, the **Allow Family Seat Locator (Privacy Opt-In)** switch and the wheelchair switch.
+
+**Guests.** **Find a seat** looks up a ticket number (`TICKET-G1-204` is south stand row 2 seat 84) and finds a graduate by name, student ID or Family Share Code. With both, it says how far and in which direction the graduate sits, and can seat the guest in their own seat turned toward them. Guests cannot book or change anything.
+
+**The seat map** (bottom left, or the Seats sheet on a phone) shows all 7,998 seats: drag and wheel to pan and zoom, click to inspect (the gold beam marks the seat in 3D), double click to fly in. Its **List** tab reaches any seat by keyboard. Without WebGL the map is the whole page and every flow still works. On phones the panels are bottom sheets opened from a dock.
+
+The data is mock: 2,986 graduates, 5,000 guest tickets and occupancy that grows with the simulated clock, all in memory (the demo console's reset clears it).
+
+**The people (Phase 4).** Every seat that is taken holds a seated figure, and no free seat does: men graduating in a black bisht with gold zari trim, the white thobe, the KFUPM shawl and a ghutra with iqal (Blocks 2 to 6); women graduating in an abaya, shayla and shawl (Block 1); families in a white thobe with ghutra or red shemagh, or an abaya and shayla. Family seats fill as their graduate books; the stadium is full on ceremony night (7 April, 18:45 to 21:30), and the demo console's **Fill the stadium (ceremony night)** switch (or `?full=1`) shows a full house at any time without changing any booking. Seated in first person, your own seat and the figures within 1.5 m of your eyes are left out, so the row in front never hides the stage. `/stadium?svavatars=1` shows the figures on their own.
+
+**The march and the bowl.** The crimson march carpet (مسار المسيرة) runs round the blocks with gold lights on both edges and arrows flowing the way the graduates walk: from the Procession Start (نقطة بداية المسيرة) up the east side, through the Procession Gate (بوابة المسيرة) on the north side, past the stage and out by the Procession Exit (بوابة الخروج). Empty terraces close the bowl round the bends. All of it is for the eye only: none of it hides a seat or takes a click.
+
+**For guests and graduates.** A guest with a ticket and a located graduate sees a gold arc from their seat to the graduate's, with a 12 m beam on the graduate's seat. **Show my route** (guest panel, My seat, seat card) draws the walk from the gate to the seat, in 3D and on the seat map, with the distance and minutes. Seated, landmark chips (Stage, LED screens, VIP box, Family stands, Procession Gate, My graduate) turn the view. Desktops (tier 3) get bloom.
+
+**Changing the venue.** Every number about the stadium (head counts per college and degree, block sizes, stands, gates, camera) is in `src/features/stadiview/config/venue.ts`. The layout, the picking, the drawing and the camera all read from it.
+
+**Devices.** The page picks one of four tiers: 0 (no WebGL: the 2D seat map takes the page), 1 (low-end), 2 (default), 3 (desktop). Add `?tier=0` to `?tier=3` to force one. Reduced motion and the console's low-end switch turn flights into a short cut and stop the idle turn.
+
+**For testing and review.**
+- `?idle=1` turns the idle rotation on under automation; `?svslow=8` slows flights eight times; `?svdebug=1` exposes `window.__stadiview` on a production build; `?full=1` fills the stadium; `?svbloom=1` keeps bloom on where frames are slow; `?svavatars=1` shows the figures on their own.
+- `node scripts/stadiview-stills.cjs` (dev server running) regenerates `docs/review/stadiview/`.
+- `node scripts/stadiview-frames.cjs` (after `npm run build` and `npx vite preview --port 4173`) measures frame times.
+- `node scripts/landing-weight.cjs` (after `npm run build`) reports how much the landing page downloads.
+
 ## What is in it
 
 | Area | Where |
@@ -55,14 +94,15 @@ Also in the console: **Reset demo data** (scrubbing time backwards cannot undo e
 | Stadium scene, graduate silhouette, certificate, stage screens | `src/features/stadium/` |
 | Scroll rail, step sections, celebrations, certificate moment | `src/features/rail/`, `src/features/steps/`, `src/features/celebrate/`, `src/features/moment/` |
 | Honor award (3D tower in gold, silver, bronze; 2D fallback) and its lighting script | `src/features/honors/` |
+| The 3D stadium: venue config, seat layout, picking and camera maths, scene, HUD | `src/features/stadiview/` |
 | Guest guide, gate map, accessibility routing | `src/features/guest/` |
 | Graduate dashboard, attire, tickets, seat map, QR tickets | `src/features/graduate/` |
 | Admin (capacity and exceptional cases) | `src/features/admin/` |
 | Mock services and personas | `src/data/` |
 | Brand tokens, Matrix, loops | `src/brand/`, `public/matrix/` |
 
-Design: `docs/phase2/architecture.md` and `docs/superpowers/specs/2026-11-06-journey-redesign-design.md`. Plans: `docs/superpowers/plans/`.
-Review screenshots: `docs/review/` (regenerate with `node scripts/scene-stills.cjs` while the dev server runs).
+Design: `docs/phase2/architecture.md`, `docs/superpowers/specs/2026-11-06-journey-redesign-design.md` and `docs/superpowers/specs/2026-11-10-stadiview-design.md`. Plans: `docs/superpowers/plans/`.
+Review screenshots: `docs/review/` (regenerate with `node scripts/scene-stills.cjs` and `node scripts/stadiview-stills.cjs` while the dev server runs).
 
 ## Deploying (Cloudflare Pages)
 
@@ -71,7 +111,7 @@ Build command `npm run build`, output directory `dist`. `public/_redirects` send
 ## Brand notes
 
 - Colours, fonts and the Matrix follow the KFUPM Brand Guidelines v1.2 (June 2026).
-- **KFUPM Display** is cleared for this demo by the client. Its files live in `public/fonts/kfupm/` and are git-ignored, so a deploy built from the repository falls back to IBM Plex Sans Arabic unless the files are added.
+- **KFUPM Display** is the university's own typeface, cleared for this demo by the client. Its files are committed in `public/fonts/kfupm/` at the client's request (11 Nov 2026), so a deployed build shows it everywhere, including on the 3D stadium's LED screens. It is not an open font: do not reuse it outside this project.
 - The Matrix loops in `public/matrix/` were exported from the FAST Matrix Generator, recoloured to the exact brand values and encoded to 1080px VP9. Only approved colour pairings are used (`src/brand/matrix/pairs.ts`).
 - The header uses the official KFUPM logo (mark and wordmark, colour and white versions, in `src/brand/logo/`), taken from the supplied files with the "Student Affairs" descriptor removed at the client's request. A ceremony-specific logo may replace it later.
 

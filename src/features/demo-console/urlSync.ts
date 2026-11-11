@@ -35,6 +35,8 @@ export function useUrlSync() {
       const f = useDemoFlags.getState()
       if (f.lowEnd) url.searchParams.set('lowend', '1')
       else url.searchParams.delete('lowend')
+      if (f.fullHouse) url.searchParams.set('full', '1')
+      else url.searchParams.delete('full')
       if (f.worstCase) url.searchParams.set('worst', '1')
       else url.searchParams.delete('worst')
       if (f.dateStatus === 'tbc') url.searchParams.set('tbc', '1')

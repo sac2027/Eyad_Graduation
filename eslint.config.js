@@ -35,4 +35,10 @@ export default tseslint.config(
     files: ['src/time/clockStore.ts', 'tests/**', 'playwright.config.ts', 'src/features/honors/**', 'src/brand/matrix/**'],
     rules: { 'no-restricted-properties': 'off', 'no-restricted-syntax': 'off' },
   },
+  {
+    // three.js objects are changed in place by design: a render loop moves the camera and updates
+    // materials every frame. The rule that forbids changing values handed out by hooks does not fit them.
+    files: ['src/features/stadiview/scene/**'],
+    rules: { 'react-hooks/immutability': 'off' },
+  },
 )

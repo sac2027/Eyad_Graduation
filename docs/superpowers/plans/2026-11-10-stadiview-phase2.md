@@ -605,9 +605,9 @@ All nine tasks are done and pushed to `claude/friendly-hopper-2kwm8r`.
 | 4. Camera maths | `94f3850` |
 | 5. Store and device tiers | `8ac1142` |
 | 6. Route and static stadium | `c23c4d1` |
-| 7. Instanced seats, hover, selection | `feat(stadiview): 7,998 instanced seats with hover and selection` |
-| 8. Camera rig | `feat(stadiview): orbit, fly-to and first-person camera` |
-| 9. Checks, screenshots, notes | this commit |
+| 7. Instanced seats, hover, selection | `3187cf3` |
+| 8. Camera rig | `026e5c5` |
+| 9. Checks, screenshots, notes | `e3ca73b` |
 
 ### How it was checked
 

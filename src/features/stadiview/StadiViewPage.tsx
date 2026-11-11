@@ -15,6 +15,7 @@ import { RoleSwitch } from '@/features/stadiview/hud/RoleSwitch'
 import { SeatCardDialog } from '@/features/stadiview/hud/SeatCardDialog'
 import { LiveSeat } from '@/features/stadiview/hud/SeatFinder'
 import { SeatMatrix } from '@/features/stadiview/hud/SeatMatrix'
+import { PlaceLabels } from '@/features/stadiview/hud/PlaceLabels'
 import { SeatTooltip } from '@/features/stadiview/hud/SeatTooltip'
 import { pitchSeats } from '@/features/stadiview/data/pitchSeatService'
 import { getDirectory } from '@/features/stadiview/data/graduateDirectory'
@@ -201,6 +202,7 @@ export default function StadiViewPage() {
         </button>
       </header>
 
+      {show3d && <PlaceLabels />}
       <SeatTooltip />
       <SeatMatrix
         canFly={show3d}

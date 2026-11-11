@@ -204,4 +204,7 @@ export const ar: Record<string, string> = {
   'sv.sketch.caption': 'خط النظر من هذا المقعد إلى المنصة، من الأعلى.',
   'sv.insp.familyTickets': 'تذاكر العائلة',
   'sv.insp.filled': 'معاينة ليلة الحفل: تظهر المقاعد كلها مشغولة. الحجوزات الفعلية كما هي أدناه.',
+  'sv.place.gate': 'بوابة المسيرة',
+  'sv.place.start': 'نقطة بداية المسيرة',
+  'sv.place.exit': 'بوابة الخروج',
 }

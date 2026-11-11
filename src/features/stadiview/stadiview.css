@@ -729,3 +729,22 @@ html[data-motion='reduced'] .sv-mx, html[data-motion='reduced'] .sv-insp { anima
 
 /* While every seat is drawn filled, the inspector says the picture is a preview. */
 .sv-insp__filled { margin: 8px 16px 0; padding: 6px 10px; font-size: 0.8125rem; line-height: 1.45; color: var(--sv-night); background: var(--sv-sand); }
+
+/* ---- The march's three places, named in the overview ---- */
+
+.sv-places { position: absolute; inset: 0; z-index: 4; pointer-events: none; overflow: hidden; }
+.sv-place {
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding: 3px 9px 4px;
+  font: 700 0.75rem/1.2 var(--font-display);
+  color: var(--sv-night);
+  white-space: nowrap;
+  background: var(--sv-gold);
+  border: 1px solid rgb(6 26 23 / 0.6);
+  box-shadow: 0 4px 14px rgb(0 0 0 / 0.45);
+}
+.sv-place::after { content: ''; position: absolute; left: 50%; bottom: -5px; width: 8px; height: 8px; background: inherit; transform: translateX(-50%) rotate(45deg); }
+.sv-place--start { background: #7fd6df; }
+@media (max-width: 640px) { .sv-place { font-size: 0.6875rem; } }

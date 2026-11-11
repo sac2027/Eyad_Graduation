@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { call, open, project, stadiumUrl } from './support/stadium'
+import { call, open, project, stadiumUrl, waitForMode } from './support/stadium'
 
 test.describe('the march carpet', () => {
   test('runs round the blocks with lights on both edges and moving arrows', async ({ page }) => {
@@ -31,5 +31,29 @@ test.describe('the march carpet', () => {
       await page.mouse.move(p.x, p.y, { steps: 3 })
       await expect.poll(async () => (await call(page, (h) => h.state())).hover).toBe(id)
     }
+  })
+})
+
+test.describe('the Procession Gate, the start and the exit', () => {
+  for (const [lang, names] of [
+    ['en', ['Procession Gate', 'Procession Start', 'Procession Exit']],
+    ['ar', ['بوابة المسيرة', 'نقطة بداية المسيرة', 'بوابة الخروج']],
+  ] as const) {
+    test(`are named in the overview (${lang})`, async ({ page }) => {
+      await open(page, stadiumUrl({ lang }))
+      const ids = ['gate', 'start', 'exit'] as const
+      for (let k = 0; k < 3; k++) await expect(page.locator(`[data-sv-place="${ids[k]}"]`)).toHaveText(names[k])
+      await expect(page.locator('[data-sv-place="gate"]')).toBeVisible()
+      await expect(page.locator('[data-sv-place="start"]')).toBeVisible()
+    })
+  }
+
+  test('the arch is see-through in the overview and solid in first person, and the labels go', async ({ page }) => {
+    await open(page, stadiumUrl({ extra: 'reduced=1' }))
+    expect(await call(page, (h) => h.archOpacity())).toBeLessThan(0.6)
+    await call(page, (h) => h.select('P1-30-14'))
+    await waitForMode(page, 'pov')
+    expect(await call(page, (h) => h.archOpacity())).toBe(1)
+    await expect(page.locator('[data-sv-place="gate"]')).toBeHidden()
   })
 })

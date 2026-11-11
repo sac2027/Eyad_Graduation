@@ -163,3 +163,17 @@ describe('the edge lights', () => {
     }
   })
 })
+
+describe('the arch from the seats', () => {
+  it('stands at least a metre from every seated viewer\'s eyes', async () => {
+    const { seatEye } = await import('@/features/stadiview/engine/cameraMath')
+    for (let i = 0; i < v.count; i++) {
+      const eye = seatEye(i, v)
+      for (const [x0, x1, z0, z1] of archPosts()) {
+        const dx = Math.max(x0 - eye[0], 0, eye[0] - x1)
+        const dz = Math.max(z0 - eye[2], 0, eye[2] - z1)
+        expect(Math.hypot(dx, dz)).toBeGreaterThanOrEqual(1)
+      }
+    }
+  })
+})

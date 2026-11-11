@@ -279,5 +279,20 @@ function drawCarpet(ctx: CanvasRenderingContext2D, k: number, at: (x: number, z:
       ctx.stroke()
     }
   }
+  // The three places: the gate as a gold bar across the carpet, the start as a teal ring, the exit as a gold square.
+  const m = VENUE.march
+  const half = (m.width / 2 + 0.6) * k
+  const [ax, ay] = at(VENUE.arch.x, m.north)
+  ctx.fillStyle = SV.gold
+  ctx.fillRect(ax - Math.max(1.5, 0.3 * k), ay - half, Math.max(3, 0.6 * k), half * 2)
+  const [sx, sy] = at(m.start[0], m.start[2])
+  ctx.beginPath()
+  ctx.arc(sx, sy, Math.max(3.5, 1.1 * k), 0, Math.PI * 2)
+  ctx.lineWidth = Math.max(1.5, 0.3 * k)
+  ctx.strokeStyle = '#7FD6DF'
+  ctx.stroke()
+  const [ex, ey] = at(m.exit[0], m.exit[2])
+  const e = Math.max(3.5, 1.2 * k)
+  ctx.fillRect(ex - e, ey - e, e * 2, e * 2)
   ctx.restore()
 }

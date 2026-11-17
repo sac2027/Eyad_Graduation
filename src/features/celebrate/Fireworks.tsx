@@ -57,6 +57,11 @@ interface Spark {
   color: string
   size: number
   spin?: number
+  /** Where the spark was a frame ago, so it is drawn as a streak. */
+  px: number
+  py: number
+  /** A rocket climbing to where it bursts: what it carries. */
+  shell?: { n: number; colors: string[]; ring: boolean }
 }
 
 /**
@@ -75,6 +80,7 @@ export function Fireworks() {
   const sparks = useRef<Spark[]>([])
   const raf = useRef(0)
   const clock = useRef(0)
+  const launched = useRef(0)
 
   function schedule(b: Burst) {
     const plan = SHOW[b.kind]
@@ -108,6 +114,17 @@ export function Fireworks() {
       // launch due bursts
       queue.current = queue.current.filter((q) => {
         if (q.t > clock.current) return true
+        if (!q.confetti) {
+          // A rocket climbs from the foot of the screen and bursts where the show says.
+          const from = h + 10
+          const climb = 26
+          sparks.current.push({
+            x: q.x * w + (Math.random() - 0.5) * 30, y: from, px: q.x * w, py: from,
+            vx: 0, vy: (q.y * h - from) / climb, life: 0, max: climb,
+            color: q.colors[0], size: 2.4, shell: { n: q.n, colors: q.colors, ring: launched.current++ % 3 === 2 },
+          })
+          return false
+        }
         for (let i = 0; i < q.n; i++) {
           const a = (i / q.n) * Math.PI * 2 + Math.random() * 0.2
           const speed = q.confetti ? 3 + Math.random() * 5 : 1.6 + Math.random() * 3.4
@@ -115,12 +132,14 @@ export function Fireworks() {
           sparks.current.push({
             x: q.x * w,
             y: q.y * h,
+            px: q.x * w,
+            py: q.y * h,
             vx: Math.cos(a) * speed,
             vy,
             life: 0,
             max: q.confetti ? 90 + Math.random() * 40 : 55 + Math.random() * 35,
             color: q.colors[i % q.colors.length],
-            size: q.confetti ? 5 : 2.2,
+            size: q.confetti ? 5 + Math.random() * 5 : 2.2,
             spin: q.confetti ? Math.random() * Math.PI : undefined,
           })
         }
@@ -128,33 +147,81 @@ export function Fireworks() {
       })
       // fade the previous frame for trails
       ctx.globalCompositeOperation = 'destination-out'
-      ctx.fillStyle = 'rgba(0,0,0,0.22)'
+      ctx.fillStyle = 'rgba(0,0,0,0.18)'
       ctx.fillRect(0, 0, w, h)
       ctx.globalCompositeOperation = 'source-over'
       const k = dt / 16
+      const born: Spark[] = []
       sparks.current = sparks.current.filter((s) => {
         s.life += k
-        s.vy += 0.045 * k
-        s.vx *= 0.985
+        s.px = s.x
+        s.py = s.y
+        if (s.shell) {
+          // A rocket: steady climb, slowing at the top, then it becomes its sparks.
+          const left = 1 - s.life / s.max
+          s.x += s.vx * k
+          s.y += s.vy * k * (0.55 + left)
+          ctx.globalAlpha = 0.9
+          ctx.strokeStyle = '#ECE0C7'
+          ctx.lineWidth = 2
+          ctx.lineCap = 'round'
+          ctx.beginPath()
+          ctx.moveTo(s.px, s.py + 14)
+          ctx.lineTo(s.x, s.y)
+          ctx.stroke()
+          if (s.life < s.max) return true
+          const { n, colors, ring } = s.shell
+          for (let i = 0; i < n; i++) {
+            const a = (i / n) * Math.PI * 2 + Math.random() * 0.2
+            // A ring bursts at one speed; a chrysanthemum at many, with a bright slow core.
+            const speed = ring ? 4.2 + Math.random() * 0.5 : i % 4 === 0 ? 0.8 + Math.random() * 1.2 : 1.8 + Math.random() * 3.6
+            born.push({
+              x: s.x, y: s.y, px: s.x, py: s.y,
+              vx: Math.cos(a) * speed, vy: Math.sin(a) * speed,
+              life: 0, max: 60 + Math.random() * 45,
+              color: colors[i % colors.length], size: i % 4 === 0 ? 1.4 : 2.2,
+            })
+          }
+          // The flash at the heart of the burst.
+          ctx.globalAlpha = 0.5
+          ctx.fillStyle = '#ECE0C7'
+          ctx.beginPath()
+          ctx.arc(s.x, s.y, 26, 0, Math.PI * 2)
+          ctx.fill()
+          return false
+        }
+        s.vy += (s.spin !== undefined ? 0.07 : 0.045) * k
+        s.vx *= s.spin !== undefined ? 0.985 : 0.975
+        if (s.spin === undefined) s.vy *= 0.985
         s.x += s.vx * k
         s.y += s.vy * k
-        const alpha = Math.max(0, 1 - s.life / s.max)
+        const age = s.life / s.max
+        // Sparks twinkle as they die.
+        const alpha = Math.max(0, 1 - age) * (age > 0.6 && s.spin === undefined ? 0.55 + 0.45 * Math.sin(s.life * 1.7 + s.max) : 1)
         ctx.globalAlpha = alpha
-        ctx.fillStyle = s.color
         if (s.spin !== undefined) {
+          // Confetti is cut like the brand's bars: slanted slips that tumble as they fall.
           s.spin += 0.2 * k
+          s.vx += Math.sin(s.life * 0.12 + s.max) * 0.05 * k
+          ctx.fillStyle = s.color
           ctx.save()
           ctx.translate(s.x, s.y)
           ctx.rotate(s.spin)
-          ctx.fillRect(-s.size / 2, -s.size / 4, s.size, s.size / 2)
+          ctx.transform(1, 0, -0.0875, Math.cos(s.spin * 1.3), 0, 0)
+          ctx.fillRect(-s.size / 4, -s.size / 2, s.size / 2, s.size)
           ctx.restore()
         } else {
+          ctx.strokeStyle = s.color
+          ctx.lineWidth = s.size * (1 - age * 0.5)
+          ctx.lineCap = 'round'
           ctx.beginPath()
-          ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2)
-          ctx.fill()
+          ctx.moveTo(s.px, s.py)
+          ctx.lineTo(s.x, s.y)
+          ctx.stroke()
         }
         return s.life < s.max && s.y < h + 20
       })
+      if (born.length) sparks.current.push(...born)
       ctx.globalAlpha = 1
       if (sparks.current.length === 0 && queue.current.length === 0) {
         ctx.clearRect(0, 0, w, h)

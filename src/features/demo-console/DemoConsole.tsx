@@ -23,8 +23,8 @@ const HOUR_PER_SEC = 3_600_000
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="mb-3">
-      <div className="mb-1 text-xs font-semibold text-turquoise">{label}</div>
+    <div className="demo-row">
+      <div className="mb-2 text-[0.7rem] font-bold uppercase tracking-[0.08em] text-turquoise">{label}</div>
       {children}
     </div>
   )
@@ -49,22 +49,28 @@ export function DemoConsole() {
       {open && (
         <section
           aria-label="Demo console"
-          className="mb-2 max-h-[80dvh] w-[min(92vw,26rem)] overflow-auto rounded-2xl bg-white p-4 text-ink shadow-xl"
+          className="demo-panel mb-2 max-h-[80dvh] w-[min(92vw,26rem)] overflow-auto rounded-[1.25rem] bg-white text-ink"
         >
-          <header className="mb-3 flex items-center justify-between">
-            <h2 className="font-display text-base font-bold text-turquoise">Demo console</h2>
-            <span className="text-xs text-ink">mock data</span>
+          <header className="demo-head sticky top-0 z-10 bg-ink px-4 pb-3 pt-3.5 text-beige">
+            <div className="flex items-center justify-between">
+              <h2 className="font-display text-base font-bold text-yellow">Demo console</h2>
+              <span className="rounded-full bg-beige/15 px-2 py-0.5 text-[0.7rem] font-semibold uppercase tracking-wide">mock data</span>
+            </div>
+            <div className="mt-1.5 flex items-center gap-2 font-semibold leading-snug" data-testid="sim-now">
+              <span aria-hidden className={`size-2 flex-none rounded-full ${clock.mode === 'playing' ? 'animate-pulse bg-yellow' : clock.mode === 'real' ? 'bg-green' : 'bg-beige/50'}`} />
+              <span>
+                {formatDate(now, 'en', { dateStyle: 'full', timeStyle: 'short' })}
+                {clock.mode === 'real' ? ' (real time)' : clock.mode === 'playing' ? ' (playing)' : ''}
+              </span>
+            </div>
           </header>
+          <div className="px-4 pb-2">
 
           <Row label="Simulated time (Riyadh)">
-            <div className="mb-2 font-semibold" data-testid="sim-now">
-              {formatDate(now, 'en', { dateStyle: 'full', timeStyle: 'short' })}
-              {clock.mode === 'real' ? ' (real time)' : clock.mode === 'playing' ? ' (playing)' : ''}
-            </div>
             <input
               type="datetime-local"
               aria-label="Jump to date and time"
-              className="mb-2 min-h-11 w-full rounded-lg border border-gray px-2"
+              className="demo-field mb-2 min-h-11 w-full rounded-lg px-2"
               value={formatTimeParam(now).slice(0, 16)}
               onChange={(e) => {
                 const ms = parseTimeParam(`?t=${e.target.value}`)
@@ -96,7 +102,7 @@ export function DemoConsole() {
           <Row label="Persona">
             <select
               aria-label="Persona"
-              className="min-h-11 w-full rounded-lg border border-gray px-2"
+              className="demo-field min-h-11 w-full rounded-lg px-2"
               value={persona.id}
               onChange={(e) => setPersona(e.target.value)}
             >
@@ -111,7 +117,7 @@ export function DemoConsole() {
               <input
                 type="range"
                 aria-label="GPA"
-                className="w-full accent-green"
+                className="demo-range w-full"
                 min={0}
                 max={4}
                 step={0.01}
@@ -150,14 +156,19 @@ export function DemoConsole() {
           <Row label="Data">
             <Button variant="ghost" onClick={() => { resetDemoData(); toast.success('Demo data reset') }}>Reset demo data</Button>
           </Row>
+          </div>
         </section>
       )}
       <button
         type="button"
         aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
-        className="min-h-11 rounded-full bg-white px-4 font-semibold text-turquoise shadow-lg outline outline-2 outline-turquoise"
+        className="demo-toggle inline-flex min-h-11 items-center gap-2 rounded-full bg-ink px-4 font-semibold text-beige"
       >
+        <span aria-hidden className="relative grid size-2.5 place-items-center">
+          <span className="banner-dot absolute inset-0 rounded-full bg-yellow" />
+          <span className="relative size-2.5 rounded-full bg-yellow" />
+        </span>
         {open ? 'Hide demo' : 'Demo'}
       </button>
     </div>

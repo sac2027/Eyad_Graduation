@@ -147,3 +147,52 @@ html[data-motion='reduced'] .faq::details-content { transition: none; }
 
 .gate-marker { transition: opacity 200ms ease; }
 html[data-motion='reduced'] .gate-marker .marker-pulse { animation: none; opacity: 0; }
+
+/* ── Phase banner ───────────────────────────────────────────────────── */
+.banner-bars {
+  position: absolute; inset-block: 0; width: min(30%, 16rem); opacity: 0.55; transform: skewX(-5deg);
+  background: repeating-linear-gradient(90deg, var(--color-turquoise) 0 3px, transparent 3px 11px, var(--color-turquoise) 11px 19px, transparent 19px 27px, var(--color-turquoise) 27px 28.5px, transparent 28.5px 36px);
+  mask-image: linear-gradient(to right, #000, transparent);
+}
+.banner-text { animation: rise-in 420ms var(--ease-out-strong) 120ms both; }
+.banner-dot { animation: halo 1.8s var(--ease-out-strong) infinite; }
+html[data-motion='reduced'] .banner-dot { animation: none; opacity: 0; }
+html[data-motion='reduced'] .banner-text { animation: fade-in 200ms ease both; }
+
+/* ── Demo console ───────────────────────────────────────────────────── */
+.demo-toggle { box-shadow: 0 0 0 2px var(--color-yellow), 0 10px 24px -10px rgb(11 47 51 / 0.7); transition: transform 160ms var(--ease-out-strong), background-color 180ms ease; }
+.demo-toggle:active { transform: scale(0.97); }
+@media (hover: hover) and (pointer: fine) { .demo-toggle:hover { background: var(--color-turquoise); } }
+.demo-panel {
+  border: 1px solid var(--line); box-shadow: 0 30px 60px -24px rgb(11 47 51 / 0.6), 0 0 0 1px rgb(11 47 51 / 0.05);
+  transform-origin: bottom left; transition: opacity 200ms var(--ease-out-strong), transform 200ms var(--ease-out-strong);
+  @starting-style { opacity: 0; transform: scale(0.95); }
+}
+html.sv-locked .demo-panel { transform-origin: top left; }
+.demo-head::after { content: ''; position: absolute; inset-inline: 0; inset-block-end: 0; height: 3px; background: repeating-linear-gradient(90deg, var(--color-yellow) 0 14px, transparent 14px 20px, var(--color-yellow) 20px 26px, transparent 26px 34px, var(--color-yellow) 34px 36px, transparent 36px 44px); transform: skewX(-5deg); }
+.demo-row { padding-block: 0.85rem; border-block-end: 1px solid var(--line); }
+.demo-row:last-child { border-block-end: 0; }
+.demo-field { border: 1px solid rgb(11 47 51 / 0.3); background: #fff; transition: border-color 150ms ease, box-shadow 150ms ease; }
+.demo-field:focus { outline: none; border-color: var(--color-turquoise); box-shadow: 0 0 0 3px rgb(17 95 102 / 0.18); }
+.demo-range { appearance: none; height: 1.75rem; background: transparent; cursor: pointer; }
+.demo-range::-webkit-slider-runnable-track { height: 6px; border-radius: 999px; background: rgb(11 47 51 / 0.15); }
+.demo-range::-moz-range-track { height: 6px; border-radius: 999px; background: rgb(11 47 51 / 0.15); }
+.demo-range::-webkit-slider-thumb { appearance: none; width: 20px; height: 20px; margin-top: -7px; border-radius: 999px; background: var(--color-turquoise); border: 3px solid #fff; box-shadow: 0 0 0 1.5px var(--color-turquoise), 0 3px 8px rgb(11 47 51 / 0.35); transition: transform 150ms var(--ease-out-strong); }
+.demo-range::-moz-range-thumb { width: 14px; height: 14px; border-radius: 999px; background: var(--color-turquoise); border: 3px solid #fff; box-shadow: 0 0 0 1.5px var(--color-turquoise); }
+.demo-range:active::-webkit-slider-thumb { transform: scale(1.2); }
+html[data-motion='reduced'] .demo-panel { transition: opacity 150ms ease; @starting-style { transform: none; } }
+
+/* ── Certificate moment ─────────────────────────────────────────────── */
+.cert-moment { background: radial-gradient(ellipse at 50% 45%, rgb(17 95 102 / 0.95), rgb(6 26 23 / 0.98) 70%); }
+.cert-rays {
+  position: absolute; inset-block-start: 45%; inset-inline-start: 50%; width: 170vmax; height: 170vmax; margin: -85vmax;
+  background: repeating-conic-gradient(from 0deg, rgb(240 186 79 / 0.1) 0 5deg, transparent 5deg 15deg);
+  mask-image: radial-gradient(circle, #000 0, transparent 55%);
+}
+.cert-rays::after { content: ''; position: absolute; inset: 0; background: inherit; animation: rays-turn 60s linear infinite; }
+.cert-rays { background: none; }
+.cert-rays::after { background: repeating-conic-gradient(from 0deg, rgb(240 186 79 / 0.1) 0 5deg, transparent 5deg 15deg); }
+@keyframes rays-turn { to { transform: rotate(360deg); } }
+.cert-ring { position: absolute; width: 115%; aspect-ratio: 1; border-radius: 999px; border: 2px solid var(--color-yellow); opacity: 0; pointer-events: none; }
+.cert-bars { position: absolute; inset-inline: 0; inset-block-end: 0; height: 26%; display: flex; align-items: flex-end; justify-content: space-between; padding-inline: 2%; opacity: 0.5; transform: skewX(-5deg); }
+.cert-bars i { display: block; background: var(--color-green); transform-origin: bottom; }

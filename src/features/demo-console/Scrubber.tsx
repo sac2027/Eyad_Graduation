@@ -43,7 +43,7 @@ export function Scrubber({ value, onChange, min = SCRUB_MIN, max = SCRUB_MAX }: 
             key={t.id}
             data-tick={t.id}
             title={t.id}
-            className="absolute top-0 h-5 w-0.5 bg-green"
+            className="absolute top-1 h-3.5 w-[3px] -translate-x-1/2 skew-x-[-5deg] rounded-[1px] bg-yellow"
             style={{ left: `${((clamp(t.at, min, max) - min) / (max - min)) * 100}%` }}
           />
         ))}
@@ -51,7 +51,7 @@ export function Scrubber({ value, onChange, min = SCRUB_MIN, max = SCRUB_MAX }: 
       <input
         type="range"
         aria-label="Simulated date and time"
-        className="w-full accent-green"
+        className="demo-range w-full"
         min={min}
         max={max}
         step={HOUR}

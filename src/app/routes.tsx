@@ -33,14 +33,14 @@ function Layout() {
     setPersona(PERSONAS.find((p) => p.role === 'graduate')!.id)
     nav('/me')
   }
-  const link = 'inline-flex min-h-11 items-center px-3 font-semibold text-[var(--header-fg)] aria-[current=page]:underline underline-offset-4'
+  const link = 'nav-link'
   return (
     <>
       <RootPhase />
       <a href="#practical" className="absolute -translate-y-20 focus:translate-y-0 bg-yellow px-4 py-2 font-semibold text-turquoise">
         {t('nav.skip')}
       </a>
-      <header className="flex flex-wrap items-center justify-between gap-x-2 bg-[var(--header-bg)] px-4 py-1 text-[var(--header-fg)]">
+      <header className="site-header flex flex-wrap items-center justify-between gap-x-2 bg-[var(--header-bg)] px-4 py-1.5 text-[var(--header-fg)]">
         <Link to="/" className="inline-flex min-h-11 items-center [--logo-h:22px] sm:[--logo-h:30px]" aria-label="KFUPM">
           <Logo height={30} />
         </Link>

@@ -22,7 +22,7 @@ export function GateMap({ showFacilities = false }: { showFacilities?: boolean }
   const [gate, setGate] = useState<number>(1)
   return (
     <div data-gate-map className="grid gap-4 md:grid-cols-[1fr_16rem]">
-      <figure className="rounded-2xl bg-white p-3">
+      <figure className="panel p-3">
         <svg viewBox="0 0 1000 540" role="img" aria-label={t('map.title')} className="h-auto w-full">
           <ellipse cx="500" cy="270" rx="400" ry="215" fill="#ece0c7" />
           <ellipse cx="500" cy="270" rx="290" ry="140" fill="#009767" opacity="0.9" />
@@ -44,13 +44,14 @@ export function GateMap({ showFacilities = false }: { showFacilities?: boolean }
             </g>
           )}
           {GATES.map((g) => (
-            <g key={g.n} data-gate-marker={g.n} opacity={gate === g.n ? 1 : 0.55}>
+            <g key={g.n} data-gate-marker={g.n} opacity={gate === g.n ? 1 : 0.55} className="gate-marker">
+              {gate === g.n && <rect x={g.x - 40} y={g.y - 22} width="80" height="44" rx="8" fill="none" stroke={g.color} strokeWidth="3" className="marker-pulse" />}
               <rect x={g.x - 40} y={g.y - 22} width="80" height="44" rx="8" fill={g.color} stroke={gate === g.n ? '#000' : 'none'} strokeWidth="4" />
               <text x={g.x} y={g.y + 8} textAnchor="middle" fontSize="24" fontWeight="900" fill={g.n === 3 ? '#ece0c7' : '#000'}>{g.n}</text>
             </g>
           ))}
         </svg>
-        <figcaption className="px-2 pb-1 text-xs text-gray-700">{t('guide.mock-map')}</figcaption>
+        <figcaption className="px-2 pb-1 text-xs text-ink/70">{t('guide.mock-map')}</figcaption>
       </figure>
       <div className="grid content-start gap-2">
         <div className="flex flex-wrap gap-2" role="group" aria-label={t('gates.title')}>
@@ -58,8 +59,8 @@ export function GateMap({ showFacilities = false }: { showFacilities?: boolean }
             <Chip key={g.n} selected={gate === g.n} onToggle={() => setGate(g.n)} data-gate-chip={g.n}>{t(`gate.${g.n}`)}</Chip>
           ))}
         </div>
-        <p className="rounded-xl bg-white p-4 font-semibold" data-gate-note aria-live="polite">{t(`gate.${gate}.note`)}</p>
-        <ul className="rounded-xl bg-white p-4 text-sm">
+        <p key={gate} className="panel pop p-4 font-semibold" data-gate-note aria-live="polite">{t(`gate.${gate}.note`)}</p>
+        <ul className="panel-quiet grid gap-1 p-4 text-sm">
           <li>{t('parking.p1')}</li>
           <li>{t('parking.p3')}</li>
         </ul>

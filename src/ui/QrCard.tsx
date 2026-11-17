@@ -32,8 +32,10 @@ interface QrCardProps {
 export function QrCard({ name, rows, code, label, onShare, note }: QrCardProps) {
   const t = useT()
   return (
-    <article data-qr-card className="mx-auto w-full max-w-sm overflow-hidden rounded-3xl bg-white p-5 text-black">
-      <h3 className="mb-3 break-words text-2xl font-black text-turquoise [overflow-wrap:anywhere]" data-qr-name>{name}</h3>
+    <article data-qr-card className="qr-card mx-auto w-full max-w-sm overflow-hidden rounded-3xl bg-white text-black shadow-[var(--shadow-card)]">
+      <div className="bg-turquoise px-5 py-4 text-beige"><h3 className="break-words text-2xl font-black [overflow-wrap:anywhere]" data-qr-name>{name}</h3></div>
+      <div className="qr-tear" aria-hidden />
+      <div className="p-5 pt-3">
       <dl className="mb-4 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1">
         {rows.map((r) => (
           <div key={r.label} className="contents">
@@ -50,6 +52,7 @@ export function QrCard({ name, rows, code, label, onShare, note }: QrCardProps) 
       {onShare && (
         <Button className="mt-3 w-full" variant="secondary" onClick={onShare}>{t('qr.share')}</Button>
       )}
+      </div>
     </article>
   )
 }

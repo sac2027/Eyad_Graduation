@@ -1,7 +1,9 @@
 import NumberFlow from '@number-flow/react'
 import { Link } from 'react-router-dom'
 import { PERSONAS, seatService, ticketService, useSeatVersion, useTicketClaims } from '@/data'
-import { useLocale, useT, formatDate } from '@/i18n'
+import type { CSSProperties } from 'react'
+import { useLocale, useT, formatDate, formatNumber } from '@/i18n'
+import { PageHero } from '@/ui/PageHero'
 import { useSession } from '@/session/sessionStore'
 import { useNow } from '@/time/clockStore'
 import { SCHEDULE } from '@/time/schedule'
@@ -23,11 +25,11 @@ export function Tickets() {
 
   if (persona.role !== 'graduate') {
     return (
-      <main className="mx-auto max-w-3xl px-4 py-10" data-tickets-guest>
-        <h1 className="text-4xl font-black text-turquoise">{t('tickets.guest.title')}</h1>
-        <p className="mt-3 text-lg">{t('tickets.guest.note')}</p>
-        <p className="mt-1 text-sm">{t('tickets.guest.mock')}</p>
-        <div className="mt-6">
+      <main data-tickets-guest>
+        <PageHero width="narrow" seed={44} title={t('tickets.guest.title')} sub={t('tickets.guest.note')} />
+        <div className="mx-auto max-w-3xl px-4 pb-14">
+        <p className="text-sm text-ink/75">{t('tickets.guest.mock')}</p>
+        <div className="rise mt-6" style={{ '--i': 4 } as CSSProperties}>
           <QrCard
             name={locale === 'ar' ? 'ضيف خالد العتيبي' : 'Guest of Khaled Alotaibi'}
             label={t('tickets.your-tickets')}
@@ -40,6 +42,7 @@ export function Tickets() {
           />
         </div>
         <Button className="mt-6" variant="ghost" onClick={() => setPersona(PERSONAS.find((p) => p.role === 'graduate')!.id)}>{t('me.sign-in')}</Button>
+        </div>
       </main>
     )
   }
@@ -64,15 +67,20 @@ export function Tickets() {
         : null
 
   return (
-    <main className="mx-auto max-w-4xl px-4 py-8" data-tickets>
-      <h1 className="text-4xl font-black text-turquoise">{t('tickets.title')}</h1>
-      <p className="mt-2">
-        <Link to="/stadium" className="inline-flex min-h-11 items-center font-semibold text-turquoise underline" data-stadium-link>{t('stadium.link.see')}</Link>
-      </p>
-      {closedMsg && <p className="mt-3 rounded-xl bg-white p-4 font-semibold" role="status" data-tickets-msg>{closedMsg}</p>}
+    <main data-tickets>
+      <PageHero seed={44} eyebrow={t('tickets.eyebrow')} title={t('tickets.title')}>
+        <Link to="/stadium" className="text-link text-yellow" data-stadium-link>{t('stadium.link.see')} <span className="go" aria-hidden>→</span></Link>
+      </PageHero>
+      <div className="mx-auto max-w-4xl px-4 pb-14">
+      {closedMsg && (
+        <p className="panel-quiet rise flex items-center gap-3 p-4 font-semibold" style={{ '--i': 4 } as CSSProperties} role="status" data-tickets-msg>
+          <span aria-hidden className="grid size-8 flex-none place-items-center rounded-full bg-yellow font-black text-black">!</span>
+          {closedMsg}
+        </p>
+      )}
 
-      <section className="mt-6 rounded-2xl bg-white p-5" aria-labelledby="s1">
-        <h2 id="s1" className="mb-3 text-xl font-bold">1. {t('tickets.step1')}</h2>
+      <section className="panel rise mt-6 p-5 sm:p-6" style={{ '--i': 5 } as CSSProperties} aria-labelledby="s1">
+        <h2 id="s1" className="mb-3 flex items-center gap-3 text-xl font-bold"><StepNo n={1} done={attending} />{t('tickets.step1')}</h2>
         {attending ? (
           <p className="font-bold text-turquoise" data-attending>{t('tickets.attending')} ✓</p>
         ) : (
@@ -82,8 +90,8 @@ export function Tickets() {
 
       {attending && (
         <>
-          <section className="mt-4 rounded-2xl bg-white p-5" aria-labelledby="s2">
-            <h2 id="s2" className="mb-3 text-xl font-bold">2. {t('tickets.step2')}</h2>
+          <section className="panel pop mt-4 p-5 sm:p-6" aria-labelledby="s2">
+            <h2 id="s2" className="mb-3 flex items-center gap-3 text-xl font-bold"><StepNo n={2} done={ent.second === 'claimed'} />{t('tickets.step2')}</h2>
             <p className="font-semibold">{t('tickets.guaranteed')}</p>
             <div className="mt-3 flex flex-wrap items-end gap-3">
               <div>
@@ -108,26 +116,26 @@ export function Tickets() {
             {ent.second === 'waitlist' && <p className="mt-2 font-bold" data-second="waitlist">{t('tickets.waitlist', { date: formatDate(SCHEDULE.seatsReleased, locale) })}</p>}
           </section>
 
-          <section className="mt-4" aria-labelledby="s3">
-            <h2 id="s3" className="mb-3 text-xl font-bold">3. {t('tickets.step3')}</h2>
-            <div className="mb-3 flex flex-wrap items-center gap-4 rounded-2xl bg-white p-4">
+          <section className="pop mt-6" aria-labelledby="s3">
+            <h2 id="s3" className="mb-3 flex items-center gap-3 text-xl font-bold"><StepNo n={3} done={confirmed.length > 0} />{t('tickets.step3')}</h2>
+            <div className="panel mb-3 flex flex-wrap items-center gap-4 p-4">
               <label className="flex min-h-11 cursor-pointer items-center gap-3">
                 <input type="checkbox" className="size-5 accent-green" checked={canEasy} onChange={(e) => seatService.setNeedsEasyAccess(persona.id, e.target.checked)} />
                 {t('tickets.easy')}
               </label>
-              <Link to="/guide#access" className="font-semibold underline">{t('tickets.easy.link')}</Link>
+              <Link to="/guide#access" className="text-link text-turquoise">{t('tickets.easy.link')}</Link>
             </div>
             {bookingOpen ? (
               <SeatMap userId={persona.id} allowance={allowance} canEasy={canEasy} />
             ) : (
-              <p className="rounded-xl bg-white p-4">{closedMsg}</p>
+              <p className="panel-quiet p-4">{closedMsg}</p>
             )}
           </section>
         </>
       )}
 
       {confirmed.length > 0 && (
-        <section className="mt-6" aria-labelledby="s4" data-your-tickets>
+        <section className="pop mt-8" aria-labelledby="s4" data-your-tickets>
           <h2 id="s4" className="mb-3 text-2xl font-black text-turquoise">{t('tickets.your-tickets')}</h2>
           <div className="grid gap-4 sm:grid-cols-2">
             {confirmed.map((s) => (
@@ -150,6 +158,18 @@ export function Tickets() {
           </div>
         </section>
       )}
+      </div>
     </main>
+  )
+}
+
+/** A step's number in a ring; a tick once the step is done. */
+function StepNo({ n, done }: { n: number; done: boolean }) {
+  const locale = useLocale((s) => s.locale)
+  return (
+    <span className={`grid size-8 flex-none place-items-center rounded-full text-sm font-black transition-colors duration-200 ${done ? 'bg-green text-black' : 'bg-turquoise text-beige'}`}>
+      {/* The full stop keeps the heading reading "1. Confirm..." to a screen reader and in plain text. */}
+      <span>{formatNumber(n, locale)}<span className="sr-only">. </span></span>
+    </span>
   )
 }

@@ -26,12 +26,12 @@ export function AccessibilityFlow() {
     ['wheelchair', t('access.wheelchair')],
   ]
   return (
-    <div data-access-flow className="rounded-2xl bg-white p-6">
+    <div data-access-flow className="panel p-6">
       <fieldset>
         <legend className="mb-3 text-xl font-bold text-turquoise">{t('access.q')}</legend>
         <div className="grid gap-2">
           {opts.map(([v, label]) => (
-            <label key={v} className="flex min-h-11 cursor-pointer items-center gap-3 rounded-xl px-3 outline outline-1 -outline-offset-1 outline-gray has-[:checked]:bg-turquoise has-[:checked]:text-beige">
+            <label key={v} className="choice flex min-h-12 cursor-pointer items-center gap-3 rounded-xl px-4 outline outline-1 -outline-offset-1 outline-ink/25 has-[:checked]:bg-turquoise has-[:checked]:text-beige has-[:checked]:outline-turquoise">
               <input type="radio" name="mobility" value={v} checked={mobility === v} onChange={() => { setMobility(v); setResult(null) }} className="size-5 accent-green" />
               {label}
             </label>
@@ -44,7 +44,7 @@ export function AccessibilityFlow() {
       </fieldset>
       <Button className="mt-4" onClick={() => setResult(routeForParty({ mobility, elderly }))}>{t('access.show')}</Button>
       {result && (
-        <div className="mt-5 rounded-xl bg-beige p-4" role="status" data-access-result data-gate={result.gate} data-zone={result.zone}>
+        <div className="pop stripe mt-5 rounded-xl bg-beige p-4 ps-6 [--stripe:var(--color-green)]" role="status" data-access-result data-gate={result.gate} data-zone={result.zone}>
           <h3 className="text-lg font-bold text-turquoise">{t('access.result')}</h3>
           <dl className="mt-2 grid gap-1">
             <div><dt className="inline font-semibold">{t('access.gate')}: </dt><dd className="inline">{t(`gate.${result.gate === 'gate-3' ? 3 : 1}`)}</dd></div>

@@ -2,6 +2,7 @@ import { MatrixField } from '@/brand/matrix/MatrixField'
 import { formatDate, formatNumber, useLocale, useT } from '@/i18n'
 import { SCHEDULE } from '@/time/schedule'
 import { ButtonLink } from '@/ui/Button'
+import { Reveal } from '@/ui/Reveal'
 import type { PersonalStatus, StepInfo } from './steps'
 
 interface Props {
@@ -38,7 +39,7 @@ export function StepSection({ step, gender, status, isGrad }: Props) {
     <section id={`step-${id}`} data-step={id} aria-labelledby={`step-${id}-title`} className="scroll-mt-24 overflow-x-clip py-6 sm:py-10">
       <div className={dark ? 'bg-turquoise text-beige [transform:skewY(-2deg)]' : ''}>
         <div className={`mx-auto grid max-w-5xl items-center gap-6 px-4 py-8 md:grid-cols-[1.1fr_1fr] md:gap-10 ${dark ? '[transform:skewY(2deg)]' : ''}`}>
-          <div>
+          <Reveal>
             <div className={`font-display text-7xl font-black leading-none sm:text-8xl ${dark ? 'text-yellow' : 'text-turquoise'}`} aria-hidden>
               {formatNumber(n, locale).padStart(2, formatNumber(0, locale))}
             </div>
@@ -47,9 +48,9 @@ export function StepSection({ step, gender, status, isGrad }: Props) {
               {t(`step.${id}.title.${gender}`)}
             </h2>
             <p className="mt-3 max-w-prose text-lg">{t(`step.${id}.sub`)}</p>
-          </div>
+          </Reveal>
 
-          <div className={`rounded-2xl p-5 shadow-sm ${dark ? 'bg-ink/40' : 'bg-white'}`}>
+          <Reveal i={2} className={`stripe rounded-[1.25rem] p-5 ps-7 sm:p-6 sm:ps-8 ${dark ? 'bg-ink/40 [--stripe:var(--color-yellow)]' : 'panel [--stripe:var(--color-green)]'}`}>
             <dl className="grid gap-3">
               <div>
                 <dt className="text-xs font-bold uppercase tracking-wide opacity-80">{t('step.when')}</dt>
@@ -78,7 +79,7 @@ export function StepSection({ step, gender, status, isGrad }: Props) {
                 )}
               </div>
             )}
-          </div>
+          </Reveal>
         </div>
       </div>
       {n === 9 && (

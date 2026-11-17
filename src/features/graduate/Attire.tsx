@@ -1,7 +1,9 @@
 import { useState } from 'react'
+import type { CSSProperties } from 'react'
+import { PageHero } from '@/ui/PageHero'
 import { ABAYA_SIZES, BISHT_SIZES, gownService, useGownRecord } from '@/data'
 import { PERSONAS } from '@/data'
-import { useLocale, useT, formatDate } from '@/i18n'
+import { useLocale, useT, formatDate, formatNumber } from '@/i18n'
 import { placesLeft } from '@/i18n/plurals'
 import { useSession } from '@/session/sessionStore'
 import { useNow } from '@/time/clockStore'
@@ -34,7 +36,7 @@ function AttireInner() {
 
   if (persona.role !== 'graduate') {
     return (
-      <main className="mx-auto max-w-3xl px-4 py-14">
+      <main className="rise mx-auto max-w-3xl px-4 py-14">
         <h1 className="text-4xl font-black text-turquoise">{t('attire.title')}</h1>
         <p className="mt-3">{t('me.not-grad')}</p>
         <Button className="mt-5" onClick={() => setPersona(PERSONAS.find((p) => p.role === 'graduate')!.id)}>{t('me.sign-in')}</Button>
@@ -79,23 +81,21 @@ function AttireInner() {
   const slot = gownService.slots.find((s) => s.id === rec.slotId)
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-8" data-attire>
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-4xl font-black text-turquoise">{t('attire.title')}</h1>
-        <StatusChip status={status} />
-      </div>
-
-      <ol className="my-5 grid grid-cols-5 gap-1 text-center text-xs" aria-label={t('attire.title')}>
+    <main data-attire>
+      <PageHero width="narrow" seed={31} eyebrow={t('attire.eyebrow')} title={t('attire.title')} aside={<StatusChip status={status} />} />
+      <div className="mx-auto max-w-3xl px-4 pb-14">
+      <ol className="flow rise mb-7 grid grid-cols-5 text-xs sm:text-sm" style={{ '--i': 3 } as CSSProperties} aria-label={t('attire.title')}>
         {FLOW.map((s, i) => (
-          <li key={s} data-flow={s} data-reached={i <= stepIdx} className={`rounded-lg px-1 py-2 ${i <= stepIdx ? 'bg-green font-bold text-black' : 'bg-white'}`}>
-            {t(`gown.${s}`)}
+          <li key={s} data-flow={s} data-reached={i <= stepIdx} data-here={i === stepIdx} className={`flow-step ${i <= stepIdx ? 'font-bold' : 'text-ink/70'}`}>
+            <span className="flow-dot" aria-hidden>{formatNumber(i + 1, locale)}</span>
+            <span className="px-1">{t(`gown.${s}`)}</span>
           </li>
         ))}
       </ol>
 
-      <section className="rounded-2xl bg-white p-5" aria-labelledby="size-h">
+      <section className="panel rise p-5 sm:p-6" style={{ '--i': 4 } as CSSProperties} aria-labelledby="size-h">
         <h2 id="size-h" className="mb-3 text-xl font-bold">{t(`attire.size.${persona.gender}`)}</h2>
-        {status === 'upcoming' && <p data-attire-msg="upcoming">{t('attire.upcoming', { date: formatDate(SCHEDULE.stages.attire.opens, locale) })}</p>}
+        {status === 'upcoming' && <p data-attire-msg="upcoming" className="text-ink/80">{t('attire.upcoming', { date: formatDate(SCHEDULE.stages.attire.opens, locale) })}</p>}
         {status === 'closed' && rec.status === 'none' && <p data-attire-msg="closed" role="status">{t('attire.closed', { date: formatDate(due, locale) })}</p>}
         {(status === 'open' || status === 'due-soon' || rec.status !== 'none') && (
           <>
@@ -111,7 +111,7 @@ function AttireInner() {
       </section>
 
       {rec.status !== 'none' && rec.status !== 'returned' && (
-        <section className="mt-5 rounded-2xl bg-white p-5" aria-labelledby="slot-h">
+        <section className="panel pop mt-5 p-5 sm:p-6" aria-labelledby="slot-h">
           <h2 id="slot-h" className="mb-3 text-xl font-bold">{t('attire.slots')}</h2>
           {rec.status === 'requested' ? (
             <>
@@ -147,6 +147,7 @@ function AttireInner() {
           )}
         </section>
       )}
+      </div>
     </main>
   )
 }

@@ -417,4 +417,11 @@ export const ar: Record<string, string> = {
   'stadium.link.book': 'احجز مقعدك على أرض الملعب',
   'stadium.link.see': 'شاهد الملعب ثلاثي الأبعاد',
   'nav.stadium': 'الملعب',
+  'me.stadium.title': 'مقعدك على أرض الملعب',
+  'me.stadium.note': 'تجوّل في الملعب ثلاثي الأبعاد، واختر مقعدك، وشاهد المنصة منه.',
+  'me.progress': '{done} من {total} مكتملة',
+  'guide.eyebrow': 'للخريجين وعائلاتهم',
+  'tickets.eyebrow': 'الخطوة الرابعة من رحلتك',
+  'attire.eyebrow': 'الخطوة الثالثة من رحلتك',
+  'admin.eyebrow': 'شؤون الطلاب',
 }

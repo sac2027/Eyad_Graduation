@@ -417,4 +417,11 @@ export const en: Record<string, string> = {
   'stadium.link.book': 'Book your seat on the pitch',
   'stadium.link.see': 'See the stadium in 3D',
   'nav.stadium': 'Stadium',
+  'me.stadium.title': 'Your seat on the pitch',
+  'me.stadium.note': 'Walk the stadium in 3D, choose your seat and see the stage from it.',
+  'me.progress': '{done} of {total} done',
+  'guide.eyebrow': 'For graduates and families',
+  'tickets.eyebrow': 'Step 4 of your journey',
+  'attire.eyebrow': 'Step 3 of your journey',
+  'admin.eyebrow': 'Student Affairs',
 }

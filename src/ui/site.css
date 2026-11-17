@@ -1,0 +1,149 @@
+/*
+ * The site's shared look and motion: page heroes, panels, entrances, reveals.
+ * Motion follows three rules: only transform and opacity move, entrances ease out, and anything
+ * that moves is stilled when motion is reduced (by the system or by the demo console).
+ */
+:root {
+  --line: rgb(11 47 51 / 0.1);
+  --shadow-card: 0 1px 0 rgb(11 47 51 / 0.04), 0 12px 28px -18px rgb(11 47 51 / 0.35);
+  --shadow-lift: 0 1px 0 rgb(11 47 51 / 0.05), 0 22px 38px -20px rgb(11 47 51 / 0.45);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* ── Header ─────────────────────────────────────────────────────────── */
+.site-header { position: relative; z-index: 20; border-block-end: 1px solid color-mix(in srgb, var(--header-fg) 14%, transparent); }
+.nav-link { position: relative; display: inline-flex; min-height: 2.75rem; align-items: center; padding-inline: 0.75rem; font-weight: 600; color: var(--header-fg); }
+.nav-link::after {
+  content: ''; position: absolute; inset-inline: 0.75rem; inset-block-end: 0.45rem; height: 2px; background: currentColor;
+  transform: scaleX(0); transform-origin: inline-start; transition: transform 220ms var(--ease-out-strong);
+}
+html[dir='rtl'] .nav-link::after { transform-origin: right; }
+html[dir='ltr'] .nav-link::after { transform-origin: left; }
+.nav-link[aria-current='page']::after { transform: scaleX(1); height: 3px; background: var(--color-yellow); }
+@media (hover: hover) and (pointer: fine) { .nav-link:hover::after { transform: scaleX(1); } }
+
+/* ── Page hero ──────────────────────────────────────────────────────── */
+.page-hero { position: relative; isolation: isolate; overflow: hidden; background: var(--color-turquoise); color: var(--color-beige); }
+.page-hero::after {
+  /* A slanted foot, the brand's five degrees, in the page colour. */
+  content: ''; position: absolute; inset-inline: 0; inset-block-end: -1px; height: 2.25rem; background: var(--ground);
+  clip-path: polygon(0 100%, 100% 0, 100% 100%); z-index: 1;
+}
+html[dir='rtl'] .page-hero::after { clip-path: polygon(0 0, 100% 100%, 0 100%); }
+.page-hero-art { position: absolute; inset-block: 0; inset-inline-end: 0; width: min(46rem, 62%); z-index: -1; opacity: 0.5; mask-image: linear-gradient(to left, #000 20%, transparent); }
+html[dir='rtl'] .page-hero-art { mask-image: linear-gradient(to right, #000 20%, transparent); }
+.page-hero-art svg { width: 100%; height: 100%; }
+.eyebrow { display: inline-flex; align-items: center; gap: 0.6rem; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+.eyebrow::before { content: ''; width: 1.75rem; height: 3px; background: var(--color-yellow); transform: skewX(-5deg); }
+html[lang='ar'] .eyebrow { letter-spacing: 0; font-size: 0.95rem; }
+
+/* ── Panels ─────────────────────────────────────────────────────────── */
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 1.25rem; box-shadow: var(--shadow-card); }
+.panel-quiet { background: color-mix(in srgb, #fff 55%, transparent); border: 1px dashed rgb(11 47 51 / 0.22); border-radius: 1.25rem; }
+.panel-link { display: block; transition: transform 220ms var(--ease-out-strong), box-shadow 220ms ease, border-color 220ms ease; }
+.panel-link .go { display: inline-block; transition: transform 220ms var(--ease-out-strong); }
+html[dir='rtl'] .go { scale: -1 1; }
+@media (hover: hover) and (pointer: fine) {
+  .panel-link:hover { transform: translateY(-3px); box-shadow: var(--shadow-lift); border-color: rgb(17 95 102 / 0.4); }
+  .panel-link:hover .go { transform: translateX(4px); }
+}
+.panel-link:active { transform: scale(0.985); }
+
+/* A coloured stripe along a panel's leading edge, drawn in on entry. */
+.stripe { position: relative; overflow: hidden; }
+.stripe::before { content: ''; position: absolute; inset-block: 0; inset-inline-start: 0; width: 5px; background: var(--stripe, var(--color-gray)); transform-origin: top; }
+
+.text-link { display: inline-flex; min-height: 2.75rem; align-items: center; gap: 0.4rem; font-weight: 600; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 5px; text-decoration-color: color-mix(in srgb, currentColor 35%, transparent); transition: text-decoration-color 150ms ease; }
+@media (hover: hover) and (pointer: fine) { .text-link:hover { text-decoration-color: currentColor; } .text-link:hover .go { transform: translateX(4px); } }
+.text-link .go { display: inline-block; transition: transform 220ms var(--ease-out-strong); }
+
+/* ── Entrances: a page's first things rise in, one after another ────── */
+@keyframes rise-in { from { opacity: 0; transform: translateY(14px); } }
+@keyframes fade-in { from { opacity: 0; } }
+@keyframes stripe-in { from { transform: scaleY(0); } }
+@keyframes line-in { from { transform: scaleX(0); } }
+@keyframes pop-in { from { opacity: 0; transform: scale(0.94); } }
+@keyframes draw { from { stroke-dashoffset: var(--len, 30); } }
+.rise { animation: rise-in 560ms var(--ease-out-strong) both; animation-delay: calc(var(--i, 0) * 60ms); }
+.rise .stripe::before, .rise.stripe::before { animation: stripe-in 520ms var(--ease-out-strong) both; animation-delay: calc(var(--i, 0) * 60ms + 180ms); }
+.pop { animation: pop-in 260ms var(--ease-out-strong) both; }
+.draw-check path { stroke-dasharray: 30; --len: 30; animation: draw 420ms var(--ease-out-strong) 120ms both; }
+
+/* ── Scroll reveal: marked by script, so nothing is hidden without it ─ */
+[data-reveal='wait'] { opacity: 0; transform: translateY(18px); }
+[data-reveal] { transition: opacity 620ms var(--ease-out-strong), transform 620ms var(--ease-out-strong); transition-delay: calc(var(--i, 0) * 70ms); }
+
+/* ── Progress trail ─────────────────────────────────────────────────── */
+.trail-line { transform-origin: inline-start; }
+html[dir='ltr'] .trail-line { transform-origin: left; animation: line-in 900ms var(--ease-in-out-strong) 200ms both; }
+html[dir='rtl'] .trail-line { transform-origin: right; animation: line-in 900ms var(--ease-in-out-strong) 200ms both; }
+.trail-dot { animation: pop-in 320ms var(--ease-out-strong) both; animation-delay: calc(var(--i, 0) * 45ms + 150ms); }
+@keyframes halo { from { transform: scale(1); opacity: 0.7; } to { transform: scale(2.1); opacity: 0; } }
+.trail-here::after { content: ''; position: absolute; inset: 0; border-radius: 999px; border: 2px solid var(--color-yellow); animation: halo 1.8s var(--ease-out-strong) infinite; pointer-events: none; }
+
+/* ── Flow steps (attire) ────────────────────────────────────────────── */
+.flow { counter-reset: flow; }
+.flow-step { position: relative; display: grid; justify-items: center; gap: 0.4rem; text-align: center; }
+.flow-dot { position: relative; z-index: 1; display: grid; place-items: center; width: 2rem; height: 2rem; border-radius: 999px; background: #fff; border: 2px solid rgb(11 47 51 / 0.2); font-weight: 800; font-size: 0.8rem; transition: background-color 250ms ease, border-color 250ms ease, transform 250ms var(--ease-out-strong); }
+.flow-step[data-reached='true'] .flow-dot { background: var(--color-green); border-color: var(--color-green); color: #000; }
+.flow-step[data-here='true'] .flow-dot { transform: scale(1.15); box-shadow: 0 0 0 5px rgb(0 151 103 / 0.2); }
+.flow-step::before { content: ''; position: absolute; inset-block-start: calc(1rem - 1.5px); inset-inline-start: -50%; width: 100%; height: 3px; background: rgb(11 47 51 / 0.14); }
+.flow-step:first-child::before { display: none; }
+.flow-step::after { content: ''; position: absolute; inset-block-start: calc(1rem - 1.5px); inset-inline-start: -50%; width: 100%; height: 3px; background: var(--color-green); transform: scaleX(0); transition: transform 500ms var(--ease-in-out-strong); }
+html[dir='ltr'] .flow-step::after { transform-origin: left; }
+html[dir='rtl'] .flow-step::after { transform-origin: right; }
+.flow-step:first-child::after { display: none; }
+.flow-step[data-reached='true']::after { transform: scaleX(1); }
+
+/* ── Questions: a real disclosure that opens smoothly where the browser can ─ */
+.faq { interpolate-size: allow-keywords; }
+.faq summary { list-style: none; display: flex; align-items: center; justify-content: space-between; gap: 1rem; min-height: 2.75rem; cursor: pointer; font-weight: 700; }
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::after { content: ''; flex: none; width: 0.6rem; height: 0.6rem; border-inline-end: 2.5px solid var(--color-turquoise); border-block-end: 2.5px solid var(--color-turquoise); transform: translateY(-2px) rotate(45deg); transition: transform 200ms var(--ease-out-strong); }
+.faq[open] summary::after { transform: translateY(2px) rotate(225deg); }
+.faq::details-content { height: 0; opacity: 0; overflow: hidden; transition: height 200ms var(--ease-out-strong), opacity 200ms var(--ease-out-strong), content-visibility 200ms allow-discrete; }
+.faq[open]::details-content { height: auto; opacity: 1; }
+
+/* ── Choices ────────────────────────────────────────────────────────── */
+.choice { transition: background-color 180ms ease, color 180ms ease, outline-color 180ms ease, transform 160ms var(--ease-out-strong); }
+.choice:active { transform: scale(0.985); }
+
+/* ── The section pills that follow the reader down a long page ──────── */
+.pill-nav { position: sticky; inset-block-start: 0; z-index: 15; background: color-mix(in srgb, var(--ground) 92%, transparent); backdrop-filter: blur(8px); border-block-end: 1px solid var(--line); }
+.pill { display: inline-flex; min-height: 2.75rem; align-items: center; border-radius: 999px; padding-inline: 1rem; font-weight: 600; white-space: nowrap; color: var(--color-turquoise); transition: background-color 180ms ease, color 180ms ease, transform 160ms var(--ease-out-strong); }
+.pill:active { transform: scale(0.97); }
+.pill[aria-current='true'] { background: var(--color-turquoise); color: var(--color-beige); }
+@media (hover: hover) and (pointer: fine) { .pill:not([aria-current='true']):hover { background: rgb(17 95 102 / 0.1); } }
+
+/* ── Bars that fill (admin) ─────────────────────────────────────────── */
+.meter-fill { transform-origin: inline-start; animation: line-in 800ms var(--ease-out-strong) both; animation-delay: calc(var(--i, 0) * 90ms + 150ms); }
+html[dir='ltr'] .meter-fill { transform-origin: left; }
+html[dir='rtl'] .meter-fill { transform-origin: right; }
+
+/* ── Timeline (programme) ───────────────────────────────────────────── */
+.timeline { position: relative; }
+.timeline::before { content: ''; position: absolute; inset-block: 1.4rem; inset-inline-start: 1.05rem; width: 3px; background: rgb(17 95 102 / 0.18); }
+
+/* ── Reduced motion: keep the fades, drop the travel ────────────────── */
+html[data-motion='reduced'] .rise, html[data-motion='reduced'] .pop, html[data-motion='reduced'] .trail-dot { animation: fade-in 200ms ease both; }
+html[data-motion='reduced'] .trail-line, html[data-motion='reduced'] .meter-fill, html[data-motion='reduced'] .stripe::before, html[data-motion='reduced'] .draw-check path { animation: none; }
+html[data-motion='reduced'] .trail-here::after { animation: none; opacity: 0.6; }
+html[data-motion='reduced'] [data-reveal='wait'] { transform: none; }
+html[data-motion='reduced'] [data-reveal] { transition: opacity 200ms ease; transition-delay: 0ms; }
+html[data-motion='reduced'] .panel-link:hover, html[data-motion='reduced'] .panel-link:active { transform: none; }
+html[data-motion='reduced'] .flow-step::after, html[data-motion='reduced'] .flow-dot { transition: none; }
+html[data-motion='reduced'] .faq::details-content { transition: none; }
+@media (prefers-reduced-motion: reduce) {
+  .trail-here::after { animation: none; opacity: 0.6; }
+  [data-reveal='wait'] { transform: none; }
+}
+
+/* ── Ticket ─────────────────────────────────────────────────────────── */
+.qr-card { border: 1px solid var(--line); }
+.qr-tear { position: relative; height: 0; border-block-start: 2px dashed rgb(11 47 51 / 0.25); margin-inline: 1.25rem; }
+.qr-tear::before, .qr-tear::after { content: ''; position: absolute; inset-block-start: -0.7rem; width: 1.4rem; height: 1.4rem; border-radius: 999px; background: var(--ground); }
+.qr-tear::before { inset-inline-start: -2rem; }
+.qr-tear::after { inset-inline-end: -2rem; }
+
+.gate-marker { transition: opacity 200ms ease; }
+html[data-motion='reduced'] .gate-marker .marker-pulse { animation: none; opacity: 0; }

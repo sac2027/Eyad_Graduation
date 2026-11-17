@@ -3,6 +3,7 @@ import { Button } from '@/ui/Button'
 import { Chip } from '@/ui/Chip'
 import { Dialog } from '@/ui/Dialog'
 import { toast } from '@/ui/toast'
+import { PageHero } from '@/ui/PageHero'
 import { Graduate } from '@/features/stadium/figure/Graduate'
 import { Certificate } from '@/features/stadium/Certificate'
 
@@ -16,8 +17,9 @@ export function KitPage() {
     setTimeout(() => setState(undefined), 1800)
   }
   return (
-    <main className="mx-auto grid max-w-3xl gap-6 px-4 py-10">
-      <h1 className="text-3xl font-black text-turquoise">UI kit</h1>
+    <main>
+      <PageHero width="narrow" seed={5} eyebrow="Design system" title="UI kit" />
+      <div className="mx-auto grid max-w-3xl gap-6 px-4 pb-14">
       <section data-kit-figures className="flex flex-wrap items-end gap-2 rounded-2xl bg-[#08262a] p-4">
         {Array.from({ length: 12 }, (_, i) => <Graduate key={`b${i}`} outfit="bisht" mode="walk" frame={i} height={150} />)}
         <Graduate outfit="bisht" mode="hold-certificate" height={170} aura="bright" />
@@ -46,6 +48,7 @@ export function KitPage() {
       <Dialog open={open} onOpenChange={setOpen} title="Dialog">
         <p>Plain dialog content.</p>
       </Dialog>
+      </div>
     </main>
   )
 }

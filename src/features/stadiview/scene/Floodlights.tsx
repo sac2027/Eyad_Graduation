@@ -4,7 +4,7 @@ import { VENUE } from '@/features/stadiview/config/venue'
 import type { Vec3, VenueConfig } from '@/features/stadiview/config/venue'
 import { MeshBuilder } from '@/features/stadiview/scene/meshBuilder'
 import { PAINT } from '@/features/stadiview/scene/palette'
-import { useSceneKit } from '@/features/stadiview/scene/sceneKit'
+import { useStatic } from '@/features/stadiview/scene/staticWorld'
 
 const GROUND = -0.12
 
@@ -231,7 +231,6 @@ function coneMaterial(): ShaderMaterial {
 
 /** The four floodlight masts: steel, lamp banks, a halo round each, and (when `cones` is set) shafts of light toward the pitch. */
 export function Floodlights({ cones }: { cones: boolean }) {
-  const kit = useSceneKit()
   const masts = useMemo(() => buildMasts(), [])
   const halos = useMemo(() => buildHalos(), [])
   const shafts = useMemo(() => (cones ? buildCones() : null), [cones])
@@ -250,10 +249,10 @@ export function Floodlights({ cones }: { cones: boolean }) {
   )
   useEffect(() => () => shafts?.dispose(), [shafts])
 
+  useStatic('lit', masts.lit)
+  useStatic('glow', masts.glow)
   return (
     <group dispose={null}>
-      <mesh geometry={masts.lit} material={kit.lit} />
-      <mesh geometry={masts.glow} material={kit.glow} />
       {/* The squares are stretched by the shader, so their real bounds are unknown to the renderer: never cull them. */}
       <mesh geometry={halos} material={haloLook} frustumCulled={false} renderOrder={5} />
       {shafts && <mesh geometry={shafts} material={coneLook} frustumCulled={false} renderOrder={4} />}

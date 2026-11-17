@@ -9,11 +9,11 @@ import type { Vec3, VenueConfig } from '@/features/stadiview/config/venue'
 import { MeshBuilder, pictureQuad } from '@/features/stadiview/scene/meshBuilder'
 import { matrixBarsMaterial } from '@/features/stadiview/scene/matrixShader'
 import { PAINT, SV } from '@/features/stadiview/scene/palette'
-import { useSceneKit } from '@/features/stadiview/scene/sceneKit'
 import { drawCongratsSlide, drawCrestPanel, drawTitleSlide, fontsReady, loadPicture } from '@/features/stadiview/scene/stageArt'
 import type { ScreenWords } from '@/features/stadiview/scene/stageArt'
 import { formatDate, useLocale, useT } from '@/i18n'
 import { SCHEDULE } from '@/time/schedule'
+import { useStatic } from '@/features/stadiview/scene/staticWorld'
 
 const GROUND = -0.12
 
@@ -122,7 +122,6 @@ function pictureTexture(source: HTMLCanvasElement, anisotropy: number): CanvasTe
 
 /** The main stage: deck, steps, lectern, the backdrop with the animated FAST Matrix, and two LED screens. */
 export function Stage({ animate }: { animate: boolean }) {
-  const kit = useSceneKit()
   const gl = useThree((s) => s.gl)
   const invalidate = useThree((s) => s.invalidate)
   const t = useT()
@@ -204,10 +203,10 @@ export function Stage({ animate }: { animate: boolean }) {
     for (const mesh of second.current) if (mesh) mesh.visible = opacity > 0.002
   })
 
+  useStatic('lit', parts.lit)
+  useStatic('glow', parts.glow)
   return (
     <group dispose={null} userData={{ drawn }}>
-      <mesh geometry={parts.lit} material={kit.lit} />
-      <mesh geometry={parts.glow} material={kit.glow} />
       <mesh geometry={parts.bars.geometry} material={prestige} />
       <mesh geometry={parts.crest} material={materials.crest} />
       {parts.screens.map((g, i) => (

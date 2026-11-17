@@ -55,6 +55,8 @@ export interface StadiViewDebug {
   beacon?(): { seat: string; height: number } | null
   /** What draws the frame after the scene: 'bloom' on tier 3 (until frames turn slow), else 'none'. */
   postprocessing?(): 'bloom' | 'none'
+  /** The pixel ratio the stadium is drawn at now, and whether it adapts to the frame rate. */
+  resolution?(): { ratio: number; adaptive: boolean }
   /** The walking route shown, if any. */
   route?(): { seat: string; gate: number; length: number; points: number } | null
   /** For tests: the signed-in graduate's place in the directory. */

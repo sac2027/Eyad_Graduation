@@ -18,6 +18,7 @@ export function Bloom() {
   const scene = useThree((s) => s.scene)
   const camera = useThree((s) => s.camera)
   const size = useThree((s) => s.size)
+  const dpr = useThree((s) => s.viewport.dpr)
   const [composer, setComposer] = useState<EffectComposer | null>(null)
   const [stopped, setStopped] = useState(false)
 
@@ -47,9 +48,9 @@ export function Bloom() {
 
   useEffect(() => {
     if (!composer) return
-    composer.setPixelRatio(gl.getPixelRatio())
+    composer.setPixelRatio(dpr)
     composer.setSize(size.width, size.height)
-  }, [composer, size, gl])
+  }, [composer, size, dpr])
 
   useEffect(() => {
     extendDebugHook({ postprocessing: () => (composer && !stopped ? 'bloom' : 'none') })

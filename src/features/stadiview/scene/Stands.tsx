@@ -10,7 +10,7 @@ import { getVenue } from '@/features/stadiview/layout/venueLayout'
 import { MeshBuilder, pictureQuad } from '@/features/stadiview/scene/meshBuilder'
 import { matrixBarsMaterial } from '@/features/stadiview/scene/matrixShader'
 import { PAINT, SV } from '@/features/stadiview/scene/palette'
-import { useSceneKit } from '@/features/stadiview/scene/sceneKit'
+import { useStatic } from '@/features/stadiview/scene/staticWorld'
 
 /** Structures reach a little below the ground's top layer, so no gap shows at their feet. */
 const GROUND = -0.12
@@ -227,7 +227,6 @@ function gates(lit: MeshBuilder, glow: MeshBuilder, cfg: VenueConfig): void {
 
 /** The grandstands, their walls, the VIP canopy, the accessibility platform and the five gates. */
 export function Stands({ animate }: { animate: boolean }) {
-  const kit = useSceneKit()
   const parts = useMemo(() => buildStands(), [])
   // "Stadium & Journey": the calmer of the two brand pairings, for the back of the VIP box.
   const journey = useMemo(() => (parts.vipBack ? matrixBarsMaterial([SV.deep, SV.green], 5, parts.vipBack.size) : null), [parts])
@@ -247,10 +246,10 @@ export function Stands({ animate }: { animate: boolean }) {
     if (animate && journey) journey.uniforms.uTime.value = state.clock.elapsedTime * 0.5
   })
 
+  useStatic('lit', parts.lit)
+  useStatic('glow', parts.glow)
   return (
     <group dispose={null}>
-      <mesh geometry={parts.lit} material={kit.lit} />
-      <mesh geometry={parts.glow} material={kit.glow} />
       {parts.vipBack && journey && <mesh geometry={parts.vipBack.geometry} material={journey} />}
     </group>
   )

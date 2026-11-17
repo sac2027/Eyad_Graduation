@@ -4,7 +4,7 @@ import { useFrame, useThree } from '@react-three/fiber'
 import { extendDebugHook } from '@/features/stadiview/debugHook'
 import { edgeLights, getMarchPath } from '@/features/stadiview/engine/marchPath'
 import { buildArrowRibbon, buildCarpetGeometry, CARPET_Y } from '@/features/stadiview/scene/carpetGeometry'
-import { useSceneKit } from '@/features/stadiview/scene/sceneKit'
+import { useStatic } from '@/features/stadiview/scene/staticWorld'
 
 /** The arrows: one every this many metres along the carpet, flowing this fast in march direction. */
 const ARROW_EVERY = 4
@@ -33,7 +33,6 @@ function glowTexture(): CanvasTexture {
  * reduced motion and on low-end devices; they still point the way.
  */
 export function MarchCarpet({ still }: { still: boolean }) {
-  const kit = useSceneKit()
   const invalidate = useThree((s) => s.invalidate)
 
   const built = useMemo(() => {
@@ -99,6 +98,8 @@ export function MarchCarpet({ still }: { still: boolean }) {
     return { path, carpet, lights, pucks, glows, glowMap, lampMaterial, glowMaterial, puck, glowPlane, ribbon }
   }, [])
 
+  useStatic('lit', built.carpet)
+
   useEffect(
     () => () => {
       const b = built
@@ -120,7 +121,6 @@ export function MarchCarpet({ still }: { still: boolean }) {
 
   return (
     <group name="march-carpet">
-      <mesh geometry={built.carpet} material={kit.lit} />
       <mesh geometry={built.ribbon.geometry} material={built.ribbon.material} renderOrder={1} />
       <primitive object={built.pucks} />
       <primitive object={built.glows} />

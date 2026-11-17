@@ -9,6 +9,7 @@ import { getVenue } from '@/features/stadiview/layout/venueLayout'
 import { MeshBuilder, POOL_SPAN } from '@/features/stadiview/scene/meshBuilder'
 import { PAINT } from '@/features/stadiview/scene/palette'
 import { POOL_INTENSITY, useSceneKit } from '@/features/stadiview/scene/sceneKit'
+import { useStatic } from '@/features/stadiview/scene/staticWorld'
 
 /**
  * Heights of the ground's layers, in metres. Chairs stand at 0, so the seating pads are at 0 and
@@ -304,11 +305,11 @@ export function Ground() {
     [trackMaterial],
   )
 
+  useStatic('lit', ground)
+  useStatic('glow', lines)
   return (
     <group dispose={null}>
-      <mesh geometry={ground} material={kit.lit} />
-      <mesh geometry={track} material={trackMaterial} />
-      <mesh geometry={lines} material={kit.glow} />
+      <mesh geometry={track} material={trackMaterial} matrixAutoUpdate={false} />
     </group>
   )
 }

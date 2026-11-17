@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { BufferGeometry, MeshBasicMaterial, Vector3 } from 'three'
 import type { PerspectiveCamera } from 'three'
 import { useFrame, useThree } from '@react-three/fiber'
@@ -10,6 +10,7 @@ import type { PlaceScreen } from '@/features/stadiview/hud/placeAnchors'
 import { MeshBuilder } from '@/features/stadiview/scene/meshBuilder'
 import { SV } from '@/features/stadiview/scene/palette'
 import { useStadium } from '@/features/stadiview/state/stadiumStore'
+import { useStatic } from '@/features/stadiview/scene/staticWorld'
 
 /** How solid the lit frames are outside first person: see-through, so no seat behind them is hidden. */
 export const FRAME_OPACITY_OVERVIEW = 0.42
@@ -147,6 +148,8 @@ export function ProcessionGate() {
     [built],
   )
 
+  // The start's ring, post and link are self-lit and never change: they join the still pile.
+  useStatic('glow', built.start)
   const mode = useStadium((s) => s.mode)
   const seated = mode === 'pov'
 
@@ -155,10 +158,25 @@ export function ProcessionGate() {
   }, [])
 
   // The labels follow their places in the overview, and hide in first person and in flight.
+  // The work is done only when the camera or the canvas has moved: measuring the page every frame is not free.
+  const size = useThree((s) => s.size)
+  const seen = useRef({ key: '', rect: null as DOMRect | null, size: null as unknown })
   useFrame(() => {
+    const orbit = useStadium.getState().mode === 'orbit'
+    const p0 = camera.position
+    const q = camera.quaternion
+    const key = orbit ? `${p0.x.toFixed(3)},${p0.y.toFixed(3)},${p0.z.toFixed(3)},${q.x.toFixed(4)},${q.y.toFixed(4)},${q.z.toFixed(4)},${q.w.toFixed(4)},${camera.fov}` : 'off'
+    const s = seen.current
+    if (s.size !== size) {
+      s.size = size
+      s.rect = null
+      s.key = ''
+    }
+    if (key === s.key) return
+    s.key = key
     const out = { gate: null, start: null, exit: null } as PlaceScreen
-    if (useStadium.getState().mode === 'orbit') {
-      const rect = gl.domElement.getBoundingClientRect()
+    if (orbit) {
+      const rect = (s.rect ??= gl.domElement.getBoundingClientRect())
       camera.updateMatrixWorld()
       for (const p of PLACES) {
         const v = built.scratch.set(p.at[0], p.at[1], p.at[2]).applyMatrix4(camera.matrixWorldInverse)
@@ -174,7 +192,6 @@ export function ProcessionGate() {
   return (
     <group name="procession-places">
       <mesh geometry={built.frames} material={seated ? built.solid : built.frame} renderOrder={3} name="procession-arch" />
-      <mesh geometry={built.start} material={built.solid} />
     </group>
   )
 }

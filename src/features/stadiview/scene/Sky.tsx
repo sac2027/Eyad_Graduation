@@ -3,7 +3,7 @@ import { AdditiveBlending, BackSide, BufferAttribute, BufferGeometry, Color, Sph
 import { AWARD_PROFILE, AWARD_SEGMENTS } from '@/features/honors/awardProfile'
 import { MeshBuilder } from '@/features/stadiview/scene/meshBuilder'
 import { PAINT, SV } from '@/features/stadiview/scene/palette'
-import { useSceneKit } from '@/features/stadiview/scene/sceneKit'
+import { useStatic } from '@/features/stadiview/scene/staticWorld'
 
 /** The sky dome is far beyond everything else; the camera's far plane must reach past it. */
 export const SKY_RADIUS = 1700
@@ -143,7 +143,6 @@ function buildLamps(): BufferGeometry {
 
 /** The night around the stadium: sky, stars, and the campus on the horizon. */
 export function Sky() {
-  const kit = useSceneKit()
   const dome = useMemo(() => buildDome(), [])
   const stars = useMemo(() => buildStars(), [])
   const campus = useMemo(() => buildCampus(), [])
@@ -160,6 +159,8 @@ export function Sky() {
     [dome, stars, campus, lamps],
   )
 
+  useStatic('glow', campus.bodies)
+  useStatic('glow', campus.lights)
   return (
     <group dispose={null}>
       <mesh geometry={dome} renderOrder={-2} frustumCulled={false}>
@@ -168,8 +169,6 @@ export function Sky() {
       <points geometry={stars} renderOrder={-1} frustumCulled={false}>
         <pointsMaterial vertexColors size={1.7} sizeAttenuation={false} fog={false} toneMapped={false} depthWrite={false} transparent />
       </points>
-      <mesh geometry={campus.bodies} material={kit.glow} />
-      <mesh geometry={campus.lights} material={kit.glow} />
       <points geometry={lamps}>
         <pointsMaterial color={PAINT.warm} size={2.2} sizeAttenuation={false} fog={false} toneMapped={false} depthWrite={false} transparent opacity={0.6} blending={AdditiveBlending} />
       </points>

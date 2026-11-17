@@ -12,6 +12,8 @@ import { Ground } from '@/features/stadiview/scene/Ground'
 import { PreviewCamera } from '@/features/stadiview/scene/PreviewCamera'
 import { Avatars } from '@/features/stadiview/scene/Avatars'
 import { Bowl } from '@/features/stadiview/scene/Bowl'
+import { Resolution } from '@/features/stadiview/scene/Resolution'
+import { StaticWorld } from '@/features/stadiview/scene/staticWorld'
 import { Bloom, NoPostprocessing } from '@/features/stadiview/scene/Bloom'
 import { GraduateBeacon } from '@/features/stadiview/scene/GraduateBeacon'
 import { SightlineArc } from '@/features/stadiview/scene/SightlineArc'
@@ -137,6 +139,7 @@ function Scene({ tier, still, onReady, onLost }: Omit<StadiumCanvasProps, 'label
       <color attach="background" args={[SV.night]} />
       <fog attach="fog" args={[SV.night, FOG[0], FOG[1]]} />
       <Lights spots={settings.spotLights} />
+      <StaticWorld>
       <Sky />
       <Ground />
       <Stands animate={!still} />
@@ -145,6 +148,7 @@ function Scene({ tier, still, onReady, onLost }: Omit<StadiumCanvasProps, 'label
       <Floodlights cones={tier >= 2} />
       <MarchCarpet still={still} />
       <ProcessionGate />
+      </StaticWorld>
       <Seats />
       {settings.crowd > 0 && <Avatars crowd={settings.crowd} />}
       <SeatMarker still={still} />
@@ -156,6 +160,7 @@ function Scene({ tier, still, onReady, onLost }: Omit<StadiumCanvasProps, 'label
       <CameraRig still={still} />
       <Lifecycle onReady={onReady} onLost={onLost} />
       <SceneDebug />
+      <Resolution max={settings.maxDpr} />
       {settings.bloom ? <Bloom /> : <NoPostprocessing />}
     </SceneKitContext.Provider>
   )
